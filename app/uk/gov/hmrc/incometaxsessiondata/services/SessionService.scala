@@ -14,18 +14,30 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.incometaxsessiondata.controllers
+package uk.gov.hmrc.incometaxsessiondata.services
 
-import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import uk.gov.hmrc.incometaxsessiondata.domain.models.Session
+
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 
-@Singleton()
-class MicroserviceHelloWorldController @Inject()(cc: ControllerComponents)
-    extends BackendController(cc) {
+@Singleton
+class SessionService @Inject(){
 
-  def hello(): Action[AnyContent] = Action.async { implicit request =>
-    Future.successful(Ok("Hello world"))
-  }
+  def create(session: Session): Future[Either[Throwable, Unit]] =
+    Future.successful(Right(()))
+
+  def get(sessionID: String): Future[Either[Throwable, Session]] =
+    Future.successful(Right(dummySession))
+
+  private lazy val dummySession: Session =
+    Session(
+      sessionID = "some-id",
+      mtditid = "MTDITID",
+      nino = "BB123456A",
+      saUtr = None,
+      clientFirstName = Some("John"),
+      clientLastName = Some("Smith"),
+      userType = "Individual"
+    )
 }
