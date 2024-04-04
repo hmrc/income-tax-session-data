@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.incometaxsessiondata.services
 
-import uk.gov.hmrc.auth.core.AffinityGroup.Individual
 import uk.gov.hmrc.incometaxsessiondata.domain.models.Session
 
 import javax.inject.{Inject, Singleton}
