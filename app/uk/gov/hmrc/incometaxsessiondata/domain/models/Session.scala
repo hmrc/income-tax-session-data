@@ -19,7 +19,8 @@ package uk.gov.hmrc.incometaxsessiondata.domain.models
 import play.api.libs.json.{Format, Json}
 import uk.gov.hmrc.auth.core.AffinityGroup
 
-case class Session(mtditid: String,
+case class Session(sessionID: String,
+                   mtditid: String,
                    nino: String,
                    saUtr: Option[String],
                    userName: Option[Name],

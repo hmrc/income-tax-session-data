@@ -33,6 +33,7 @@ class SessionService @Inject(){
 
   private lazy val dummySession: Session =
     Session(
+      sessionID = "some-id",
       mtditid = "MTDITID",
       nino = "BB123456A",
       saUtr = None,
