@@ -14,14 +14,19 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.incometaxsessiondata.config
+package uk.gov.hmrc.incometaxsessiondata.domain.models
 
-import com.google.inject.AbstractModule
+import play.api.libs.json.{Format, Json}
+import uk.gov.hmrc.auth.core.AffinityGroup
 
-class Module extends AbstractModule {
+case class Session(sessionID: String,
+                   mtditid: String,
+                   nino: String,
+                   saUtr: Option[String],
+                   clientFirstName: Option[String],
+                   clientLastName: Option[String],
+                   userType: Option[AffinityGroup])
 
-  override def configure(): Unit = {
-
-    bind(classOf[AppConfig]).asEagerSingleton()
-  }
+object Session {
+  implicit val format: Format[Session] = Json.format[Session]
 }
