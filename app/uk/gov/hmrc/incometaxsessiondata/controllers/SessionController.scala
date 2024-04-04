@@ -37,7 +37,7 @@ class SessionController @Inject()(cc: ControllerComponents,
       case Right(session: Session) =>
         logger.info(s"[SessionController][getById]: Successfully retrieved session: $session")
         Ok(Json.toJson(session))
-      case Left(_)                 =>
+      case Left(_) =>
         logger.error(s"[SessionController][getById]: Failed to retrieve session with id: $sessionID")
         InternalServerError(s"Failed to retrieve session with id: $sessionID")
     }
@@ -46,14 +46,14 @@ class SessionController @Inject()(cc: ControllerComponents,
   def create(): Action[AnyContent] = Action.async { implicit request =>
     request.body.asJson.getOrElse(Json.obj())
       .validate[Session] match {
-        case err: JsError               =>
+        case err: JsError =>
           logger.error(s"[SessionController][create]: Json validation error while parsing request: $err")
           Future.successful(BadRequest(s"Json validation error while parsing request: $err"))
         case JsSuccess(validRequest, _) => sessionService.createSession(validRequest) map {
           case Right(_) =>
             logger.info(s"[SessionController][create]: Successfully created session")
             Ok(Json.toJson("Successfully created session"))
-          case Left(_)  =>
+          case Left(_) =>
             logger.error(s"[SessionController][create]: Failed to create session")
             InternalServerError(Json.toJson("Failed to create session"))
         }
