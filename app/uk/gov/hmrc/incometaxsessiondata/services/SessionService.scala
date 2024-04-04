@@ -26,7 +26,7 @@ import scala.concurrent.Future
 class SessionService @Inject(){
 
   def createSession(session: Session): Future[Either[Throwable, Unit]] =
-    Future.successful(Right(Unit))
+    Future.successful(Right(()))
 
   def getSession(sessionID: String): Future[Either[Throwable, Session]] =
     Future.successful(Right(dummySession))
