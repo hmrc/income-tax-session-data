@@ -16,22 +16,7 @@
 
 package uk.gov.hmrc.incometaxsessiondata.models
 
-import play.api.libs.json.{Format, Json}
-import uk.gov.hmrc.auth.core.AffinityGroup
+trait Response
 
-case class MtdItUser(mtditid:   String,
-                     nino:      String,
-                     saUtr:     Option[String],
-                     userName:  Option[Name],
-                     userType:  Option[AffinityGroup])
-
-case class Name(firstName: Option[String], lastName: Option[String])
-
-object Name {
-  implicit val format: Format[Name] = Json.format[Name]
-}
-
-object MtdItUser {
-  implicit val format: Format[MtdItUser] = Json.format[MtdItUser]
-}
-
+case object ErrorResponse extends Response
+case object SuccessResponse extends Response

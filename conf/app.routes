@@ -1,4 +1,4 @@
 # microservice specific routes
 
-GET        /:id             uk.gov.hmrc.incometaxsessiondata.controllers.MicroserviceHelloWorldController.show(id: String)
-POST       /:id             uk.gov.hmrc.incometaxsessiondata.controllers.MicroserviceHelloWorldController.submit(id: String)
+GET        /:id             uk.gov.hmrc.incometaxsessiondata.controllers.UserDetailsController.getUser(id: String)
+POST       /                uk.gov.hmrc.incometaxsessiondata.controllers.UserDetailsController.createUser()

@@ -16,20 +16,36 @@
 
 package uk.gov.hmrc.incometaxsessiondata.controllers
 
+import play.api.libs.json.{JsError, JsSuccess, Json}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import uk.gov.hmrc.incometaxsessiondata.models.MtdItUser
+import uk.gov.hmrc.incometaxsessiondata.services.UserDetailsService
+
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton()
-class UserDetailsController @Inject()(cc: ControllerComponents)
+class UserDetailsController @Inject()(cc: ControllerComponents,
+                                      userDetailsService: UserDetailsService
+                                     )(implicit ec: ExecutionContext)
     extends BackendController(cc) {
 
-  def show(sessionID: String): Action[AnyContent] = Action.async { implicit request =>
-    Future.successful(Ok(s"sessionID: $sessionID"))
+  def getUser(mtditid: String): Action[AnyContent] = Action.async {
+    userDetailsService.getUserDetails(mtditid) map {
+      case Right(userDetails: MtdItUser) => Ok(Json.toJson(userDetails))
+      case Left(_)                       => InternalServerError("Failed to retrieve user")
+    }
   }
 
-  def submit(sessionID: String): Action[AnyContent] = Action.async { implicit request =>
-    Future.successful(Ok(s"sessionID: $sessionID"))
+  def createUser(): Action[AnyContent] = Action.async { implicit request =>
+    request.body.asJson.getOrElse(Json.obj())
+      .validate[MtdItUser] match {
+        case err: JsError               => Future.successful(BadRequest(s"Json validation error while parsing request: $err"))
+        case JsSuccess(validRequest, _) => userDetailsService.createUserDetails(validRequest) map {
+          case Right(_) => Ok(Json.toJson("Successfully created user"))
+          case Left(_)  => InternalServerError(Json.toJson("Failed to create user"))
+        }
+    }
   }
 }
