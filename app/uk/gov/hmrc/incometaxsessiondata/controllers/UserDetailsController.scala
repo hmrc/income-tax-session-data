@@ -22,7 +22,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 
 @Singleton()
-class MicroserviceHelloWorldController @Inject()(cc: ControllerComponents)
+class UserDetailsController @Inject()(cc: ControllerComponents)
     extends BackendController(cc) {
 
   def show(sessionID: String): Action[AnyContent] = Action.async { implicit request =>
