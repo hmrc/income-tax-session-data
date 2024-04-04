@@ -27,8 +27,8 @@ class SessionService @Inject(){
   def create(session: Session): Future[Either[Throwable, Unit]] =
     Future.successful(Right(()))
 
-  def get(sessionID: String): Future[Either[Throwable, Session]] =
-    Future.successful(Right(dummySession))
+  def get(sessionID: String): Future[Either[Throwable, Option[Session]]] =
+    Future.successful(Right(Some(dummySession)))
 
   private lazy val dummySession: Session =
     Session(

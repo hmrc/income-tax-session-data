@@ -34,9 +34,12 @@ class SessionController @Inject()(cc: ControllerComponents,
 
   def getById(sessionID: String): Action[AnyContent] = Action.async {
     sessionService.get(sessionID) map {
-      case Right(session: Session) =>
+      case Right(Some(session)) =>
         logger.info(s"[SessionController][getById]: Successfully retrieved session: $session")
         Ok(Json.toJson(session))
+      case Right(None) =>
+        logger.info(s"[SessionController][getById]: Empty session retrieved")
+        Ok(Json.toJson(None))
       case Left(_) =>
         logger.error(s"[SessionController][getById]: Failed to retrieve session with id: $sessionID")
         InternalServerError(s"Failed to retrieve session with id: $sessionID")
