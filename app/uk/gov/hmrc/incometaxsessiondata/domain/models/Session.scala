@@ -17,7 +17,6 @@
 package uk.gov.hmrc.incometaxsessiondata.domain.models
 
 import play.api.libs.json.{Format, Json}
-import uk.gov.hmrc.auth.core.AffinityGroup
 
 case class Session(sessionID: String,
                    mtditid: String,
@@ -25,7 +24,7 @@ case class Session(sessionID: String,
                    saUtr: Option[String],
                    clientFirstName: Option[String],
                    clientLastName: Option[String],
-                   userType: Option[AffinityGroup])
+                   userType: String)
 
 object Session {
   implicit val format: Format[Session] = Json.format[Session]
