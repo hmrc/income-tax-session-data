@@ -14,9 +14,23 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.incometaxsessiondata.models
+package uk.gov.hmrc.incometaxsessiondata.domain.models
 
-trait Response
+import play.api.libs.json.{Format, Json}
+import uk.gov.hmrc.auth.core.AffinityGroup
 
-case object ErrorResponse extends Response
-case object SuccessResponse extends Response
+case class Session(mtditid: String,
+                   nino: String,
+                   saUtr: Option[String],
+                   userName: Option[Name],
+                   userType: Option[AffinityGroup])
+
+case class Name(firstName: Option[String], lastName: Option[String])
+
+object Name {
+  implicit val format: Format[Name] = Json.format[Name]
+}
+
+object Session {
+  implicit val format: Format[Session] = Json.format[Session]
+}

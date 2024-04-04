@@ -17,22 +17,22 @@
 package uk.gov.hmrc.incometaxsessiondata.services
 
 import uk.gov.hmrc.auth.core.AffinityGroup.Individual
-import uk.gov.hmrc.incometaxsessiondata.models.{MtdItUser, Name, SuccessResponse}
+import uk.gov.hmrc.incometaxsessiondata.domain.models.{Name, SuccessResponse, Session}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 
 @Singleton
-class UserDetailsService @Inject(){
+class SessionService @Inject(){
 
-  def createUserDetails(mtdItUser: MtdItUser): Future[Either[Any, Any]] =
+  def createSession(session: Session): Future[Either[Any, Any]] =
     Future.successful(Right(SuccessResponse))
 
-  def getUserDetails(mtditid: String): Future[Either[Any, MtdItUser]] =
-    Future.successful(Right(dummyUser))
+  def getSession(sessionID: String): Future[Either[Any, Session]] =
+    Future.successful(Right(dummySession))
 
-  private lazy val dummyUser: MtdItUser =
-    MtdItUser(
+  private lazy val dummySession: Session =
+    Session(
       mtditid = "MTDITID",
       nino = "BB123456A",
       saUtr = None,
