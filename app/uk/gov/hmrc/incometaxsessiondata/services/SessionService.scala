@@ -25,10 +25,10 @@ import scala.concurrent.Future
 @Singleton
 class SessionService @Inject(){
 
-  def createSession(session: Session): Future[Either[Throwable, Unit]] =
+  def create(session: Session): Future[Either[Throwable, Unit]] =
     Future.successful(Right(()))
 
-  def getSession(sessionID: String): Future[Either[Throwable, Session]] =
+  def get(sessionID: String): Future[Either[Throwable, Session]] =
     Future.successful(Right(dummySession))
 
   private lazy val dummySession: Session =

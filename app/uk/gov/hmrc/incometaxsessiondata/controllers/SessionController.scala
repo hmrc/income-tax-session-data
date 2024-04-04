@@ -33,7 +33,7 @@ class SessionController @Inject()(cc: ControllerComponents,
     extends BackendController(cc) with Logging {
 
   def getById(sessionID: String): Action[AnyContent] = Action.async {
-    sessionService.getSession(sessionID) map {
+    sessionService.get(sessionID) map {
       case Right(session: Session) =>
         logger.info(s"[SessionController][getById]: Successfully retrieved session: $session")
         Ok(Json.toJson(session))
@@ -49,7 +49,7 @@ class SessionController @Inject()(cc: ControllerComponents,
         case err: JsError =>
           logger.error(s"[SessionController][create]: Json validation error while parsing request: $err")
           Future.successful(BadRequest(s"Json validation error while parsing request: $err"))
-        case JsSuccess(validRequest, _) => sessionService.createSession(validRequest) map {
+        case JsSuccess(validRequest, _) => sessionService.create(validRequest) map {
           case Right(_) =>
             logger.info(s"[SessionController][create]: Successfully created session")
             Ok("Successfully created session")
