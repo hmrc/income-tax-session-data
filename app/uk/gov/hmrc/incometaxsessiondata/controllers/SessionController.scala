@@ -52,10 +52,10 @@ class SessionController @Inject()(cc: ControllerComponents,
         case JsSuccess(validRequest, _) => sessionService.createSession(validRequest) map {
           case Right(_) =>
             logger.info(s"[SessionController][create]: Successfully created session")
-            Ok(Json.toJson("Successfully created session"))
+            Ok("Successfully created session")
           case Left(_) =>
             logger.error(s"[SessionController][create]: Failed to create session")
-            InternalServerError(Json.toJson("Failed to create session"))
+            InternalServerError("Failed to create session")
         }
     }
   }
