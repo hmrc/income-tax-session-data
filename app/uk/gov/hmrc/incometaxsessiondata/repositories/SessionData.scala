@@ -18,8 +18,9 @@ package uk.gov.hmrc.incometaxsessiondata.repositories
 
 import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model._
+import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.incometaxsessiondata.config.AppConfig
-import uk.gov.hmrc.incometaxsessiondata.models.UserSessionDetails
+import uk.gov.hmrc.incometaxsessiondata.domain.models.Session
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
@@ -33,10 +34,10 @@ class SessionData @Inject()(
                              config: AppConfig,
                              clock: Clock
                            )(implicit ec: ExecutionContext)
-  extends PlayMongoRepository[UserSessionDetails](
+  extends PlayMongoRepository[Session](
     collectionName = "ui-journey-session-data",
     mongoComponent = mongoComponent,
-    domainFormat = UserSessionDetails.format,
+    domainFormat = Session.format,
     indexes = Seq(
       IndexModel(
         Indexes.ascending("lastUpdated"),
@@ -48,12 +49,12 @@ class SessionData @Inject()(
     replaceIndexes = true
   ) {
 
-  private def dataFilter(data: UserSessionDetails): Bson = {
+  private def dataFilter(data: Session): Bson = {
     import Filters._
-    and(equal("sessionId", data.sessionId), equal("nino", data.nino))
+    and(equal("sessionId", data.sessionID), equal("nino", data.nino))
   }
 
-  def keepAlive(data: UserSessionDetails): Future[Boolean] =
+  def keepAlive(data: Session): Future[Boolean] =
     collection
       .updateOne(
         filter = dataFilter(data),
@@ -62,8 +63,8 @@ class SessionData @Inject()(
       .toFuture()
       .map(_.wasAcknowledged())
 
-  def get(sessionId: String, nino: String): Future[Option[UserSessionDetails]] = {
-    val data = UserSessionDetails(sessionId, nino)
+  def get(sessionId: String, mtditid: String, nino: String, userType: AffinityGroup): Future[Option[Session]] = {
+    val data = Session(sessionId, mtditid, nino, userType = userType)
     keepAlive(data).flatMap {
       _ =>
         collection
@@ -72,7 +73,7 @@ class SessionData @Inject()(
     }
   }
 
-  def set(data: UserSessionDetails): Future[Boolean] = {
+  def set(data: Session): Future[Boolean] = {
 
     val updatedAnswers = data copy (lastUpdated = Instant.now(clock))
 

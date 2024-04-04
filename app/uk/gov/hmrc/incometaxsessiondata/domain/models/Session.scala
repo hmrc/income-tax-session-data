@@ -16,16 +16,34 @@
 
 package uk.gov.hmrc.incometaxsessiondata.domain.models
 
-import play.api.libs.json.{Format, Json}
+import play.api.libs.functional.syntax.{toFunctionalBuilderOps, unlift}
+import play.api.libs.json.{OFormat, __}
+import uk.gov.hmrc.auth.core.AffinityGroup
+import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
+
+import java.time.Instant
 
 case class Session(sessionID: String,
                    mtditid: String,
                    nino: String,
-                   saUtr: Option[String],
-                   clientFirstName: Option[String],
-                   clientLastName: Option[String],
-                   userType: String)
+                   saUtr: Option[String] = None,
+                   clientFirstName: Option[String] = None,
+                   clientLastName: Option[String] = None,
+                   userType: AffinityGroup,
+                   lastUpdated: Instant = Instant.now)
 
 object Session {
-  implicit val format: Format[Session] = Json.format[Session]
+  implicit val format: OFormat[Session] = {
+
+    ((__ \ "sessionID").format[String]
+      ~ (__ \ "mtditid").format[String]
+      ~ (__ \ "nino").format[String]
+      ~ (__ \ "saUtr").formatNullable[String]
+      ~ (__ \ "clientFirstName").formatNullable[String]
+      ~ (__ \ "clientLastName").formatNullable[String]
+      ~ (__ \ "userType").format[AffinityGroup]
+      ~ (__ \ "lastUpdated").format(MongoJavatimeFormats.instantFormat)
+      )(Session.apply, unlift(Session.unapply)
+    )
+  }
 }
