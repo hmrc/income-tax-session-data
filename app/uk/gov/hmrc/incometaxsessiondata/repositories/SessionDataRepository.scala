@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class SessionData @Inject()(
+class SessionDataRepository @Inject()(
                              mongoComponent: MongoComponent,
                              config: AppConfig,
                              clock: Clock

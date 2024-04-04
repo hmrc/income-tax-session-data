@@ -16,29 +16,32 @@
 
 package uk.gov.hmrc.incometaxsessiondata.services
 
+import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.auth.core.AffinityGroup.Individual
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.incometaxsessiondata.domain.models.Session
+import uk.gov.hmrc.incometaxsessiondata.repositories.SessionDataRepository
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class SessionService @Inject(){
+class SessionService @Inject()(
+                                repository: SessionDataRepository
+                              ) {
 
-  def create(session: Session): Future[Either[Throwable, Unit]] =
-    Future.successful(Right(()))
+  def create(session: Session): Future[Boolean] =
+    set(session)
 
-  def get(sessionID: String): Future[Either[Throwable, Session]] =
-    Future.successful(Right(dummySession))
+  def get(mtditid: String, nino: String, userType: AffinityGroup)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[Throwable, Option[Session]]] = {
+    repository.get(hc.sessionId.get.value, mtditid, nino, userType) map {
+      case Some(data: Session) =>
+        Right(Some(data))
+      case None => Right(None)
+    }
+  }
 
-  private lazy val dummySession: Session =
-    Session(
-      sessionID = "some-id",
-      mtditid = "MTDITID",
-      nino = "BB123456A",
-      saUtr = None,
-      clientFirstName = Some("John"),
-      clientLastName = Some("Smith"),
-      userType = Individual
-    )
+  def set(session: Session): Future[Boolean] = {
+    repository.set(session)
+  }
 }
