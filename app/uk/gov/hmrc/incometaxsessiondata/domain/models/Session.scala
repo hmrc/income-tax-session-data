@@ -25,7 +25,7 @@ case class Session(sessionID: String,
                    saUtr: Option[String],
                    clientFirstName: Option[String],
                    clientLastName: Option[String],
-                   userType: Option[AffinityGroup])
+                   userType: String)
 
 object Session {
   implicit val format: Format[Session] = Json.format[Session]

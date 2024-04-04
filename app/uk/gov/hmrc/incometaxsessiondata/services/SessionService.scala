@@ -39,6 +39,6 @@ class SessionService @Inject(){
       saUtr = None,
       clientFirstName = Some("John"),
       clientLastName = Some("Smith"),
-      userType = Some(Individual)
+      userType = "Individual"
     )
 }
