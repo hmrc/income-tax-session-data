@@ -63,7 +63,7 @@ class SessionDataRepository @Inject()(
       .toFuture()
       .map(_.wasAcknowledged())
 
-  def get(sessionId: String, mtditid: String, nino: String, userType: AffinityGroup): Future[Option[Session]] = {
+  def get(sessionId: String, mtditid: String, nino: String, userType: String): Future[Option[Session]] = {
     val data = Session(sessionId, mtditid, nino, userType = userType)
     keepAlive(data).flatMap {
       _ =>

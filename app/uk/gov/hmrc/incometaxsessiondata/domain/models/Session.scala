@@ -29,7 +29,7 @@ case class Session(sessionID: String,
                    saUtr: Option[String] = None,
                    clientFirstName: Option[String] = None,
                    clientLastName: Option[String] = None,
-                   userType: AffinityGroup,
+                   userType: String,
                    lastUpdated: Instant = Instant.now)
 
 object Session {
@@ -41,7 +41,7 @@ object Session {
       ~ (__ \ "saUtr").formatNullable[String]
       ~ (__ \ "clientFirstName").formatNullable[String]
       ~ (__ \ "clientLastName").formatNullable[String]
-      ~ (__ \ "userType").format[AffinityGroup]
+      ~ (__ \ "userType").format[String]
       ~ (__ \ "lastUpdated").format(MongoJavatimeFormats.instantFormat)
       )(Session.apply, unlift(Session.unapply)
     )
