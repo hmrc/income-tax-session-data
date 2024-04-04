@@ -23,14 +23,9 @@ case class Session(sessionID: String,
                    mtditid: String,
                    nino: String,
                    saUtr: Option[String],
-                   userName: Option[Name],
+                   clientFirstName: Option[String],
+                   clientLastName: Option[String],
                    userType: Option[AffinityGroup])
-
-case class Name(firstName: Option[String], lastName: Option[String])
-
-object Name {
-  implicit val format: Format[Name] = Json.format[Name]
-}
 
 object Session {
   implicit val format: Format[Session] = Json.format[Session]

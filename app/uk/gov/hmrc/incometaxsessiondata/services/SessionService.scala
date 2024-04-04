@@ -17,7 +17,7 @@
 package uk.gov.hmrc.incometaxsessiondata.services
 
 import uk.gov.hmrc.auth.core.AffinityGroup.Individual
-import uk.gov.hmrc.incometaxsessiondata.domain.models.{Name, Session}
+import uk.gov.hmrc.incometaxsessiondata.domain.models.Session
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
@@ -37,10 +37,8 @@ class SessionService @Inject(){
       mtditid = "MTDITID",
       nino = "BB123456A",
       saUtr = None,
-      userName = Some(Name(
-        firstName = Some("John"),
-        lastName = Some("Smith")
-      )),
+      clientFirstName = Some("John"),
+      clientLastName = Some("Smith"),
       userType = Some(Individual)
     )
 }
