@@ -18,7 +18,6 @@ package uk.gov.hmrc.incometaxsessiondata.domain.models
 
 import play.api.libs.functional.syntax.{toFunctionalBuilderOps, unlift}
 import play.api.libs.json.{OFormat, __}
-import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 
 import java.time.Instant

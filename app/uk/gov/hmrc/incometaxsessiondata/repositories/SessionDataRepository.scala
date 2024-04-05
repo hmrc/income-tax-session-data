@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.incometaxsessiondata.repositories
 
+import com.google.inject.Singleton
 import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model._
 import uk.gov.hmrc.incometaxsessiondata.config.AppConfig
@@ -28,6 +29,7 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
+@Singleton
 class SessionDataRepository @Inject()(
                              mongoComponent: MongoComponent,
                              config: AppConfig,

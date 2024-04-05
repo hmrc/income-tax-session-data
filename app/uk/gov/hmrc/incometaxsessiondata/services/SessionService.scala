@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.incometaxsessiondata.services
 
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.incometaxsessiondata.domain.models.Session
 import uk.gov.hmrc.incometaxsessiondata.repositories.SessionDataRepository
 
@@ -31,8 +30,9 @@ class SessionService @Inject()(
   def create(session: Session): Future[Boolean] =
     set(session)
 
-  def get(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[Throwable, Option[Session]]] = {
-    repository.get(hc.sessionId.get.value) map {
+  def get(sessionId: String)
+         (implicit ec: ExecutionContext): Future[Either[Throwable, Option[Session]]] = {
+    repository.get(sessionId) map {
       case Some(data: Session) =>
         Right(Some(data))
       case None => Right(None)

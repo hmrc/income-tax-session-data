@@ -22,7 +22,6 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.http.{HeaderCarrier, SessionId}
 import uk.gov.hmrc.incometaxsessiondata.domain.models.Session
 import uk.gov.hmrc.incometaxsessiondata.repositories.SessionDataRepository
 
@@ -32,12 +31,12 @@ class SessionDataRepositoryISpec extends AnyWordSpec
   with Matchers
   with ScalaFutures
   with IntegrationPatience
-  with GuiceOneServerPerSuite{
+  with GuiceOneServerPerSuite {
 
   private val repository = app.injector.instanceOf[SessionDataRepository]
 
   implicit val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
-  implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("session-123")))
+//  implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("session-123")))
 
   def beforeEach(): Unit = {
     await(repository.collection.deleteMany(BsonDocument()).toFuture())
