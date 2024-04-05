@@ -46,19 +46,19 @@ class SessionController @Inject()(cc: ControllerComponents,
     }
   }
 
-  def create(): Action[AnyContent] = Action.async { implicit request =>
+  def set(): Action[AnyContent] = Action.async { implicit request =>
     request.body.asJson.getOrElse(Json.obj())
       .validate[Session] match {
         case err: JsError =>
-          logger.error(s"[SessionController][create]: Json validation error while parsing request: $err")
+          logger.error(s"[SessionController][set]: Json validation error while parsing request: $err")
           Future.successful(BadRequest(s"Json validation error while parsing request: $err"))
-        case JsSuccess(validRequest, _) => sessionService.create(validRequest) map {
+        case JsSuccess(validRequest, _) => sessionService.set(validRequest) map {
           case true =>
-            logger.info(s"[SessionController][create]: Successfully created session")
-            Ok("Successfully created session")
+            logger.info(s"[SessionController][set]: Successfully set session")
+            Ok("Successfully set session")
           case false =>
-            logger.error(s"[SessionController][create]: Failed to create session")
-            InternalServerError("Failed to create session")
+            logger.error(s"[SessionController][set]: Failed to set session")
+            InternalServerError("Failed to set session")
         }
     }
   }

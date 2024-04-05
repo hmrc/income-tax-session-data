@@ -25,12 +25,9 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class SessionService @Inject()(
                                 repository: SessionDataRepository
-                              ) {
+                              )(implicit ec: ExecutionContext) {
 
-  def create(session: Session): Future[Boolean] =
-    set(session)
-
-  def get(sessionId: String)(implicit ec: ExecutionContext): Future[Either[Throwable, Option[Session]]] = {
+  def get(sessionId: String): Future[Either[Throwable, Option[Session]]] = {
     repository.get(sessionId) map {
       case Some(data: Session) =>
         Right(Some(data))
