@@ -22,7 +22,6 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.http.{HeaderCarrier, SessionId}
 import uk.gov.hmrc.incometaxsessiondata.domain.models.Session
 import uk.gov.hmrc.incometaxsessiondata.repositories.SessionDataRepository
 
@@ -34,17 +33,18 @@ class SessionDataRepositoryISpec extends AnyWordSpec
   with IntegrationPatience
   with GuiceOneServerPerSuite{
 
-  private val repository = app.injector.instanceOf[SessionDataRepository]
-
   implicit val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
-  implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("session-123")))
+
+  private val repository = app.injector.instanceOf[SessionDataRepository]
 
   def beforeEach(): Unit = {
     await(repository.collection.deleteMany(BsonDocument()).toFuture())
   }
 
+  val testSessionId = "session-123"
+
   val dummySession = Session(
-    sessionID = "session-123",
+    sessionID = testSessionId,
     mtditid = Some("testId"),
     nino = Some("testNino"),
     saUtr = None,
@@ -57,6 +57,12 @@ class SessionDataRepositoryISpec extends AnyWordSpec
     "set some data" in {
       val acknowledged = await(repository.set(dummySession))
       acknowledged shouldBe true
+    }
+    "get some data" in {
+      await(repository.set(dummySession))
+      val result = await(repository.get(testSessionId)).get
+      result.nino shouldBe Some("testNino")
+      result.userType shouldBe None
     }
   }
 

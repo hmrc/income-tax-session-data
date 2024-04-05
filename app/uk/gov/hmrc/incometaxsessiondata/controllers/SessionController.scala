@@ -30,12 +30,11 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton()
 class SessionController @Inject()(cc: ControllerComponents,
                                   sessionService: SessionService
-                                 )(implicit ec: ExecutionContext,
-                                   val hc: HeaderCarrier)
+                                 )(implicit ec: ExecutionContext)
     extends BackendController(cc) with Logging {
 
   def getById(sessionID: String): Action[AnyContent] = Action.async {
-    sessionService.get map {
+    sessionService.get(sessionID) map {
       case Right(Some(session: Session)) =>
         logger.info(s"[SessionController][getById]: Successfully retrieved session: $session")
         Ok(Json.toJson(session))
