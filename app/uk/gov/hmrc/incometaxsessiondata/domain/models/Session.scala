@@ -24,24 +24,24 @@ import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 import java.time.Instant
 
 case class Session(sessionID: String,
-                   mtditid: String,
-                   nino: String,
+                   mtditid: Option[String] = None,
+                   nino: Option[String] = None,
                    saUtr: Option[String] = None,
                    clientFirstName: Option[String] = None,
                    clientLastName: Option[String] = None,
-                   userType: String,
+                   userType: Option[String] = None,
                    lastUpdated: Instant = Instant.now)
 
 object Session {
   implicit val format: OFormat[Session] = {
 
     ((__ \ "sessionID").format[String]
-      ~ (__ \ "mtditid").format[String]
-      ~ (__ \ "nino").format[String]
+      ~ (__ \ "mtditid").formatNullable[String]
+      ~ (__ \ "nino").formatNullable[String]
       ~ (__ \ "saUtr").formatNullable[String]
       ~ (__ \ "clientFirstName").formatNullable[String]
       ~ (__ \ "clientLastName").formatNullable[String]
-      ~ (__ \ "userType").format[String]
+      ~ (__ \ "userType").formatNullable[String]
       ~ (__ \ "lastUpdated").format(MongoJavatimeFormats.instantFormat)
       )(Session.apply, unlift(Session.unapply)
     )

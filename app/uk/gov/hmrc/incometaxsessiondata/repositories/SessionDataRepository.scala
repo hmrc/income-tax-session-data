@@ -18,7 +18,6 @@ package uk.gov.hmrc.incometaxsessiondata.repositories
 
 import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model._
-import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.incometaxsessiondata.config.AppConfig
 import uk.gov.hmrc.incometaxsessiondata.domain.models.Session
 import uk.gov.hmrc.mongo.MongoComponent
@@ -51,7 +50,7 @@ class SessionDataRepository @Inject()(
 
   private def dataFilter(data: Session): Bson = {
     import Filters._
-    and(equal("sessionId", data.sessionID), equal("nino", data.nino))
+    and(equal("sessionId", data.sessionID))
   }
 
   def keepAlive(data: Session): Future[Boolean] =
@@ -63,8 +62,8 @@ class SessionDataRepository @Inject()(
       .toFuture()
       .map(_.wasAcknowledged())
 
-  def get(sessionId: String, mtditid: String, nino: String, userType: String): Future[Option[Session]] = {
-    val data = Session(sessionId, mtditid, nino, userType = userType)
+  def get(sessionId: String): Future[Option[Session]] = {
+    val data = Session(sessionId)
     keepAlive(data).flatMap {
       _ =>
         collection

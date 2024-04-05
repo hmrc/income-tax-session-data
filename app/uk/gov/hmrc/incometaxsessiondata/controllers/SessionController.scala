@@ -20,6 +20,7 @@ import play.api.Logging
 import play.api.libs.json.{JsError, JsSuccess, Json}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.incometaxsessiondata.domain.models.Session
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 
@@ -29,14 +30,18 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton()
 class SessionController @Inject()(cc: ControllerComponents,
                                   sessionService: SessionService
-                                 )(implicit ec: ExecutionContext)
+                                 )(implicit ec: ExecutionContext,
+                                   hc: HeaderCarrier)
     extends BackendController(cc) with Logging {
 
   def getById(sessionID: String): Action[AnyContent] = Action.async {
-    sessionService.get(sessionID) map {
-      case Right(session: Session) =>
+    sessionService.get map {
+      case Right(Some(session: Session)) =>
         logger.info(s"[SessionController][getById]: Successfully retrieved session: $session")
         Ok(Json.toJson(session))
+      case Right(None) =>
+        logger.info(s"[SessionController][getById]: No live session")
+        Ok("")
       case Left(_) =>
         logger.error(s"[SessionController][getById]: Failed to retrieve session with id: $sessionID")
         InternalServerError(s"Failed to retrieve session with id: $sessionID")
@@ -50,10 +55,10 @@ class SessionController @Inject()(cc: ControllerComponents,
           logger.error(s"[SessionController][create]: Json validation error while parsing request: $err")
           Future.successful(BadRequest(s"Json validation error while parsing request: $err"))
         case JsSuccess(validRequest, _) => sessionService.create(validRequest) map {
-          case Right(_) =>
+          case true =>
             logger.info(s"[SessionController][create]: Successfully created session")
             Ok("Successfully created session")
-          case Left(_) =>
+          case false =>
             logger.error(s"[SessionController][create]: Failed to create session")
             InternalServerError("Failed to create session")
         }
