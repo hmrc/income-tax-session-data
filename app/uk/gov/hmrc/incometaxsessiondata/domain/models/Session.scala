@@ -18,32 +18,41 @@ package uk.gov.hmrc.incometaxsessiondata.domain.models
 
 import play.api.libs.functional.syntax.{toFunctionalBuilderOps, unlift}
 import play.api.libs.json.{OFormat, __}
-import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 
 import java.time.Instant
 
 case class Session(sessionID: String,
-                   mtditid: Option[String] = None,
-                   nino: Option[String] = None,
-                   saUtr: Option[String] = None,
-                   clientFirstName: Option[String] = None,
-                   clientLastName: Option[String] = None,
-                   userType: Option[String] = None,
+                   sessionData: Option[SessionData] = None,
                    lastUpdated: Instant = Instant.now)
 
+case class SessionData(mtditid: Option[String] = None,
+                       nino: Option[String] = None,
+                       saUtr: Option[String] = None,
+                       clientFirstName: Option[String] = None,
+                       clientLastName: Option[String] = None,
+                       userType: Option[String] = None)
 object Session {
   implicit val format: OFormat[Session] = {
 
     ((__ \ "sessionID").format[String]
-      ~ (__ \ "mtditid").formatNullable[String]
+      ~ (__ \ "sessionData").formatNullable[SessionData]
+      ~ (__ \ "lastUpdated").format(MongoJavatimeFormats.instantFormat)
+      )(Session.apply, unlift(Session.unapply)
+    )
+  }
+}
+
+object SessionData {
+  implicit val format: OFormat[SessionData] = {
+
+    ((__ \ "mtditid").formatNullable[String]
       ~ (__ \ "nino").formatNullable[String]
       ~ (__ \ "saUtr").formatNullable[String]
       ~ (__ \ "clientFirstName").formatNullable[String]
       ~ (__ \ "clientLastName").formatNullable[String]
       ~ (__ \ "userType").formatNullable[String]
-      ~ (__ \ "lastUpdated").format(MongoJavatimeFormats.instantFormat)
-      )(Session.apply, unlift(Session.unapply)
+      )(SessionData.apply, unlift(SessionData.unapply)
     )
   }
 }

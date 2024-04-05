@@ -22,7 +22,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.incometaxsessiondata.domain.models.Session
+import uk.gov.hmrc.incometaxsessiondata.domain.models.{Session, SessionData}
 import uk.gov.hmrc.incometaxsessiondata.repositories.SessionDataRepository
 
 import scala.concurrent.ExecutionContext
@@ -43,8 +43,7 @@ class SessionDataRepositoryISpec extends AnyWordSpec
 
   val testSessionId = "session-123"
 
-  val dummySession = Session(
-    sessionID = testSessionId,
+  val testData = SessionData(
     mtditid = Some("testId"),
     nino = Some("testNino"),
     saUtr = None,
@@ -52,17 +51,21 @@ class SessionDataRepositoryISpec extends AnyWordSpec
     clientLastName = Some("Smith"),
     userType = None
   )
+  val testSession = Session(
+    sessionID = testSessionId,
+    sessionData = Some(testData)
+  )
 
   "Session Data Repository" should {
     "set some data" in {
-      val acknowledged = await(repository.set(dummySession))
+      val acknowledged = await(repository.set(testSession))
       acknowledged shouldBe true
     }
     "get some data" in {
-      await(repository.set(dummySession))
+      await(repository.set(testSession))
       val result = await(repository.get(testSessionId)).get
-      result.nino shouldBe Some("testNino")
-      result.userType shouldBe None
+      result.sessionData shouldBe Some(testData)
+      result.sessionData.get.mtditid shouldBe Some("testId")
     }
   }
 

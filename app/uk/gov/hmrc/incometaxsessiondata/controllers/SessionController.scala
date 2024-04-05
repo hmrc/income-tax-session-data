@@ -20,7 +20,6 @@ import play.api.Logging
 import play.api.libs.json.{JsError, JsSuccess, Json}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.incometaxsessiondata.domain.models.Session
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 
@@ -40,7 +39,7 @@ class SessionController @Inject()(cc: ControllerComponents,
         Ok(Json.toJson(session))
       case Right(None) =>
         logger.info(s"[SessionController][getById]: No live session")
-        Ok("")
+        Ok("No session")
       case Left(_) =>
         logger.error(s"[SessionController][getById]: Failed to retrieve session with id: $sessionID")
         InternalServerError(s"Failed to retrieve session with id: $sessionID")
