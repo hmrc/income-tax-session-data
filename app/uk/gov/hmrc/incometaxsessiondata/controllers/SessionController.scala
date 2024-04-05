@@ -31,7 +31,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class SessionController @Inject()(cc: ControllerComponents,
                                   sessionService: SessionService
                                  )(implicit ec: ExecutionContext,
-                                   hc: HeaderCarrier)
+                                   val hc: HeaderCarrier)
     extends BackendController(cc) with Logging {
 
   def getById(sessionID: String): Action[AnyContent] = Action.async {
