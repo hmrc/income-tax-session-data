@@ -55,14 +55,14 @@ class SessionDataRepository @Inject()(
     and(equal("sessionID", sessionId))
   }
 
-  def keepAlive(sessionId: String): Future[Boolean] =
-    collection
-      .updateOne(
-        filter = dataFilter(sessionId),
-        update = Updates.set("lastUpdated", Instant.now(clock))
-      )
-      .toFuture()
-      .map(_.wasAcknowledged())
+//  def keepAlive(sessionId: String): Future[Boolean] =
+//    collection
+//      .updateOne(
+//        filter = dataFilter(sessionId),
+//        update = Updates.set("lastUpdated", Instant.now(clock))
+//      )
+//      .toFuture()
+//      .map(_.wasAcknowledged())
 
   def get(sessionId: String): Future[Option[Session]] = {
     collection
