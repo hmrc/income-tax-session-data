@@ -73,22 +73,11 @@ class SessionControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppPe
   }
 
   "SessionController.set" should {
-//    "Return successful" when {
-//      "the body is correct and the service returns true" in {
-//        when(mockSessionService.set(any())).thenReturn(Future(true))
-//        val result: Future[Result] = testSessionController.set()(FakeRequest().withSession(
-//          "clientFirstName" -> "Test",
-//          "clientLastName" -> "User",
-//          "mtditid" -> "1234567890",
-//          "saUtr" -> "XAIT00000000015",
-//          "nino" -> "testNino",
-//          "userType" -> "Individual",
-//          "sessionID" -> "session-123",
-//          "lastUpdated" -> "0000"
-//        ))
-//        status(result) shouldBe OK
-//      }
-//    }
+    "Return successful" when {
+      "the body is correct and the service returns true" in {
+
+      }
+    }
     "return a bad request" when {
       "the request body is invalid" in {
                 val result: Future[Result] = testSessionController.set()(FakeRequest())
