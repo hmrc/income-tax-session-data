@@ -36,7 +36,7 @@ class SessionDataRepository @Inject()(
                                        clock: Clock
                                      )(implicit ec: ExecutionContext)
   extends PlayMongoRepository[Session](
-    collectionName = "income-tax-session-data",
+    collectionName = "session-data",
     mongoComponent = mongoComponent,
     domainFormat = Session.format,
     indexes = Seq(
