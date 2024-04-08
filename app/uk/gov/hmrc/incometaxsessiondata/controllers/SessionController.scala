@@ -20,7 +20,7 @@ import play.api.Logging
 import play.api.libs.json.{JsError, JsSuccess, Json}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.incometaxsessiondata.domain.models.Session
+import uk.gov.hmrc.incometaxsessiondata.domain.models.{Session, SessionData}
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 
 import javax.inject.{Inject, Singleton}
@@ -34,8 +34,8 @@ class SessionController @Inject()(cc: ControllerComponents,
 
   def getById(sessionID: String): Action[AnyContent] = Action.async {
     sessionService.get(sessionID) map {
-      case Right(Some(session: Session)) =>
-        logger.info(s"[SessionController][getById]: Successfully retrieved session: $session")
+      case Right(Some(session: SessionData)) =>
+        logger.info(s"[SessionController][getById]: Successfully retrieved session data: $session")
         Ok(Json.toJson(session))
       case Right(None) =>
         logger.info(s"[SessionController][getById]: No live session")

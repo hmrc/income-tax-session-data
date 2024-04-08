@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.incometaxsessiondata.services
 
-import uk.gov.hmrc.incometaxsessiondata.domain.models.Session
+import uk.gov.hmrc.incometaxsessiondata.domain.models.{Session, SessionData}
 import uk.gov.hmrc.incometaxsessiondata.repositories.SessionDataRepository
 
 import javax.inject.{Inject, Singleton}
@@ -27,10 +27,18 @@ class SessionService @Inject()(
                                 repository: SessionDataRepository
                               )(implicit ec: ExecutionContext) {
 
-  def get(sessionId: String): Future[Either[Throwable, Option[Session]]] = {
+  def get(sessionId: String): Future[Either[Throwable, Option[SessionData]]] = {
     repository.get(sessionId) map {
       case Some(data: Session) =>
-        Right(Some(data))
+        val sessionData = SessionData(
+          mtditid = data.mtditid,
+          nino = data.nino,
+          saUtr = data.saUtr,
+          clientFirstName = data.clientFirstName,
+          clientLastName = data.clientLastName,
+          userType = data.userType
+        )
+        Right(Some(sessionData))
       case None => Right(None)
     }
   }
