@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.incometaxsessiondata.config
+package uk.gov.hmrc.incometaxsessiondata.connectors
+
+import uk.gov.hmrc.auth.core.PlayAuthConnector
+import uk.gov.hmrc.http.HttpClient
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import javax.inject.{Inject, Singleton}
-import play.api.Configuration
 
 @Singleton
-class AppConfig @Inject()(config: Configuration) {
-
-  val confidenceLevel:Int = config.get[Int]("auth.confidenceLevel")
-
-  val appName: String = config.get[String]("appName")
-
-  val cacheTtl: Int = config.get[Int]("mongodb.timeToLiveInSeconds")
+class MicroserviceAuthConnector @Inject()(val http: HttpClient,
+                                          val servicesConfig: ServicesConfig) extends PlayAuthConnector {
+  override val serviceUrl: String = servicesConfig.baseUrl("auth")
 }
