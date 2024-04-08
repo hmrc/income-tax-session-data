@@ -21,27 +21,16 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.wordspec.{AnyWordSpec, AnyWordSpecLike}
-import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.incometaxsessiondata.config.AppConfig
-
-import scala.concurrent.ExecutionContext
-
 
 trait TestSupport extends AnyWordSpec with AnyWordSpecLike with Matchers with OptionValues
-  with GuiceOneServerPerSuite with BeforeAndAfterAll with ScalaFutures {
+  with BeforeAndAfterAll with ScalaFutures {
   this: Suite =>
 
   def fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("", "")
 
   val fakePostRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest().withMethod("POST")
-
-  implicit val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
-  implicit val hc: HeaderCarrier = HeaderCarrier()
-
-  val appConfig: AppConfig = app.injector.instanceOf[AppConfig]
 
   implicit val defaultPatience: PatienceConfig = PatienceConfig(timeout = Span(3, Seconds), interval = Span(5, Millis))
 }

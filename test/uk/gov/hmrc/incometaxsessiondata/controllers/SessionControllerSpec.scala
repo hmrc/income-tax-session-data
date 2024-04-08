@@ -26,6 +26,7 @@ import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.mvc.{ControllerComponents, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import uk.gov.hmrc.incometaxsessiondata.config.AppConfig
 import uk.gov.hmrc.incometaxsessiondata.models.SessionData
 import uk.gov.hmrc.incometaxsessiondata.predicates.AuthenticationPredicate
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
@@ -35,10 +36,16 @@ import scala.concurrent.{ExecutionContext, Future}
 class SessionControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite with ScalaFutures with MockMicroserviceAuthConnector {
 
   val mockSessionService: SessionService = mock(classOf[SessionService])
-  override implicit val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
+
+  implicit val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
+
+  val appConfig = app.injector.instanceOf[AppConfig]
+
+  val mockCC = stubControllerComponents()
+
   object testSessionController extends SessionController(
-    app.injector.instanceOf[ControllerComponents],
-    app.injector.instanceOf[AuthenticationPredicate],
+    mockCC,
+    authentication = new AuthenticationPredicate(mockMicroserviceAuthConnector, mockCC, appConfig),
     mockSessionService
   )
 
