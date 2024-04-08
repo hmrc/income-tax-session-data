@@ -25,7 +25,7 @@ import java.time.Instant
 case class Session(sessionID: String,
                    mtditid: String,
                    nino: String,
-                   saUtr: Option[String],
+                   saUtr: String,
                    clientFirstName: Option[String],
                    clientLastName: Option[String],
                    userType: String,
@@ -36,7 +36,7 @@ object Session {
     ((__ \ "sessionID").format[String]
       ~ (__ \ "mtditid").format[String]
       ~ (__ \ "nino").format[String]
-      ~ (__ \ "saUtr").formatNullable[String]
+      ~ (__ \ "saUtr").format[String]
       ~ (__ \ "clientFirstName").formatNullable[String]
       ~ (__ \ "clientLastName").formatNullable[String]
       ~ (__ \ "userType").format[String]

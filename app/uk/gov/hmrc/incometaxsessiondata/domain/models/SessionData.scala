@@ -22,7 +22,7 @@ import scala.language.implicitConversions
 
 case class SessionData(mtditid: String,
                        nino: String,
-                       saUtr: Option[String],
+                       saUtr: String,
                        clientFirstName: Option[String],
                        clientLastName: Option[String],
                        userType: String)
