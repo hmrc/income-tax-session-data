@@ -31,6 +31,16 @@ case class Session(sessionID: String,
                    userType: String,
                    lastUpdated: Instant = Instant.now)
 object Session {
+  implicit val fromSessionData: SessionData => Session = sessionData => Session(
+    sessionID = sessionData.sessionID,
+    mtditid = sessionData.mtditid,
+    nino = sessionData.nino,
+    saUtr = sessionData.saUtr,
+    clientFirstName = sessionData.clientFirstName,
+    clientLastName = sessionData.clientLastName,
+    userType = sessionData.userType
+  )
+
   implicit val format: OFormat[Session] = {
 
     ((__ \ "sessionID").format[String]

@@ -35,7 +35,7 @@ class SessionService @Inject()(
     }
   }
 
-  def set(session: Session): Future[Boolean] = {
-    repository.set(session)
+  def set(sessionData: SessionData): Future[Boolean] = {
+    repository.set(sessionData)
   }
 }

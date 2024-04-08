@@ -40,6 +40,7 @@ class SessionControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppPe
   )
 
   val testSessionData: SessionData = SessionData(
+    sessionID ="session-123",
     mtditid = "id-123",
     nino = "nino-123",
     saUtr = "utr-123",

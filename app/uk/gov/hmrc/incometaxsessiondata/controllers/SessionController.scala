@@ -18,10 +18,10 @@ package uk.gov.hmrc.incometaxsessiondata.controllers
 
 import play.api.Logging
 import play.api.libs.json.{JsError, JsSuccess, Json}
-import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.incometaxsessiondata.models.{Session, SessionData}
+import uk.gov.hmrc.incometaxsessiondata.models.SessionData
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -48,7 +48,7 @@ class SessionController @Inject()(cc: ControllerComponents,
 
   def set(): Action[AnyContent] = Action.async { implicit request =>
     request.body.asJson.getOrElse(Json.obj())
-      .validate[Session] match {
+      .validate[SessionData] match {
         case err: JsError =>
           logger.error(s"[SessionController][set]: Json validation error while parsing request: $err")
           Future.successful(BadRequest(s"Json validation error while parsing request: $err"))
