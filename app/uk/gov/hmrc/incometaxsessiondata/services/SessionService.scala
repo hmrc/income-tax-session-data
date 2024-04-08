@@ -30,15 +30,7 @@ class SessionService @Inject()(
   def get(sessionId: String): Future[Either[Throwable, Option[SessionData]]] = {
     repository.get(sessionId) map {
       case Some(data: Session) =>
-        val sessionData = SessionData(
-          mtditid = data.mtditid,
-          nino = data.nino,
-          saUtr = data.saUtr,
-          clientFirstName = data.clientFirstName,
-          clientLastName = data.clientLastName,
-          userType = data.userType
-        )
-        Right(Some(sessionData))
+        Right(Some(data))
       case None => Right(None)
     }
   }

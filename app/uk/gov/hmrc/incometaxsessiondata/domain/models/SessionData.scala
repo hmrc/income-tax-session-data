@@ -18,6 +18,8 @@ package uk.gov.hmrc.incometaxsessiondata.domain.models
 
 import play.api.libs.json.{Format, Json}
 
+import scala.language.implicitConversions
+
 case class SessionData(mtditid: String,
                        nino: String,
                        saUtr: Option[String],
@@ -26,5 +28,13 @@ case class SessionData(mtditid: String,
                        userType: String)
 
 object SessionData {
+  implicit val fromSession: Session => SessionData = session => SessionData(
+    mtditid = session.mtditid,
+    nino = session.nino,
+    saUtr = session.saUtr,
+    clientFirstName = session.clientFirstName,
+    clientLastName = session.clientLastName,
+    userType = session.userType
+  )
   implicit val format: Format[SessionData] = Json.format[SessionData]
 }
