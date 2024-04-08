@@ -26,6 +26,7 @@ import play.api.mvc.{ControllerComponents, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.incometaxsessiondata.models.SessionData
+import uk.gov.hmrc.incometaxsessiondata.predicates.AuthenticationPredicate
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -36,6 +37,7 @@ class SessionControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppPe
   implicit val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
   object testSessionController extends SessionController(
     app.injector.instanceOf[ControllerComponents],
+    app.injector.instanceOf[AuthenticationPredicate],
     mockSessionService
   )
 
