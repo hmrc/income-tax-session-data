@@ -47,7 +47,7 @@ class SessionDataRepositoryISpec extends AnyWordSpec
     sessionID = testSessionId,
     mtditid = "testId",
     nino = "testNino",
-    saUtr = None,
+    saUtr = "testUtr",
     clientFirstName = Some("John"),
     clientLastName = Some("Smith"),
     userType = "Individual"
