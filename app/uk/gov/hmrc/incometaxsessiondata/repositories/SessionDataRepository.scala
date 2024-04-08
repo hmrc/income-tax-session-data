@@ -31,10 +31,10 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class SessionDataRepository @Inject()(
-                             mongoComponent: MongoComponent,
-                             config: AppConfig,
-                             clock: Clock
-                           )(implicit ec: ExecutionContext)
+                                       mongoComponent: MongoComponent,
+                                       config: AppConfig,
+                                       clock: Clock
+                                     )(implicit ec: ExecutionContext)
   extends PlayMongoRepository[Session](
     collectionName = "ui-journey-session-data",
     mongoComponent = mongoComponent,
@@ -50,28 +50,24 @@ class SessionDataRepository @Inject()(
     replaceIndexes = true
   ) {
 
-  private def dataFilter(data: Session): Bson = {
+  private def dataFilter(sessionId: String): Bson = {
     import Filters._
-    and(equal("sessionID", data.sessionID))
+    and(equal("sessionID", sessionId))
   }
 
-  def keepAlive(data: Session): Future[Boolean] =
+  def keepAlive(sessionId: String): Future[Boolean] =
     collection
       .updateOne(
-        filter = dataFilter(data),
+        filter = dataFilter(sessionId),
         update = Updates.set("lastUpdated", Instant.now(clock))
       )
       .toFuture()
       .map(_.wasAcknowledged())
 
   def get(sessionId: String): Future[Option[Session]] = {
-    val data = Session(sessionId)
-    keepAlive(data).flatMap {
-      _ =>
-        collection
-          .find(dataFilter(data))
-          .headOption()
-    }
+    collection
+      .find(dataFilter(sessionId))
+      .headOption()
   }
 
   def set(data: Session): Future[Boolean] = {
@@ -80,7 +76,7 @@ class SessionDataRepository @Inject()(
 
     collection
       .replaceOne(
-        filter = dataFilter(data),
+        filter = dataFilter(data.sessionID),
         replacement = updatedAnswers,
         options = ReplaceOptions().upsert(true)
       )
