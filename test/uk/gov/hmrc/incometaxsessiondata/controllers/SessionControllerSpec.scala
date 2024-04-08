@@ -72,7 +72,7 @@ class SessionControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppPe
     }
   }
 
-//  "SessionController.set" should {
+  "SessionController.set" should {
 //    "Return successful" when {
 //      "the body is correct and the service returns true" in {
 //        when(mockSessionService.set(any())).thenReturn(Future(true))
@@ -89,5 +89,11 @@ class SessionControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppPe
 //        status(result) shouldBe OK
 //      }
 //    }
-//  }
+    "return a bad request" when {
+      "the request body is invalid" in {
+                val result: Future[Result] = testSessionController.set()(FakeRequest())
+                status(result) shouldBe BAD_REQUEST
+      }
+    }
+  }
 }
