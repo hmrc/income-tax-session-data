@@ -22,7 +22,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.incometaxsessiondata.domain.models.Session
+import uk.gov.hmrc.incometaxsessiondata.models.Session
 import uk.gov.hmrc.incometaxsessiondata.repositories.SessionDataRepository
 
 import scala.concurrent.ExecutionContext

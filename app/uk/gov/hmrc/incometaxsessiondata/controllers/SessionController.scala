@@ -20,7 +20,7 @@ import play.api.Logging
 import play.api.libs.json.{JsError, JsSuccess, Json}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.incometaxsessiondata.domain.models.{Session, SessionData}
+import uk.gov.hmrc.incometaxsessiondata.models.{Session, SessionData}
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 
 import javax.inject.{Inject, Singleton}

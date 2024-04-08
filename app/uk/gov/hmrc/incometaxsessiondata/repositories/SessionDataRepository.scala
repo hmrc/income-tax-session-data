@@ -20,7 +20,7 @@ import com.google.inject.Singleton
 import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model._
 import uk.gov.hmrc.incometaxsessiondata.config.AppConfig
-import uk.gov.hmrc.incometaxsessiondata.domain.models.Session
+import uk.gov.hmrc.incometaxsessiondata.models.Session
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 

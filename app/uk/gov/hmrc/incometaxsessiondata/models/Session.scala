@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.incometaxsessiondata.domain.models
+package uk.gov.hmrc.incometaxsessiondata.models
 
 import play.api.libs.functional.syntax.{toFunctionalBuilderOps, unlift}
 import play.api.libs.json.{OFormat, __}
