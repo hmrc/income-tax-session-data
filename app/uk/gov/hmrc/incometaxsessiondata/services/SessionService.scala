@@ -16,28 +16,26 @@
 
 package uk.gov.hmrc.incometaxsessiondata.services
 
-import uk.gov.hmrc.incometaxsessiondata.domain.models.Session
+import uk.gov.hmrc.incometaxsessiondata.models.{Session, SessionData}
+import uk.gov.hmrc.incometaxsessiondata.repositories.SessionDataRepository
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class SessionService @Inject(){
+class SessionService @Inject()(
+                                repository: SessionDataRepository
+                              )(implicit ec: ExecutionContext) {
 
-  def create(session: Session): Future[Either[Throwable, Unit]] =
-    Future.successful(Right(()))
+  def get(sessionId: String): Future[Either[Throwable, Option[SessionData]]] = {
+    repository.get(sessionId) map {
+      case Some(data: Session) =>
+        Right(Some(data))
+      case None => Right(None)
+    }
+  }
 
-  def get(sessionID: String): Future[Either[Throwable, Session]] =
-    Future.successful(Right(dummySession))
-
-  private lazy val dummySession: Session =
-    Session(
-      sessionID = "some-id",
-      mtditid = "MTDITID",
-      nino = "BB123456A",
-      saUtr = None,
-      clientFirstName = Some("John"),
-      clientLastName = Some("Smith"),
-      userType = "Individual"
-    )
+  def set(sessionData: SessionData): Future[Boolean] = {
+    repository.set(sessionData)
+  }
 }

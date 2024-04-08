@@ -18,10 +18,10 @@ package uk.gov.hmrc.incometaxsessiondata.controllers
 
 import play.api.Logging
 import play.api.libs.json.{JsError, JsSuccess, Json}
-import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.incometaxsessiondata.domain.models.Session
+import uk.gov.hmrc.incometaxsessiondata.models.SessionData
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -34,28 +34,31 @@ class SessionController @Inject()(cc: ControllerComponents,
 
   def getById(sessionID: String): Action[AnyContent] = Action.async {
     sessionService.get(sessionID) map {
-      case Right(session: Session) =>
-        logger.info(s"[SessionController][getById]: Successfully retrieved session: $session")
+      case Right(Some(session: SessionData)) =>
+        logger.info(s"[SessionController][getById]: Successfully retrieved session data: $session")
         Ok(Json.toJson(session))
+      case Right(None) =>
+        logger.info(s"[SessionController][getById]: No live session")
+        Ok("No session")
       case Left(_) =>
         logger.error(s"[SessionController][getById]: Failed to retrieve session with id: $sessionID")
         InternalServerError(s"Failed to retrieve session with id: $sessionID")
     }
   }
 
-  def create(): Action[AnyContent] = Action.async { implicit request =>
+  def set(): Action[AnyContent] = Action.async { implicit request =>
     request.body.asJson.getOrElse(Json.obj())
-      .validate[Session] match {
+      .validate[SessionData] match {
         case err: JsError =>
-          logger.error(s"[SessionController][create]: Json validation error while parsing request: $err")
+          logger.error(s"[SessionController][set]: Json validation error while parsing request: $err")
           Future.successful(BadRequest(s"Json validation error while parsing request: $err"))
-        case JsSuccess(validRequest, _) => sessionService.create(validRequest) map {
-          case Right(_) =>
-            logger.info(s"[SessionController][create]: Successfully created session")
-            Ok("Successfully created session")
-          case Left(_) =>
-            logger.error(s"[SessionController][create]: Failed to create session")
-            InternalServerError("Failed to create session")
+        case JsSuccess(validRequest, _) => sessionService.set(validRequest) map {
+          case true =>
+            logger.info(s"[SessionController][set]: Successfully set session")
+            Ok("Successfully set session")
+          case false =>
+            logger.error(s"[SessionController][set]: Failed to set session")
+            InternalServerError("Failed to set session")
         }
     }
   }
