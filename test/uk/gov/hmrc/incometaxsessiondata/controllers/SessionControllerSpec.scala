@@ -16,21 +16,78 @@
 
 package uk.gov.hmrc.incometaxsessiondata.controllers
 
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{mock, when}
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import play.api.http.Status
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.mvc.{ControllerComponents, Result}
+import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.api.test.{FakeRequest, Helpers}
+import uk.gov.hmrc.incometaxsessiondata.models.SessionData
+import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 
-class SessionControllerSpec extends AnyWordSpec with Matchers {
+import scala.concurrent.{ExecutionContext, Future}
 
-  private val fakeRequest = FakeRequest("GET", "/")
-//  private val controller = new SessionController(Helpers.stubControllerComponents())
+class SessionControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite with ScalaFutures{
 
-  "GET /" should {
-    "return 200" in {
-//      val result = controller.hello()(fakeRequest)
-//      status(result) shouldBe Status.OK
+  val mockSessionService: SessionService = mock(classOf[SessionService])
+  implicit val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
+  object testSessionController extends SessionController(
+    app.injector.instanceOf[ControllerComponents],
+    mockSessionService
+  )
+
+  val testSessionData: SessionData = SessionData(
+    mtditid = "id-123",
+    nino = "nino-123",
+    saUtr = "utr-123",
+    clientFirstName = Some("David"),
+    clientLastName = None,
+    userType = "Individual"
+  )
+
+  "SessionController.getById" should {
+    "Return successful" when {
+      "Data is returned from the service" in {
+        when(mockSessionService.get(any())).thenReturn(Future(Right(Some(testSessionData))))
+        val result: Future[Result] = testSessionController.getById("123")(FakeRequest())
+        status(result) shouldBe OK
+      }
+    }
+    "Return Ok" when {
+      "Empty data is returned from service" in {
+        when(mockSessionService.get(any())).thenReturn(Future(Right(None)))
+        val result: Future[Result] = testSessionController.getById("123")(FakeRequest())
+        status(result) shouldBe OK
+      }
+    }
+    "Return an error" when {
+      "An error is returned from the service" in {
+        when(mockSessionService.get(any())).thenReturn(Future(Left(new Error("Error"))))
+        val result: Future[Result] = testSessionController.getById("123")(FakeRequest())
+        status(result) shouldBe INTERNAL_SERVER_ERROR
+      }
     }
   }
+
+//  "SessionController.set" should {
+//    "Return successful" when {
+//      "the body is correct and the service returns true" in {
+//        when(mockSessionService.set(any())).thenReturn(Future(true))
+//        val result: Future[Result] = testSessionController.set()(FakeRequest().withSession(
+//          "clientFirstName" -> "Test",
+//          "clientLastName" -> "User",
+//          "mtditid" -> "1234567890",
+//          "saUtr" -> "XAIT00000000015",
+//          "nino" -> "testNino",
+//          "userType" -> "Individual",
+//          "sessionID" -> "session-123",
+//          "lastUpdated" -> "0000"
+//        ))
+//        status(result) shouldBe OK
+//      }
+//    }
+//  }
 }
