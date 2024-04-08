@@ -18,8 +18,6 @@ package uk.gov.hmrc.incometaxsessiondata.models
 
 import play.api.libs.json.{Format, Json}
 
-import scala.language.implicitConversions
-
 case class SessionData(mtditid: String,
                        nino: String,
                        saUtr: String,
