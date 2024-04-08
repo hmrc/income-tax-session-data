@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.incometaxsessiondata.controllers
 
+import mocks.MockMicroserviceAuthConnector
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{mock, when}
 import org.scalatest.concurrent.ScalaFutures
@@ -31,10 +32,10 @@ import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class SessionControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite with ScalaFutures{
+class SessionControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite with ScalaFutures with MockMicroserviceAuthConnector {
 
   val mockSessionService: SessionService = mock(classOf[SessionService])
-  implicit val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
+  override implicit val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
   object testSessionController extends SessionController(
     app.injector.instanceOf[ControllerComponents],
     app.injector.instanceOf[AuthenticationPredicate],
@@ -54,6 +55,7 @@ class SessionControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppPe
   "SessionController.getById" should {
     "Return successful" when {
       "Data is returned from the service" in {
+        mockAuth()
         when(mockSessionService.get(any())).thenReturn(Future(Right(Some(testSessionData))))
         val result: Future[Result] = testSessionController.getById("123")(FakeRequest())
         status(result) shouldBe OK
@@ -61,6 +63,7 @@ class SessionControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppPe
     }
     "Return Ok" when {
       "Empty data is returned from service" in {
+        mockAuth()
         when(mockSessionService.get(any())).thenReturn(Future(Right(None)))
         val result: Future[Result] = testSessionController.getById("123")(FakeRequest())
         status(result) shouldBe OK
@@ -68,6 +71,7 @@ class SessionControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppPe
     }
     "Return an error" when {
       "An error is returned from the service" in {
+        mockAuth()
         when(mockSessionService.get(any())).thenReturn(Future(Left(new Error("Error"))))
         val result: Future[Result] = testSessionController.getById("123")(FakeRequest())
         status(result) shouldBe INTERNAL_SERVER_ERROR
@@ -83,8 +87,8 @@ class SessionControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppPe
     }
     "return a bad request" when {
       "the request body is invalid" in {
-                val result: Future[Result] = testSessionController.set()(FakeRequest())
-                status(result) shouldBe BAD_REQUEST
+        val result: Future[Result] = testSessionController.set()(FakeRequest())
+        status(result) shouldBe BAD_REQUEST
       }
     }
   }
