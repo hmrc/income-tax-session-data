@@ -43,6 +43,10 @@ class SessionController @Inject()(cc: ControllerComponents,
       case Left(_) =>
         logger.error(s"[SessionController][getById]: Failed to retrieve session with id: $sessionID")
         InternalServerError(s"Failed to retrieve session with id: $sessionID")
+    } recover {
+      case ex =>
+        logger.error(s"[SessionController][get]: Unexpected error while getting session: $ex")
+        InternalServerError(s"Unexpected error while getting session: $ex")
     }
   }
 
@@ -59,6 +63,10 @@ class SessionController @Inject()(cc: ControllerComponents,
           case false =>
             logger.error(s"[SessionController][set]: Failed to set session")
             InternalServerError("Failed to set session")
+        } recover {
+          case ex =>
+          logger.error(s"[SessionController][set]: Unexpected error while setting session: $ex")
+          InternalServerError(s"Unexpected error while setting session: $ex")
         }
     }
   }
