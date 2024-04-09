@@ -22,6 +22,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.libs.json.Json
 import play.api.mvc.{ControllerComponents, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -30,17 +31,18 @@ import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class SessionControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite with ScalaFutures{
+class SessionControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite with ScalaFutures {
 
   val mockSessionService: SessionService = mock(classOf[SessionService])
   implicit val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
+
   object testSessionController extends SessionController(
     app.injector.instanceOf[ControllerComponents],
     mockSessionService
   )
 
   val testSessionData: SessionData = SessionData(
-    sessionID ="session-123",
+    sessionID = "session-123",
     mtditid = "id-123",
     nino = "nino-123",
     saUtr = "utr-123",
@@ -61,7 +63,7 @@ class SessionControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppPe
       "Empty data is returned from service" in {
         when(mockSessionService.get(any())).thenReturn(Future(Right(None)))
         val result: Future[Result] = testSessionController.getById("123")(FakeRequest())
-        status(result) shouldBe OK
+        status(result) shouldBe NOT_FOUND
       }
     }
     "Return an error" when {
@@ -71,18 +73,41 @@ class SessionControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppPe
         status(result) shouldBe INTERNAL_SERVER_ERROR
       }
     }
+    "Recover" when {
+      "Unexpected error from service" in {
+        when(mockSessionService.get(any())).thenReturn(Future.failed(new Error("")))
+        val result: Future[Result] = testSessionController.getById("123")(FakeRequest())
+        status(result) shouldBe INTERNAL_SERVER_ERROR
+      }
+    }
   }
 
   "SessionController.set" should {
     "Return successful" when {
       "the body is correct and the service returns true" in {
-
+        when(mockSessionService.set(any())).thenReturn(Future(true))
+        val result: Future[Result] = testSessionController.set()(FakeRequest().withJsonBody(Json.toJson[SessionData](testSessionData)))
+        status(result) shouldBe OK
+      }
+    }
+    "Return an error" when {
+      "the service fails to set the session" in {
+        when(mockSessionService.set(any())).thenReturn(Future(false))
+        val result: Future[Result] = testSessionController.set()(FakeRequest().withJsonBody(Json.toJson[SessionData](testSessionData)))
+        status(result) shouldBe INTERNAL_SERVER_ERROR
       }
     }
     "return a bad request" when {
       "the request body is invalid" in {
-                val result: Future[Result] = testSessionController.set()(FakeRequest())
-                status(result) shouldBe BAD_REQUEST
+        val result: Future[Result] = testSessionController.set()(FakeRequest())
+        status(result) shouldBe BAD_REQUEST
+      }
+    }
+    "Recover" when {
+      "Unexpected error from service" in {
+        when(mockSessionService.set(any())).thenReturn(Future.failed(new Error("")))
+        val result: Future[Result] = testSessionController.set()(FakeRequest().withJsonBody(Json.toJson[SessionData](testSessionData)))
+        status(result) shouldBe INTERNAL_SERVER_ERROR
       }
     }
   }

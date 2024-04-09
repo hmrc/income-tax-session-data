@@ -39,27 +39,41 @@ class SessionController @Inject()(cc: ControllerComponents,
         Ok(Json.toJson(session))
       case Right(None) =>
         logger.info(s"[SessionController][getById]: No live session")
-        Ok("No session")
-      case Left(_) =>
-        logger.error(s"[SessionController][getById]: Failed to retrieve session with id: $sessionID")
+        NotFound("No session data found")
+      case Left(ex) =>
+        logger.error(s"[SessionController][getById]: Failed to retrieve session with id: $sessionID - ${ex.getMessage}")
         InternalServerError(s"Failed to retrieve session with id: $sessionID")
+    } recover {
+      case ex =>
+        logger.error(s"[SessionController][getById]: Unexpected error while getting session: $ex")
+        InternalServerError(s"Unexpected error while getting session: $ex")
     }
   }
 
   def set(): Action[AnyContent] = Action.async { implicit request =>
     request.body.asJson.getOrElse(Json.obj())
       .validate[SessionData] match {
-        case err: JsError =>
-          logger.error(s"[SessionController][set]: Json validation error while parsing request: $err")
-          Future.successful(BadRequest(s"Json validation error while parsing request: $err"))
-        case JsSuccess(validRequest, _) => sessionService.set(validRequest) map {
-          case true =>
-            logger.info(s"[SessionController][set]: Successfully set session")
-            Ok("Successfully set session")
-          case false =>
-            logger.error(s"[SessionController][set]: Failed to set session")
-            InternalServerError("Failed to set session")
-        }
+      case err: JsError =>
+        logger.error(s"[SessionController][set]: Json validation error while parsing request: $err")
+        Future.successful(BadRequest(s"Json validation error while parsing request: $err"))
+      case JsSuccess(validRequest, _) =>
+        save(validRequest)
+          .recover {
+            case ex =>
+              logger.error(s"[SessionController][set]: Unexpected error while setting session: $ex")
+              InternalServerError(s"Unexpected error while setting session: $ex")
+          }
+    }
+  }
+
+  private def save(validRequest: SessionData) = {
+    sessionService.set(validRequest) map {
+      case true =>
+        logger.info(s"[SessionController][save]: Successfully set session")
+        Ok("Successfully set session")
+      case false =>
+        logger.error(s"[SessionController][save]: Failed to set session")
+        InternalServerError("Failed to set session")
     }
   }
 }
