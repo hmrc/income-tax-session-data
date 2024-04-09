@@ -39,7 +39,7 @@ class SessionController @Inject()(cc: ControllerComponents,
         Ok(Json.toJson(session))
       case Right(None) =>
         logger.info(s"[SessionController][getById]: No live session")
-        Ok("No session")
+        NotFound("No session data found")
       case Left(ex) =>
         logger.error(s"[SessionController][getById]: Failed to retrieve session with id: $sessionID - ${ex.getMessage}")
         InternalServerError(s"Failed to retrieve session with id: $sessionID")

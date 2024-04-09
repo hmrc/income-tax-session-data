@@ -63,7 +63,7 @@ class SessionControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppPe
       "Empty data is returned from service" in {
         when(mockSessionService.get(any())).thenReturn(Future(Right(None)))
         val result: Future[Result] = testSessionController.getById("123")(FakeRequest())
-        status(result) shouldBe OK
+        status(result) shouldBe NOT_FOUND
       }
     }
     "Return an error" when {
