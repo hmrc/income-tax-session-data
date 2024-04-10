@@ -42,9 +42,19 @@ class SessionDataRepositoryISpec extends AnyWordSpec
   }
 
   val testSessionId = "session-123"
+  val otherTestSessionId = "session-456"
 
   val testSession = Session(
     sessionID = testSessionId,
+    mtditid = "testId",
+    nino = "testNino",
+    saUtr = "testUtr",
+    clientFirstName = Some("John"),
+    clientLastName = Some("Smith"),
+    userType = "Individual"
+  )
+  val otherTestSession = Session(
+    sessionID = otherTestSessionId,
     mtditid = "testId",
     nino = "testNino",
     saUtr = "testUtr",
@@ -63,6 +73,15 @@ class SessionDataRepositoryISpec extends AnyWordSpec
       val result = await(repository.get(testSessionId)).get
       result.mtditid shouldBe "testId"
       result.userType shouldBe "Individual"
+    }
+    "delete specified data" in {
+      await(repository.set(testSession))
+      await(repository.set(otherTestSession))
+      await(repository.deleteOne(testSessionId))
+      val result = await(repository.get(testSessionId))
+      val otherResult = await(repository.get(otherTestSessionId))
+      result shouldBe None
+      otherResult shouldBe Some(otherTestSession)
     }
   }
 
