@@ -87,7 +87,7 @@ class SessionControllerISpec
     "Sending a POST request to the sesison data service" should {
         "add data to mongo" when {
             "data provided is valid" in {
-                val result = SessionDataHelpers.post("/")(Json.toJson[SessionData](testSessionData))
+                val result = post("/")(Json.toJson[SessionData](testSessionData))
                 sessionService.get(testSessionData.sessionID).futureValue shouldBe Right(Some(testSessionData))
                 result should have(
                     httpStatus(OK)
@@ -96,7 +96,7 @@ class SessionControllerISpec
         }
         "return BAD_REQUEST" when {
             "data provided in invalid" in {
-                val result = SessionDataHelpers.post("/")(Json.toJson[String]("not a valid session"))
+                val result = post("/")(Json.toJson[String]("not a valid session"))
                 result should have(
                     httpStatus(BAD_REQUEST)
                 )
