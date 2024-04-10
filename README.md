@@ -1,6 +1,12 @@
 # income-tax-session-data
 
 This is the repository for the Income Tax Session Data service.
+To check the status of the pipeline for this service. Visit the [Pipeline](https://build.tax.service.gov.uk/job/ITSA_SVC/job/View%20and%20Change/job/income-tax-session-data-pipeline/)
+
+# Uses
+
+With this service, teams can safely store customer data outside their service. The unique identifier field sessionID is the primary for the database.
+This can be fetched from the sessionId in HeaderCarrier or can be customised by consumers of this service.
 
 Requirements
 ------------
