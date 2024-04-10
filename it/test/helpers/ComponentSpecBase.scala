@@ -49,18 +49,16 @@ trait ComponentSpecBase extends TestSuite with GuiceOneServerPerSuite with Scala
     super.afterAll()
   }
 
+  def get(uri: String): WSResponse = {
+    buildClient(uri)
+      .withHttpHeaders()
+      .get().futureValue
+  }
 
-  object SessionDataHelpers {
-    def get(uri: String): WSResponse = {
-      buildClient(uri)
-        .withHttpHeaders()
-        .get().futureValue
-    }
-    def post(uri: String)(body: JsValue): WSResponse = {
-      buildClient(uri)
-        .withFollowRedirects(false)
-        .withHttpHeaders()
-        .post(body).futureValue
-    }
+  def post(uri: String)(body: JsValue): WSResponse = {
+    buildClient(uri)
+      .withFollowRedirects(false)
+      .withHttpHeaders()
+      .post(body).futureValue
   }
 }
