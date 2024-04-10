@@ -16,7 +16,6 @@
 
 package repositories
 
-import org.mongodb.scala.bson.BsonDocument
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -38,13 +37,24 @@ class SessionDataRepositoryISpec extends AnyWordSpec
   private val repository = app.injector.instanceOf[SessionDataRepository]
 
   def beforeEach(): Unit = {
-    await(repository.collection.deleteMany(BsonDocument()).toFuture())
+    await(repository.deleteOne(testSessionId))
+    await(repository.deleteOne(otherTestSessionId))
   }
 
   val testSessionId = "session-123"
+  val otherTestSessionId = "session-xxx"
 
   val testSession = Session(
     sessionID = testSessionId,
+    mtditid = "testId",
+    nino = "testNino",
+    saUtr = "testUtr",
+    clientFirstName = Some("John"),
+    clientLastName = Some("Smith"),
+    userType = "Individual"
+  )
+  val otherTestSession = Session(
+    sessionID = otherTestSessionId,
     mtditid = "testId",
     nino = "testNino",
     saUtr = "testUtr",
@@ -63,6 +73,15 @@ class SessionDataRepositoryISpec extends AnyWordSpec
       val result = await(repository.get(testSessionId)).get
       result.mtditid shouldBe "testId"
       result.userType shouldBe "Individual"
+    }
+    "delete specified data" in {
+      await(repository.set(testSession))
+      await(repository.set(otherTestSession))
+      await(repository.deleteOne(testSessionId))
+      val result = await(repository.get(testSessionId))
+      val otherResult = await(repository.get(otherTestSessionId)).get
+      result shouldBe None
+      otherResult.sessionID shouldBe "session-xxx"
     }
   }
 
