@@ -39,6 +39,8 @@ class AuthenticationPredicate @Inject()(val authConnector: MicroserviceAuthConne
   def async(action: Request[AnyContent] => Future[Result]): Action[AnyContent] =
     Action.async { implicit request =>
       authorised().retrieve(affinityGroup and confidenceLevel) {
+        case Some(AffinityGroup.Agent) ~ _ =>
+          action(request)
         case _ ~ userConfidence if minimumConfidenceLevelOpt.exists(minimumConfidenceLevel => userConfidence.level >= minimumConfidenceLevel) =>
           action(request)
         case _ ~ _ =>
