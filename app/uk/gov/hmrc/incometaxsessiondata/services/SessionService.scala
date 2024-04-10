@@ -39,7 +39,7 @@ class SessionService @Inject()(
     repository.set(sessionData)
   }
 
-  def deleteSession(sessionId: String): Future[Boolean] = {
+  def deleteSession(sessionId: String): Future[Unit] = {
     repository.deleteOne(sessionId)
   }
 }

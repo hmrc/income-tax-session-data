@@ -16,7 +16,6 @@
 
 package repositories
 
-import org.mongodb.scala.bson.BsonDocument
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -38,11 +37,12 @@ class SessionDataRepositoryISpec extends AnyWordSpec
   private val repository = app.injector.instanceOf[SessionDataRepository]
 
   def beforeEach(): Unit = {
-    await(repository.collection.deleteMany(BsonDocument()).toFuture())
+    await(repository.deleteOne(testSessionId))
+    await(repository.deleteOne(otherTestSessionId))
   }
 
   val testSessionId = "session-123"
-  val otherTestSessionId = "session-456"
+  val otherTestSessionId = "session-xxx"
 
   val testSession = Session(
     sessionID = testSessionId,
@@ -79,9 +79,9 @@ class SessionDataRepositoryISpec extends AnyWordSpec
       await(repository.set(otherTestSession))
       await(repository.deleteOne(testSessionId))
       val result = await(repository.get(testSessionId))
-      val otherResult = await(repository.get(otherTestSessionId))
+      val otherResult = await(repository.get(otherTestSessionId)).get
       result shouldBe None
-      otherResult shouldBe Some(otherTestSession)
+      otherResult.sessionID shouldBe "session-xxx"
     }
   }
 

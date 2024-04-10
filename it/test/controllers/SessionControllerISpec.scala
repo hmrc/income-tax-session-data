@@ -76,7 +76,7 @@ class SessionControllerISpec
         "return Not Found" when {
             "there is no data in mongo with that id" in {
                 await(sessionService.set(testSessionData))
-                val result = SessionDataHelpers.get("/session-456")
+                val result = SessionDataHelpers.get("/session-999")
                 result should have(
                     httpStatus(NOT_FOUND)
                 )
