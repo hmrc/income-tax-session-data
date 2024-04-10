@@ -52,7 +52,6 @@ class SessionControllerISpec
     override def beforeEach(): Unit = {
         super.beforeEach()
         await(sessionService.deleteSession(testSessionData.sessionID))
-        await(sessionService.deleteSession(otherTestSessionData.sessionID))
     }
     val testSessionData: SessionData = SessionData(
         sessionID = "session-123",
@@ -60,15 +59,6 @@ class SessionControllerISpec
         nino = "nino-123",
         saUtr = "utr-123",
         clientFirstName = Some("David"),
-        clientLastName = None,
-        userType = "Individual"
-    )
-    val otherTestSessionData: SessionData = SessionData(
-        sessionID = "session-456",
-        mtditid = "id-456",
-        nino = "nino-456",
-        saUtr = "utr-456",
-        clientFirstName = Some("Johnny"),
         clientLastName = None,
         userType = "Individual"
     )
@@ -85,8 +75,8 @@ class SessionControllerISpec
         }
         "return Not Found" when {
             "there is no data in mongo with that id" in {
-                await(sessionService.set(otherTestSessionData))
-                val result = SessionDataHelpers.get("/session-123")
+                await(sessionService.set(testSessionData))
+                val result = SessionDataHelpers.get("/session-456")
                 result should have(
                     httpStatus(NOT_FOUND)
                 )
