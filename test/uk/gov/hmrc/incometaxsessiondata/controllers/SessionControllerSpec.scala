@@ -33,13 +33,9 @@ import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class SessionControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite with ScalaFutures with MockMicroserviceAuthConnector {
+class SessionControllerSpec extends MockMicroserviceAuthConnector {
 
   val mockSessionService: SessionService = mock(classOf[SessionService])
-
-  implicit val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
-
-  val appConfig = app.injector.instanceOf[AppConfig]
 
   val mockCC = stubControllerComponents()
 

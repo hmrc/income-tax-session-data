@@ -34,19 +34,16 @@ class AuthenticationPredicate @Inject()(val authConnector: MicroserviceAuthConne
                                         val appConfig: AppConfig
                                        )(implicit ec: ExecutionContext) extends BackendController(cc) with AuthorisedFunctions with Logging {
 
-  val minimumConfidenceLevel: Int = ConfidenceLevel.fromInt(appConfig.confidenceLevel) match {
-    case Success(value) => value.level
-    case Failure(ex) => throw ex
-  }
+  private val minimumConfidenceLevelOpt: Option[Int] = ConfidenceLevel.fromInt(appConfig.confidenceLevel).map(_.level).toOption
 
   def async(action: Request[AnyContent] => Future[Result]): Action[AnyContent] =
     Action.async { implicit request =>
       authorised().retrieve(affinityGroup and confidenceLevel) {
         case Some(AffinityGroup.Agent) ~ _ => action(request)
-        case _ ~ userConfidence if userConfidence.level >= minimumConfidenceLevel =>
+        case _ ~ userConfidence if minimumConfidenceLevelOpt.exists(minimumConfidenceLevel => userConfidence.level >= minimumConfidenceLevel) =>
           action(request)
         case _ ~ _ =>
-          logger.info(s"[AuthenticationPredicate][authenticated] User has confidence level below ${minimumConfidenceLevel}")
+          logger.info(s"[AuthenticationPredicate][authenticated] User has confidence level below ${minimumConfidenceLevelOpt}")
           Future(Unauthorized)
       } recover {
         case ex: AuthorisationException =>
