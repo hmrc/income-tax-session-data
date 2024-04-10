@@ -32,7 +32,8 @@ class AuthenticationPredicateSpec  extends MockMicroserviceAuthConnector {
   "The AuthenticationPredicate.authenticated method" should {
 
     lazy val mockCC = stubControllerComponents()
-    object TestAuthenticationPredicate extends AuthenticationPredicate(mockMicroserviceAuthConnector, mockCC, appConfig)
+    object TestAuthenticationPredicate extends AuthenticationPredicate(mockMicroserviceAuthConnector,
+      mockCC, appConfig)
 
     def result(authenticationPredicate: AuthenticationPredicate): Future[Result] = authenticationPredicate.async {
       request =>

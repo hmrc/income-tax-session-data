@@ -41,9 +41,9 @@ class SessionDataRepository @Inject()(
     domainFormat = Session.format,
     indexes = Seq(
       IndexModel(
-        Indexes.ascending("sessionID"),
+        Indexes.ascending("lastUpdated"),
         IndexOptions()
-          .name("sessionIDindex")
+          .name("lastUpdatedIndex")
           .expireAfter(config.cacheTtl, TimeUnit.SECONDS)
       )
     ),

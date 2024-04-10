@@ -25,6 +25,7 @@ import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import uk.gov.hmrc.incometaxsessiondata.config.AppConfig
+import uk.gov.hmrc.incometaxsessiondata.predicates.AuthenticationPredicate
 
 import scala.concurrent.ExecutionContext
 

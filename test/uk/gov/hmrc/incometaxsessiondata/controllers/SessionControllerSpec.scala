@@ -19,34 +19,27 @@ package uk.gov.hmrc.incometaxsessiondata.controllers
 import mocks.MockMicroserviceAuthConnector
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{mock, when}
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.wordspec.AnyWordSpec
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.libs.json.Json
 import play.api.mvc.{ControllerComponents, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import uk.gov.hmrc.incometaxsessiondata.config.AppConfig
 import uk.gov.hmrc.incometaxsessiondata.models.SessionData
 import uk.gov.hmrc.incometaxsessiondata.predicates.AuthenticationPredicate
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 class SessionControllerSpec extends MockMicroserviceAuthConnector {
 
   val mockSessionService: SessionService = mock(classOf[SessionService])
 
-  val mockCC = stubControllerComponents()
+  val cc: ControllerComponents = app.injector.instanceOf[ControllerComponents]
+  val authPredicate = new AuthenticationPredicate(mockMicroserviceAuthConnector, cc, appConfig)
 
-  object testSessionController extends SessionController(
-    mockCC,
-    authentication = new AuthenticationPredicate(mockMicroserviceAuthConnector, mockCC, appConfig),
-    mockSessionService
-  )
+  object testSessionController extends SessionController(cc, authPredicate, mockSessionService)
 
   val testSessionData: SessionData = SessionData(
-    sessionID ="session-123",
+    sessionID = "session-123",
     mtditid = "id-123",
     nino = "nino-123",
     saUtr = "utr-123",
@@ -58,24 +51,31 @@ class SessionControllerSpec extends MockMicroserviceAuthConnector {
   "SessionController.getById" should {
     "Return successful" when {
       "Data is returned from the service" in {
-        mockAuth()
         when(mockSessionService.get(any())).thenReturn(Future(Right(Some(testSessionData))))
+        mockAuth()
         val result: Future[Result] = testSessionController.getById("123")(FakeRequest())
         status(result) shouldBe OK
       }
     }
     "Return Ok" when {
       "Empty data is returned from service" in {
-        mockAuth()
         when(mockSessionService.get(any())).thenReturn(Future(Right(None)))
+        mockAuth()
         val result: Future[Result] = testSessionController.getById("123")(FakeRequest())
-        status(result) shouldBe OK
+        status(result) shouldBe NOT_FOUND
       }
     }
     "Return an error" when {
       "An error is returned from the service" in {
-        mockAuth()
         when(mockSessionService.get(any())).thenReturn(Future(Left(new Error("Error"))))
+        mockAuth()
+        val result: Future[Result] = testSessionController.getById("123")(FakeRequest())
+        status(result) shouldBe INTERNAL_SERVER_ERROR
+      }
+    }
+    "Recover" when {
+      "Unexpected error from service" in {
+        when(mockSessionService.get(any())).thenReturn(Future.failed(new Error("")))
         val result: Future[Result] = testSessionController.getById("123")(FakeRequest())
         status(result) shouldBe INTERNAL_SERVER_ERROR
       }
@@ -85,13 +85,29 @@ class SessionControllerSpec extends MockMicroserviceAuthConnector {
   "SessionController.set" should {
     "Return successful" when {
       "the body is correct and the service returns true" in {
-
+        when(mockSessionService.set(any())).thenReturn(Future(true))
+        val result: Future[Result] = testSessionController.set()(FakeRequest().withJsonBody(Json.toJson[SessionData](testSessionData)))
+        status(result) shouldBe OK
+      }
+    }
+    "Return an error" when {
+      "the service fails to set the session" in {
+        when(mockSessionService.set(any())).thenReturn(Future(false))
+        val result: Future[Result] = testSessionController.set()(FakeRequest().withJsonBody(Json.toJson[SessionData](testSessionData)))
+        status(result) shouldBe INTERNAL_SERVER_ERROR
       }
     }
     "return a bad request" when {
       "the request body is invalid" in {
         val result: Future[Result] = testSessionController.set()(FakeRequest())
         status(result) shouldBe BAD_REQUEST
+      }
+    }
+    "Recover" when {
+      "Unexpected error from service" in {
+        when(mockSessionService.set(any())).thenReturn(Future.failed(new Error("")))
+        val result: Future[Result] = testSessionController.set()(FakeRequest().withJsonBody(Json.toJson[SessionData](testSessionData)))
+        status(result) shouldBe INTERNAL_SERVER_ERROR
       }
     }
   }

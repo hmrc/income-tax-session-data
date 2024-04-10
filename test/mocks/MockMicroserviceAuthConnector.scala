@@ -18,6 +18,7 @@ package mocks
 
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{doReturn, mock}
+import org.scalatest.BeforeAndAfterEach
 import play.api.mvc.Result
 import uk.gov.hmrc.auth.core.syntax.retrieved.authSyntaxForRetrieved
 import uk.gov.hmrc.auth.core.{AffinityGroup, ConfidenceLevel}
@@ -26,7 +27,7 @@ import utils.TestSupport
 
 import scala.concurrent.Future
 
-trait MockMicroserviceAuthConnector extends TestSupport  {
+trait MockMicroserviceAuthConnector extends TestSupport with BeforeAndAfterEach {
 
   val mockMicroserviceAuthConnector: MicroserviceAuthConnector = mock(classOf[MicroserviceAuthConnector])
 
