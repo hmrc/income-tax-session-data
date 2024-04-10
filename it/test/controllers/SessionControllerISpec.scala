@@ -22,10 +22,12 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.matchers.{HavePropertyMatchResult, HavePropertyMatcher}
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
-import play.api.http.Status.OK
+import play.api.http.Status.{BAD_REQUEST, NOT_FOUND, OK}
 import play.api.libs.json.Json
 import play.api.libs.ws.WSResponse
+import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import uk.gov.hmrc.incometaxsessiondata.models.SessionData
+import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 class SessionControllerISpec
   extends AnyWordSpec
     with Matchers
@@ -35,17 +37,23 @@ class SessionControllerISpec
     with ComponentSpecBase{
 
     def httpStatus(expectedValue: Int): HavePropertyMatcher[WSResponse, Int] =
-        new HavePropertyMatcher[WSResponse, Int] {
-            def apply(response: WSResponse) = {
-                HavePropertyMatchResult(
-                    response.status == expectedValue,
-                    "httpStatus",
-                    expectedValue,
-                    response.status
-                )
-            }
+        (response: WSResponse) => {
+            HavePropertyMatchResult(
+                response.status == expectedValue,
+                "httpStatus",
+                expectedValue,
+                response.status
+            )
         }
 
+
+    val sessionService: SessionService = app.injector.instanceOf[SessionService]
+
+    override def beforeEach(): Unit = {
+        super.beforeEach()
+        await(sessionService.deleteSession(testSessionData.sessionID))
+        await(sessionService.deleteSession(otherTestSessionData.sessionID))
+    }
     val testSessionData: SessionData = SessionData(
         sessionID = "session-123",
         mtditid = "id-123",
@@ -55,14 +63,54 @@ class SessionControllerISpec
         clientLastName = None,
         userType = "Individual"
     )
+    val otherTestSessionData: SessionData = SessionData(
+        sessionID = "session-456",
+        mtditid = "id-456",
+        nino = "nino-456",
+        saUtr = "utr-456",
+        clientFirstName = Some("Johnny"),
+        clientLastName = None,
+        userType = "Individual"
+    )
 
     "Sending a GET request to the session data service" should {
-        "return some session data" in {
-            SessionDataHelpers.post("/")(Json.toJson[SessionData](testSessionData))
-            val result = SessionDataHelpers.get("/session-123")
-            result should have(
-                httpStatus(OK)
-            )
+        "return some session data" when {
+            "there is data in mongo under that id" in {
+                await(sessionService.set(testSessionData))
+                val result = SessionDataHelpers.get("/session-123")
+                result should have(
+                    httpStatus(OK)
+                )
+            }
+        }
+        "return Not Found" when {
+            "there is no data in mongo with that id" in {
+                await(sessionService.set(otherTestSessionData))
+                val result = SessionDataHelpers.get("/session-123")
+                result should have(
+                    httpStatus(NOT_FOUND)
+                )
+            }
+        }
+    }
+
+    "Sending a POST request to the sesison data service" should {
+        "add data to mongo" when {
+            "data provided is valid" in {
+                val result = SessionDataHelpers.post("/")(Json.toJson[SessionData](testSessionData))
+                sessionService.get(testSessionData.sessionID).futureValue shouldBe Right(Some(testSessionData))
+                result should have(
+                    httpStatus(OK)
+                )
+            }
+        }
+        "return BAD_REQUEST" when {
+            "data provided in invalid" in {
+                val result = SessionDataHelpers.post("/")(Json.toJson[String]("not a valid session"))
+                result should have(
+                    httpStatus(BAD_REQUEST)
+                )
+            }
         }
     }
 

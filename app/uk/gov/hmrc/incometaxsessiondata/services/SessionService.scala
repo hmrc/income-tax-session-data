@@ -38,4 +38,8 @@ class SessionService @Inject()(
   def set(sessionData: SessionData): Future[Boolean] = {
     repository.set(sessionData)
   }
+
+  def deleteSession(sessionId: String): Future[Boolean] = {
+    repository.deleteOne(sessionId)
+  }
 }
