@@ -40,6 +40,9 @@ class SessionService @Inject()(
   }
 
   def deleteSession(sessionId: String): Future[Unit] = {
-    repository.deleteOne(sessionId)
+    repository.deleteOne(sessionId).map{
+      case true => Future.successful(())
+      case false => Future.failed(new Exception("failed to delete session data"))
+    }
   }
 }
