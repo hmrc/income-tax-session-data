@@ -5,7 +5,7 @@ To check the status of the pipeline for this service. Visit the [Pipeline](https
 
 # Uses
 
-With this service, teams can safely store customer data outside their service. The unique identifier field sessionID is the primary for the database.
+With this service, teams can safely store customer data outside their service. The unique identifier field sessionID is the primary key for the database.
 This can be fetched from the sessionId in HeaderCarrier or can be customised by consumers of this service.
 
 Requirements
