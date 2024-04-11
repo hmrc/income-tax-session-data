@@ -21,7 +21,6 @@ import play.api.mvc._
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{affinityGroup, confidenceLevel}
 import uk.gov.hmrc.auth.core.retrieve.~
 import uk.gov.hmrc.auth.core.{AffinityGroup, AuthorisationException, AuthorisedFunctions, ConfidenceLevel}
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.incometaxsessiondata.config.AppConfig
 import uk.gov.hmrc.incometaxsessiondata.connectors.MicroserviceAuthConnector
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController

@@ -18,9 +18,11 @@ package helpers
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, post, stubFor, urlEqualTo}
 import com.github.tomakehurst.wiremock.common.ConsoleNotifier
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration._
+import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import org.scalatest.concurrent.{Eventually, IntegrationPatience}
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.libs.ws.{WSClient, WSRequest}
@@ -29,6 +31,15 @@ object WiremockHelper extends Eventually with IntegrationPatience {
   val wiremockPort = 11111
   val wiremockHost = "localhost"
   val url = s"http://$wiremockHost:$wiremockPort"
+
+  def stubPost(url: String, status: Integer, responseBody: String): StubMapping =
+    stubFor(post(urlEqualTo(url))
+      .willReturn(
+        aResponse().
+          withStatus(status).
+          withBody(responseBody)
+      )
+    )
 }
 
 trait WiremockHelper {
