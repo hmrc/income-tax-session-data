@@ -16,7 +16,7 @@
 
 package controllers
 
-import helpers.{AuthStub, ComponentSpecBase}
+import helpers.{AuthStub, ComponentSpecBase, UserDetailsStub}
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.matchers.{HavePropertyMatchResult, HavePropertyMatcher}
@@ -67,6 +67,7 @@ class SessionControllerISpec
         "return some session data" when {
             "there is data in mongo under that id" in {
                 AuthStub.stubAuthorised()
+                UserDetailsStub.stubGetUserDetails()
                 await(sessionService.set(testSessionData))
                 val result = get("/session-123")
                 result should have(
