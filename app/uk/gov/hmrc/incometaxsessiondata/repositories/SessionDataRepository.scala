@@ -41,6 +41,12 @@ class SessionDataRepository @Inject()(
     domainFormat = Session.format,
     indexes = Seq(
       IndexModel(
+        Indexes.ascending("sessionID"),
+        IndexOptions()
+          .name("sessionIDIndex")
+          .unique(true)
+      ),
+      IndexModel(
         Indexes.ascending("lastUpdated"),
         IndexOptions()
           .name("lastUpdatedIndex")
