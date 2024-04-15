@@ -26,14 +26,19 @@ import play.api.libs.json.JsValue
 import play.api.libs.ws.WSResponse
 import play.api.{Application, Environment, Mode}
 import uk.gov.hmrc.auth.core.AffinityGroup.{Agent, Individual}
+import uk.gov.hmrc.http.{Authorization, HeaderCarrier}
 import uk.gov.hmrc.incometaxsessiondata.config.AppConfig
+import uk.gov.hmrc.play.http.HeaderCarrierConverter
+
+import javax.inject.Singleton
 
 trait ComponentSpecBase extends TestSuite with GuiceOneServerPerSuite with ScalaFutures
   with IntegrationPatience with Matchers
-  with WiremockHelper with BeforeAndAfterEach with BeforeAndAfterAll with Eventually {
+  with WiremockHelper with BeforeAndAfterEach with BeforeAndAfterAll with Eventually{
 
   override implicit lazy val app: Application = new GuiceApplicationBuilder()
     .in(Environment.simple(mode = Mode.Dev))
+    .configure(config)
     .build()
 
   override def beforeAll(): Unit = {
@@ -44,6 +49,7 @@ trait ComponentSpecBase extends TestSuite with GuiceOneServerPerSuite with Scala
   override def beforeEach(): Unit = {
     super.beforeEach()
     WireMock.reset()
+    AuthStub.stubAuthorised()
   }
 
   override def afterAll(): Unit = {
@@ -53,20 +59,24 @@ trait ComponentSpecBase extends TestSuite with GuiceOneServerPerSuite with Scala
 
   def get(uri: String): WSResponse = {
     buildClient(uri)
-      .withHttpHeaders()
+      .withHttpHeaders( "X-Session-ID" -> testSessionId)
       .get().futureValue
   }
 
   def post(uri: String)(body: JsValue): WSResponse = {
     buildClient(uri)
       .withFollowRedirects(false)
-      .withHttpHeaders()
+      .withHttpHeaders("Csrf-Token" -> "nocheck",  "X-Session-ID" -> testSessionId)
       .post(body).futureValue
   }
 
   val appConfig: AppConfig = app.injector.instanceOf[AppConfig]
 
-
+  def config: Map[String, Object] = Map(
+    "play.filters.csrf.header.bypassHeaders.Csrf-Token" -> "nocheck",
+    "auth.host" -> mockHost,
+    "auth.port" -> mockPort
+  )
 
   val testUserTypeIndividual = Individual
   val testUserTypeAgent = Agent
@@ -94,4 +104,14 @@ trait ComponentSpecBase extends TestSuite with GuiceOneServerPerSuite with Scala
   val mockUrl: String = s"http://$mockHost:$mockPort"
   val userDetailsUrl = "/user-details/id/5397272a3d00003d002f3ca9"
   val testUserDetailsWiremockUrl: String = mockUrl + userDetailsUrl
+}
+
+@Singleton
+class TestHeaderExtractor {
+  def extractHeader(request: play.api.mvc.Request[_], session: play.api.mvc.Session): HeaderCarrier = {
+    HeaderCarrierConverter
+      .fromRequestAndSession(request, request.session)
+      .copy(authorization = Some(Authorization("Bearer")))
+  }
+
 }

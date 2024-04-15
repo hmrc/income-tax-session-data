@@ -53,6 +53,7 @@ class SessionControllerISpec
         super.beforeEach()
         await(sessionService.deleteSession(testSessionData.sessionID))
     }
+
     val testSessionData: SessionData = SessionData(
         sessionID = "session-123",
         mtditid = "id-123",
@@ -66,8 +67,8 @@ class SessionControllerISpec
     "Sending a GET request to the session data service" should {
         "return some session data" when {
             "there is data in mongo under that id" in {
-                AuthStub.stubAuthorised()
                 UserDetailsStub.stubGetUserDetails()
+                AuthStub.stubAuthorised()
                 await(sessionService.set(testSessionData))
                 val result = get("/session-123")
                 result should have(
