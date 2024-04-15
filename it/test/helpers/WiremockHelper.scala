@@ -18,7 +18,7 @@ package helpers
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, post, stubFor, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, get, post, stubFor, urlEqualTo}
 import com.github.tomakehurst.wiremock.common.ConsoleNotifier
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration._
@@ -57,6 +57,15 @@ trait WiremockHelper {
     wireMockServer.start()
     WireMock.configureFor(wiremockHost, wiremockPort)
   }
+
+  def stubGet(url: String, status: Integer, body: String): StubMapping =
+    stubFor(get(urlEqualTo(url))
+      .willReturn(
+        aResponse().
+          withStatus(status).
+          withBody(body)
+      )
+    )
 
   def stopWiremock(): Unit = wireMockServer.stop()
 

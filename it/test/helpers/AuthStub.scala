@@ -84,6 +84,18 @@ object AuthStub extends ComponentSpecBase {
     )
   }
 
+  def stubAuthorisedAgentNoARN(): Unit = {
+    WiremockHelper.stubPost(
+      url = postAuthoriseUrl,
+      status = Status.OK,
+      responseBody = Json.stringify(Json.obj(
+        "allEnrolments" -> Json.arr(),
+        "affinityGroup" -> "Agent",
+        "confidenceLevel" -> requiredConfidenceLevel
+      ))
+    )
+  }
+
   def stubUnauthorised(): Unit = {
     WiremockHelper.stubPost(postAuthoriseUrl, Status.UNAUTHORIZED, "{}")
   }

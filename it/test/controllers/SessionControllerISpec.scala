@@ -16,41 +16,43 @@
 
 package controllers
 
-import helpers.{AuthStub, ComponentSpecBase}
+import helpers.{AuthStub, ComponentSpecBase, GenericStubMethods}
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.should.Matchers
-import org.scalatest.matchers.{HavePropertyMatchResult, HavePropertyMatcher}
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.http.Status.{BAD_REQUEST, NOT_FOUND, OK}
 import play.api.libs.json.Json
-import play.api.libs.ws.WSResponse
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import uk.gov.hmrc.incometaxsessiondata.models.SessionData
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
+
 class SessionControllerISpec
   extends AnyWordSpec
     with Matchers
     with ScalaFutures
     with IntegrationPatience
+    with GenericStubMethods
     with GuiceOneServerPerSuite
-    with ComponentSpecBase{
-
-    def httpStatus(expectedValue: Int): HavePropertyMatcher[WSResponse, Int] =
-        (response: WSResponse) => {
-            HavePropertyMatchResult(
-                response.status == expectedValue,
-                "httpStatus",
-                expectedValue,
-                response.status
-            )
-        }
+    with ComponentSpecBase {
+//
+//    def httpStatus(expectedValue: Int): HavePropertyMatcher[WSResponse, Int] =
+//        (response: WSResponse) => {
+//            HavePropertyMatchResult(
+//                response.status == expectedValue,
+//                "httpStatus",
+//                expectedValue,
+//                response.status
+//            )
+//        }
 
 
     val sessionService: SessionService = app.injector.instanceOf[SessionService]
 
     override def beforeEach(): Unit = {
         super.beforeEach()
+//        isAuthorisedUser(true)
+//        stubUserDetails()
         await(sessionService.deleteSession(testSessionData.sessionID))
     }
     val testSessionData: SessionData = SessionData(
