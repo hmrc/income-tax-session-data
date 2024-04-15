@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.incometaxsessiondata.services
 
-import uk.gov.hmrc.incometaxsessiondata.models.{Session, SessionData}
+import uk.gov.hmrc.incometaxsessiondata.models.{Session, SessionData, SessionId}
 import uk.gov.hmrc.incometaxsessiondata.repositories.SessionDataRepository
 
 import javax.inject.{Inject, Singleton}
@@ -27,8 +27,8 @@ class SessionService @Inject()(
                                 repository: SessionDataRepository
                               )(implicit ec: ExecutionContext) {
 
-  def get(sessionId: String): Future[Either[Throwable, Option[SessionData]]] = {
-    repository.get(sessionId) map {
+  def get(sessionId: SessionId): Future[Either[Throwable, Option[SessionData]]] = {
+    repository.get(sessionId.value) map {
       case Some(data: Session) =>
         Right(Some(data))
       case None => Right(None)
@@ -39,8 +39,8 @@ class SessionService @Inject()(
     repository.set(sessionData)
   }
 
-  def deleteSession(sessionId: String): Future[Unit] = {
-    repository.deleteOne(sessionId).map{
+  def deleteSession(sessionId: SessionId): Future[Unit] = {
+    repository.deleteOne(sessionId.value).map{
       case true => Future.successful(())
       case false => Future.failed(new Exception("failed to delete session data"))
     }

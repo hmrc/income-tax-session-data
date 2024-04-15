@@ -23,7 +23,7 @@ import play.api.libs.json.Json
 import play.api.mvc.{ControllerComponents, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import uk.gov.hmrc.incometaxsessiondata.models.SessionData
+import uk.gov.hmrc.incometaxsessiondata.models.{SessionData, SessionId}
 import uk.gov.hmrc.incometaxsessiondata.predicates.AuthenticationPredicate
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 
@@ -39,7 +39,7 @@ class SessionControllerSpec extends MockMicroserviceAuthConnector {
   object testSessionController extends SessionController(cc, authPredicate, mockSessionService)
 
   val testSessionData: SessionData = SessionData(
-    sessionID = "session-123",
+    sessionID = SessionId("session-123"),
     mtditid = "id-123",
     nino = "nino-123",
     saUtr = "utr-123",
@@ -51,30 +51,31 @@ class SessionControllerSpec extends MockMicroserviceAuthConnector {
   "SessionController.getById" should {
     "Return successful" when {
       "Data is returned from the service" in {
-        when(mockSessionService.get(any())).thenReturn(Future(Right(Some(testSessionData))))
         mockAuth()
+        when(mockSessionService.get(any())).thenReturn(Future(Right(Some(testSessionData))))
         val result: Future[Result] = testSessionController.getById("123")(FakeRequest())
         status(result) shouldBe OK
       }
     }
     "Return Ok" when {
       "Empty data is returned from service" in {
-        when(mockSessionService.get(any())).thenReturn(Future(Right(None)))
         mockAuth()
+        when(mockSessionService.get(any())).thenReturn(Future(Right(None)))
         val result: Future[Result] = testSessionController.getById("123")(FakeRequest())
         status(result) shouldBe NOT_FOUND
       }
     }
     "Return an error" when {
       "An error is returned from the service" in {
-        when(mockSessionService.get(any())).thenReturn(Future(Left(new Error("Error"))))
         mockAuth()
+        when(mockSessionService.get(any())).thenReturn(Future(Left(new Error("Error"))))
         val result: Future[Result] = testSessionController.getById("123")(FakeRequest())
         status(result) shouldBe INTERNAL_SERVER_ERROR
       }
     }
     "Recover" when {
       "Unexpected error from service" in {
+        mockAuth()
         when(mockSessionService.get(any())).thenReturn(Future.failed(new Error("")))
         val result: Future[Result] = testSessionController.getById("123")(FakeRequest())
         status(result) shouldBe INTERNAL_SERVER_ERROR
