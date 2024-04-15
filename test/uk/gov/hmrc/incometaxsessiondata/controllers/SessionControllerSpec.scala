@@ -52,7 +52,7 @@ class SessionControllerSpec extends MockMicroserviceAuthConnector {
     "Return successful" when {
       "Data is returned from the service" in {
         mockAuth()
-        when(mockSessionService.get(any())).thenReturn(Future(Right(Some(testSessionData))))
+        when(mockSessionService.get(SessionId(any()))).thenReturn(Future(Right(Some(testSessionData))))
         val result: Future[Result] = testSessionController.getById("123")(FakeRequest())
         status(result) shouldBe OK
       }
@@ -60,7 +60,7 @@ class SessionControllerSpec extends MockMicroserviceAuthConnector {
     "Return Ok" when {
       "Empty data is returned from service" in {
         mockAuth()
-        when(mockSessionService.get(any())).thenReturn(Future(Right(None)))
+        when(mockSessionService.get(SessionId(any()))).thenReturn(Future(Right(None)))
         val result: Future[Result] = testSessionController.getById("123")(FakeRequest())
         status(result) shouldBe NOT_FOUND
       }
@@ -68,7 +68,7 @@ class SessionControllerSpec extends MockMicroserviceAuthConnector {
     "Return an error" when {
       "An error is returned from the service" in {
         mockAuth()
-        when(mockSessionService.get(any())).thenReturn(Future(Left(new Error("Error"))))
+        when(mockSessionService.get(SessionId(any()))).thenReturn(Future(Left(new Error("Error"))))
         val result: Future[Result] = testSessionController.getById("123")(FakeRequest())
         status(result) shouldBe INTERNAL_SERVER_ERROR
       }
@@ -76,7 +76,7 @@ class SessionControllerSpec extends MockMicroserviceAuthConnector {
     "Recover" when {
       "Unexpected error from service" in {
         mockAuth()
-        when(mockSessionService.get(any())).thenReturn(Future.failed(new Error("")))
+        when(mockSessionService.get(SessionId(any()))).thenReturn(Future.failed(new Error("")))
         val result: Future[Result] = testSessionController.getById("123")(FakeRequest())
         status(result) shouldBe INTERNAL_SERVER_ERROR
       }
