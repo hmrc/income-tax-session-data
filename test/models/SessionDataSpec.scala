@@ -18,13 +18,14 @@ package models
 
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import uk.gov.hmrc.incometaxsessiondata.models.{Session, SessionData}
+import uk.gov.hmrc.incometaxsessiondata.domain.{SessionData, SessionId}
+import uk.gov.hmrc.incometaxsessiondata.models.Session
 
 class SessionDataSpec extends AnyWordSpec with Matchers{
 
 
   val testSessionData: SessionData = SessionData(
-    sessionID ="session-123",
+    sessionID = SessionId("session-123"),
     mtditid = "id-123",
     nino = "nino-123",
     saUtr = "utr-123",

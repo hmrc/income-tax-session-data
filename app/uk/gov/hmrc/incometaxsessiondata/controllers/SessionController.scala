@@ -18,8 +18,8 @@ package uk.gov.hmrc.incometaxsessiondata.controllers
 
 import play.api.Logging
 import play.api.libs.json.{JsError, JsSuccess, Json}
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.incometaxsessiondata.models.SessionData
+import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
+import uk.gov.hmrc.incometaxsessiondata.domain.{SessionData, SessionId}
 import uk.gov.hmrc.incometaxsessiondata.predicates.AuthenticationPredicate
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -34,7 +34,7 @@ class SessionController @Inject()(cc: ControllerComponents,
                                  )(implicit ec: ExecutionContext)
     extends BackendController(cc) with Logging {
 
-  def getById(sessionID: String): Action[AnyContent] = authentication.async {  _ =>
+  def getById(sessionID: SessionId): Action[AnyContent] = authentication.async {  _ =>
     sessionService.get(sessionID) map {
       case Right(Some(session: SessionData)) =>
         logger.info(s"[SessionController][getById]: Successfully retrieved session data: $session")
@@ -44,11 +44,11 @@ class SessionController @Inject()(cc: ControllerComponents,
         NotFound("No session data found")
       case Left(ex) =>
         logger.error(s"[SessionController][getById]: Failed to retrieve session with id: $sessionID - ${ex.getMessage}")
-        InternalServerError(s"Failed to retrieve session with id: $sessionID")
+        InternalServerError(s"Failed to retrieve session with id: ${sessionID.value}")
     } recover {
       case ex =>
         logger.error(s"[SessionController][getById]: Unexpected error while getting session: $ex")
-        InternalServerError(s"Unexpected error while getting session: $ex")
+        InternalServerError(s"Unexpected error while getting session: ${ex.getMessage} - ${ex.getCause} - ${sessionID}")
     }
   }
 
@@ -56,7 +56,7 @@ class SessionController @Inject()(cc: ControllerComponents,
     request.body.asJson.getOrElse(Json.obj())
       .validate[SessionData] match {
       case err: JsError =>
-        logger.error(s"[SessionController][set]: Json validation error while parsing request: $err")
+        logger.error(s"[SessionController][set]: Json validation error while parsing request: $err - ${request.body}")
         Future.successful(BadRequest(s"Json validation error while parsing request: $err"))
       case JsSuccess(validRequest, _) =>
         save(validRequest)
@@ -68,7 +68,7 @@ class SessionController @Inject()(cc: ControllerComponents,
     }
   }
 
-  private def save(validRequest: SessionData) = {
+  private def save(validRequest: SessionData): Future[Result] = {
     sessionService.set(validRequest) map {
       case true =>
         logger.info(s"[SessionController][save]: Successfully set session")
