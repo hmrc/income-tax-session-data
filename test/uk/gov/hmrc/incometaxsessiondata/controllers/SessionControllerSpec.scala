@@ -53,7 +53,7 @@ class SessionControllerSpec extends MockMicroserviceAuthConnector {
       "Data is returned from the service" in {
         mockAuth()
         when(mockSessionService.get(SessionId(any()))).thenReturn(Future(Right(Some(testSessionData))))
-        val result: Future[Result] = testSessionController.getById("123")(FakeRequest())
+        val result: Future[Result] = testSessionController.getById( SessionId("123") )(FakeRequest())
         status(result) shouldBe OK
       }
     }
@@ -61,7 +61,7 @@ class SessionControllerSpec extends MockMicroserviceAuthConnector {
       "Empty data is returned from service" in {
         mockAuth()
         when(mockSessionService.get(SessionId(any()))).thenReturn(Future(Right(None)))
-        val result: Future[Result] = testSessionController.getById("123")(FakeRequest())
+        val result: Future[Result] = testSessionController.getById( SessionId("123") )(FakeRequest())
         status(result) shouldBe NOT_FOUND
       }
     }
@@ -69,7 +69,7 @@ class SessionControllerSpec extends MockMicroserviceAuthConnector {
       "An error is returned from the service" in {
         mockAuth()
         when(mockSessionService.get(SessionId(any()))).thenReturn(Future(Left(new Error("Error"))))
-        val result: Future[Result] = testSessionController.getById("123")(FakeRequest())
+        val result: Future[Result] = testSessionController.getById( SessionId("123") )(FakeRequest())
         status(result) shouldBe INTERNAL_SERVER_ERROR
       }
     }
@@ -77,7 +77,7 @@ class SessionControllerSpec extends MockMicroserviceAuthConnector {
       "Unexpected error from service" in {
         mockAuth()
         when(mockSessionService.get(SessionId(any()))).thenReturn(Future.failed(new Error("")))
-        val result: Future[Result] = testSessionController.getById("123")(FakeRequest())
+        val result: Future[Result] = testSessionController.getById( SessionId("123"))(FakeRequest())
         status(result) shouldBe INTERNAL_SERVER_ERROR
       }
     }
