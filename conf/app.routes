@@ -1,4 +1,4 @@
 # microservice specific routes
 
-GET        /:id             uk.gov.hmrc.incometaxsessiondata.controllers.SessionController.getById(id: String)
+GET        /:id             uk.gov.hmrc.incometaxsessiondata.controllers.SessionController.getById(id: SessionId)
 POST       /                uk.gov.hmrc.incometaxsessiondata.controllers.SessionController.set()

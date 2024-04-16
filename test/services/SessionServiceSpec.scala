@@ -22,7 +22,8 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import uk.gov.hmrc.incometaxsessiondata.models.{Session, SessionData, SessionId}
+import uk.gov.hmrc.incometaxsessiondata.domain.{SessionData, SessionId}
+import uk.gov.hmrc.incometaxsessiondata.models.Session
 import uk.gov.hmrc.incometaxsessiondata.repositories.SessionDataRepository
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 

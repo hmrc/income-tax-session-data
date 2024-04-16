@@ -16,7 +16,8 @@
 
 package uk.gov.hmrc.incometaxsessiondata.services
 
-import uk.gov.hmrc.incometaxsessiondata.models.{Session, SessionData, SessionId}
+import uk.gov.hmrc.incometaxsessiondata.domain.{SessionData, SessionId}
+import uk.gov.hmrc.incometaxsessiondata.models.Session
 import uk.gov.hmrc.incometaxsessiondata.repositories.SessionDataRepository
 
 import javax.inject.{Inject, Singleton}

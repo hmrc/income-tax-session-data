@@ -18,7 +18,8 @@ package models
 
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import uk.gov.hmrc.incometaxsessiondata.models.{Session, SessionData, SessionId}
+import uk.gov.hmrc.incometaxsessiondata.domain.{SessionData, SessionId}
+import uk.gov.hmrc.incometaxsessiondata.models.Session
 
 class SessionDataSpec extends AnyWordSpec with Matchers{
 

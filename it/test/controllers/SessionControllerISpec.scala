@@ -42,7 +42,7 @@
 //import play.api.libs.json.Json
 //import play.api.libs.ws.WSResponse
 //import play.api.test.Helpers.{await, defaultAwaitTimeout}
-//import uk.gov.hmrc.incometaxsessiondata.models.SessionData
+//import uk.gov.hmrc.incometaxsessiondata.domain.SessionData
 //import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 //class SessionControllerISpec
 //  extends AnyWordSpec

@@ -23,7 +23,7 @@ import play.api.libs.json.Json
 import play.api.mvc.{ControllerComponents, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import uk.gov.hmrc.incometaxsessiondata.models.{SessionData, SessionId}
+import uk.gov.hmrc.incometaxsessiondata.domain.{SessionData, SessionId}
 import uk.gov.hmrc.incometaxsessiondata.predicates.AuthenticationPredicate
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 

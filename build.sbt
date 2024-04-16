@@ -1,3 +1,4 @@
+import play.sbt.routes.RoutesKeys
 import uk.gov.hmrc.DefaultBuildSettings
 
 ThisBuild / majorVersion := 0
@@ -11,6 +12,7 @@ lazy val microservice = Project("income-tax-session-data", file("."))
     // suppress warnings in generated routes files
     scalacOptions += "-Wconf:src=routes/.*:s",
   )
+  .settings( RoutesKeys.routesImport := Seq("uk.gov.hmrc.incometaxsessiondata.domain._") )
   .settings(resolvers += Resolver.jcenterRepo)
   .settings(CodeCoverageSettings.settings: _*)
 

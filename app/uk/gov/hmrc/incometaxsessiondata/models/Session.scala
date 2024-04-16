@@ -17,6 +17,7 @@
 package uk.gov.hmrc.incometaxsessiondata.models
 
 import play.api.libs.json.{Format, Json}
+import uk.gov.hmrc.incometaxsessiondata.domain.SessionData
 
 import java.time.Instant
 

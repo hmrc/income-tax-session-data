@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.incometaxsessiondata.models
+package uk.gov.hmrc.incometaxsessiondata.domain
 
 import play.api.libs.json.{Format, Json}
 
@@ -22,4 +22,7 @@ case class SessionId(value: String) extends AnyVal
 
 object SessionId {
   implicit val format: Format[SessionId] = Json.format[SessionId]
+
 }
+
+
