@@ -28,13 +28,14 @@ import play.api.libs.ws.WSResponse
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import uk.gov.hmrc.incometaxsessiondata.models.SessionData
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
+
 class SessionControllerISpec
   extends AnyWordSpec
     with Matchers
     with ScalaFutures
     with IntegrationPatience
     with GuiceOneServerPerSuite
-    with ComponentSpecBase{
+    with ComponentSpecBase {
 
     def httpStatus(expectedValue: Int): HavePropertyMatcher[WSResponse, Int] =
         (response: WSResponse) => {
@@ -87,9 +88,11 @@ class SessionControllerISpec
         }
     }
 
-    "Sending a POST request to the sesison data service" should {
+    "Sending a POST request to the session data service" should {
         "add data to mongo" when {
             "data provided is valid" in {
+                UserDetailsStub.stubGetUserDetails()
+                AuthStub.stubAuthorised()
                 val result = post("/")(Json.toJson[SessionData](testSessionData))
                 sessionService.get(testSessionData.sessionID).futureValue shouldBe Right(Some(testSessionData))
                 result should have(
@@ -97,14 +100,18 @@ class SessionControllerISpec
                 )
             }
         }
+
         "return BAD_REQUEST" when {
             "data provided in invalid" in {
+                UserDetailsStub.stubGetUserDetails()
+                AuthStub.stubAuthorised()
                 val result = post("/")(Json.toJson[String]("not a valid session"))
                 result should have(
                     httpStatus(BAD_REQUEST)
                 )
             }
         }
+
     }
 
 }

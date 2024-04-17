@@ -16,7 +16,6 @@
 
 package helpers
 
-import com.github.tomakehurst.wiremock.client.WireMock
 import org.scalatest.concurrent.{Eventually, IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, TestSuite}
@@ -26,11 +25,7 @@ import play.api.libs.json.JsValue
 import play.api.libs.ws.WSResponse
 import play.api.{Application, Environment, Mode}
 import uk.gov.hmrc.auth.core.AffinityGroup.{Agent, Individual}
-import uk.gov.hmrc.http.{Authorization, HeaderCarrier}
 import uk.gov.hmrc.incometaxsessiondata.config.AppConfig
-import uk.gov.hmrc.play.http.HeaderCarrierConverter
-
-import javax.inject.Singleton
 
 trait ComponentSpecBase extends TestSuite with GuiceOneServerPerSuite with ScalaFutures
   with IntegrationPatience with Matchers
@@ -48,8 +43,7 @@ trait ComponentSpecBase extends TestSuite with GuiceOneServerPerSuite with Scala
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    WireMock.reset()
-    AuthStub.stubAuthorised()
+    resetWiremock()
   }
 
   override def afterAll(): Unit = {
@@ -60,6 +54,7 @@ trait ComponentSpecBase extends TestSuite with GuiceOneServerPerSuite with Scala
   def get(uri: String): WSResponse = {
     buildClient(uri)
       .withHttpHeaders( "X-Session-ID" -> testSessionId)
+      .withHttpHeaders("Authorization" -> "Bearer123")
       .get().futureValue
   }
 
@@ -67,6 +62,7 @@ trait ComponentSpecBase extends TestSuite with GuiceOneServerPerSuite with Scala
     buildClient(uri)
       .withFollowRedirects(false)
       .withHttpHeaders("Csrf-Token" -> "nocheck",  "X-Session-ID" -> testSessionId)
+      .withHttpHeaders("Authorization" -> "Bearer123")
       .post(body).futureValue
   }
 
@@ -104,14 +100,4 @@ trait ComponentSpecBase extends TestSuite with GuiceOneServerPerSuite with Scala
   val mockUrl: String = s"http://$mockHost:$mockPort"
   val userDetailsUrl = "/user-details/id/5397272a3d00003d002f3ca9"
   val testUserDetailsWiremockUrl: String = mockUrl + userDetailsUrl
-}
-
-@Singleton
-class TestHeaderExtractor {
-  def extractHeader(request: play.api.mvc.Request[_], session: play.api.mvc.Session): HeaderCarrier = {
-    HeaderCarrierConverter
-      .fromRequestAndSession(request, request.session)
-      .copy(authorization = Some(Authorization("Bearer")))
-  }
-
 }
