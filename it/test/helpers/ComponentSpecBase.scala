@@ -33,7 +33,6 @@ trait ComponentSpecBase extends TestSuite with GuiceOneServerPerSuite with Scala
 
   override implicit lazy val app: Application = new GuiceApplicationBuilder()
     .in(Environment.simple(mode = Mode.Dev))
-    .configure(config)
     .build()
 
   override def beforeAll(): Unit = {
@@ -67,12 +66,6 @@ trait ComponentSpecBase extends TestSuite with GuiceOneServerPerSuite with Scala
   }
 
   val appConfig: AppConfig = app.injector.instanceOf[AppConfig]
-
-  def config: Map[String, Object] = Map(
-    "play.filters.csrf.header.bypassHeaders.Csrf-Token" -> "nocheck",
-    "auth.host" -> mockHost,
-    "auth.port" -> mockPort
-  )
 
   val testUserTypeIndividual = Individual
   val testUserTypeAgent = Agent
