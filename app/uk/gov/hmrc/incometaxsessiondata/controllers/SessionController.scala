@@ -23,6 +23,7 @@ import uk.gov.hmrc.incometaxsessiondata.models.SessionData
 import uk.gov.hmrc.incometaxsessiondata.predicates.AuthenticationPredicate
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+import uk.gov.hmrc.incometaxsessiondata.models.SessionId
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -35,7 +36,7 @@ class SessionController @Inject()(cc: ControllerComponents,
     extends BackendController(cc) with Logging {
 
   def getById(sessionID: String): Action[AnyContent] = authentication.async {  _ =>
-    sessionService.get(sessionID) map {
+    sessionService.get(SessionId(sessionID)) map {
       case Right(Some(session: SessionData)) =>
         logger.info(s"[SessionController][getById]: Successfully retrieved session data: $session")
         Ok(Json.toJson(session))

@@ -22,7 +22,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import uk.gov.hmrc.incometaxsessiondata.models.{Session, SessionData}
+import uk.gov.hmrc.incometaxsessiondata.models.{Session, SessionData, SessionId}
 import uk.gov.hmrc.incometaxsessiondata.repositories.SessionDataRepository
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 
@@ -47,7 +47,7 @@ class SessionServiceSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSu
   )
 
   val testSessionData: SessionData = SessionData(
-    sessionID ="session-123",
+    sessionID = SessionId("session-123"),
     mtditid = "id-123",
     nino = "nino-123",
     saUtr = "utr-123",
@@ -60,14 +60,14 @@ class SessionServiceSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSu
     "return session data" when {
       "data returned from the repository" in {
         when(mockRepository.get(any())).thenReturn(Future(Some(testSession)))
-        val result = testSessionService.get("123")
+        val result = testSessionService.get(SessionId("123"))
         result.futureValue shouldBe Right(Some(testSessionData))
       }
     }
     "return None" when {
       "no data returned from repository" in {
         when(mockRepository.get(any())).thenReturn(Future(None))
-        val result = testSessionService.get("123")
+        val result = testSessionService.get(SessionId("123"))
         result.futureValue shouldBe Right(None)
       }
     }
