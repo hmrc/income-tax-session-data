@@ -36,9 +36,9 @@ trait MockMicroserviceAuthConnector extends TestSupport with BeforeAndAfterEach 
       .authorise(ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any(), ArgumentMatchers.any())
   }
 
-  def checkStatusOf(result: Result)(expectedStatus: Int): Unit = {
-    s"return status ($expectedStatus)" in {
-      result.header.status shouldBe expectedStatus
-    }
-  }
+//  def checkStatusOf(result: Result)(expectedStatus: Int): Unit = {
+//    s"return status ($expectedStatus)" in {
+//      result.header.status shouldBe expectedStatus
+//    }
+//  }
 }
