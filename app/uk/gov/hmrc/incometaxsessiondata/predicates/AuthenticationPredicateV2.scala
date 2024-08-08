@@ -23,6 +23,7 @@ import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{affinityGroup, confidenceLe
 import uk.gov.hmrc.auth.core.retrieve.~
 import uk.gov.hmrc.auth.core.{AffinityGroup, AuthorisationException, AuthorisedFunctions, ConfidenceLevel}
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.incometaxsessiondata.auth.HeaderExtractor
 import uk.gov.hmrc.incometaxsessiondata.config.AppConfig
 import uk.gov.hmrc.incometaxsessiondata.connectors.MicroserviceAuthConnector
 import uk.gov.hmrc.incometaxsessiondata.models.SessionDataRequest
@@ -35,7 +36,8 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class AuthenticationPredicateV2 @Inject()(val authConnector: MicroserviceAuthConnector,
                                           cc: ControllerComponents,
-                                          val appConfig: AppConfig
+                                          val appConfig: AppConfig,
+                                          val headerExtractor: HeaderExtractor
                                        )(implicit val ec: ExecutionContext)
   extends ActionBuilder[SessionDataRequest, AnyContent] with ActionFunction[Request, SessionDataRequest]
       with AuthorisedFunctions with Logging {
@@ -49,14 +51,15 @@ class AuthenticationPredicateV2 @Inject()(val authConnector: MicroserviceAuthCon
 
   override def invokeBlock[A](request: Request[A], f: SessionDataRequest[A] => Future[Result]): Future[Result] = {
     implicit val req: Request[A] = request
-    implicit val hc: HeaderCarrier = HeaderCarrierConverter
-      .fromRequestAndSession(request, request.session)
+    implicit val hc: HeaderCarrier = headerExtractor.extractHeader(request, request.session)
 
         authorised().retrieve(affinityGroup and confidenceLevel and internalId) {
-          case Some(AffinityGroup.Agent) ~ _ ~ intId =>
-            f( SessionDataRequest[A](intId))
-          case _ ~ userConfidence ~ intId if minimumConfidenceLevelOpt.exists(minimumConfidenceLevel => userConfidence.level >= minimumConfidenceLevel) =>
-            f( SessionDataRequest[A](intId))
+          case Some(AffinityGroup.Agent) ~ _ ~ Some(id) =>
+            logger.info(s"[AuthenticationPredicate][authenticated] - IN-1 ")
+            f( SessionDataRequest[A](id))
+          case _ ~ userConfidence ~ Some(id) if minimumConfidenceLevelOpt.exists(minimumConfidenceLevel => userConfidence.level >= minimumConfidenceLevel) =>
+            logger.info(s"[AuthenticationPredicate][authenticated] - IN-2 ")
+            f( SessionDataRequest[A](id))
           case _ ~ _ =>
             logger.info(s"[AuthenticationPredicate][authenticated] User has confidence level below ${minimumConfidenceLevelOpt}")
             Future(Unauthorized)

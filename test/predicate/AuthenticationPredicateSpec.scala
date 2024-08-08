@@ -16,31 +16,29 @@
 
 package predicate
 
+import auth.TestHeaderExtractor
 import mocks.MockMicroserviceAuthConnector
 import play.api.http.Status
 import play.api.mvc.Result
 import play.api.mvc.Results.Ok
-import play.api.test.FakeRequest
 import play.api.test.Helpers.stubControllerComponents
-import uk.gov.hmrc.auth.core.syntax.retrieved.authSyntaxForRetrieved
-import uk.gov.hmrc.auth.core.{AffinityGroup, ConfidenceLevel, MissingBearerToken}
-import uk.gov.hmrc.incometaxsessiondata.predicates.{AuthenticationPredicateV2}
+import uk.gov.hmrc.auth.core.MissingBearerToken
+import uk.gov.hmrc.incometaxsessiondata.predicates.AuthenticationPredicateV2
 
 import scala.concurrent.Future
 
 class AuthenticationPredicateSpec extends MockMicroserviceAuthConnector {
 
-  def fixture =
-    new {
+  def fixture = new {
+      val headerExtractor = new TestHeaderExtractor()
       lazy val mockCC = stubControllerComponents()
       val predicate = new AuthenticationPredicateV2(mockMicroserviceAuthConnector,
-        mockCC, appConfig)
+        mockCC, appConfig, headerExtractor)
     }
 
   def result(authenticationPredicate: AuthenticationPredicateV2): Future[Result] = authenticationPredicate.async {
-    request =>
-      Future.successful(Ok)
-  }.apply(FakeRequest())
+    _ => Future.successful(Ok)
+  }(fakeRequestWithActiveSession)
 
   "The AuthenticationPredicate.authenticated method" should {
 
@@ -58,22 +56,19 @@ class AuthenticationPredicateSpec extends MockMicroserviceAuthConnector {
       futureResult.futureValue.header.status shouldBe Status.OK
     }
 
-    //
-    //    "called with low confidence level" when {
-    //      mockAuth(Future.successful(Some(AffinityGroup.Individual) and ConfidenceLevel.L50))
-    //      val futureResult = result(TestAuthenticationPredicate)
-    //      whenReady(futureResult){  res =>
-    //        checkStatusOf(res)(Status.UNAUTHORIZED)
-    //      }
-    //    }
-    //
-    //    "agent called with low confidence level" when {
-    //      mockAuth(Future.successful(Some(AffinityGroup.Agent) and ConfidenceLevel.L50))
-    //      val futureResult = result(TestAuthenticationPredicate)
-    //      whenReady(futureResult){ res =>
-    //        checkStatusOf(res)(Status.OK)
-    //      }
-    //    }
+    "called with low confidence level" in {
+      val f = fixture
+      mockAuth(Future.successful(authResponseWithCL50))
+      val futureResult = result(f.predicate)
+      futureResult.futureValue.header.status shouldBe Status.UNAUTHORIZED
+    }
+
+    "agent called with low confidence level" in {
+      val f = fixture
+      mockAuth(Future.successful(agentResponseWithCL50))
+      val futureResult = result(f.predicate)
+      futureResult.futureValue.header.status shouldBe Status.OK
+    }
 
   }
 

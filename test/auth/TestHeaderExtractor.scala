@@ -14,9 +14,21 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.incometaxsessiondata.models
+package auth
 
-import play.api.mvc.{Request, WrappedRequest}
+import uk.gov.hmrc.http.{Authorization, HeaderCarrier}
+import uk.gov.hmrc.incometaxsessiondata.auth.HeaderExtractor
+import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
-case class SessionDataRequest[A](internalId: String
-                                 )(implicit request: Request[A]) extends WrappedRequest[A](request)
+import javax.inject.Singleton
+
+@Singleton
+class TestHeaderExtractor extends HeaderExtractor {
+
+  override def extractHeader(request: play.api.mvc.Request[_], session: play.api.mvc.Session): HeaderCarrier = {
+    HeaderCarrierConverter
+      .fromRequestAndSession(request, request.session)
+      .copy(authorization = Some(Authorization("Bearer")))
+  }
+
+}

@@ -22,8 +22,10 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.wordspec.{AnyWordSpec, AnyWordSpecLike}
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
+import play.api.http.HeaderNames
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
+import uk.gov.hmrc.http.SessionKeys
 import uk.gov.hmrc.incometaxsessiondata.config.AppConfig
 
 import scala.concurrent.ExecutionContext
@@ -41,4 +43,12 @@ trait TestSupport extends AnyWordSpec with AnyWordSpecLike with Matchers with Op
 
 
   implicit val defaultPatience: PatienceConfig = PatienceConfig(timeout = Span(3, Seconds), interval = Span(5, Millis))
+
+  val fakeRequestWithActiveSession = FakeRequest().withSession(
+    SessionKeys.lastRequestTimestamp -> "1498236506662",
+    SessionKeys.authToken -> "Bearer Token"
+  ).withHeaders(
+    HeaderNames.REFERER -> "/test/url",
+    "X-Session-ID" -> "testSessionId"
+  )
 }
