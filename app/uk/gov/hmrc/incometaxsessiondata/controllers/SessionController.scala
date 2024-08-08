@@ -20,7 +20,7 @@ import play.api.Logging
 import play.api.libs.json.{JsError, JsSuccess, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.incometaxsessiondata.models.SessionData
-import uk.gov.hmrc.incometaxsessiondata.predicates.AuthenticationPredicate
+import uk.gov.hmrc.incometaxsessiondata.predicates.{AuthenticationPredicate, AuthenticationPredicateV2}
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
@@ -29,12 +29,13 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton()
 class SessionController @Inject()(cc: ControllerComponents,
-                                  authentication: AuthenticationPredicate,
+                                  authentication: AuthenticationPredicateV2,
                                   sessionService: SessionService
                                  )(implicit ec: ExecutionContext)
     extends BackendController(cc) with Logging {
 
-  def getById(sessionID: String): Action[AnyContent] = authentication.async {  _ =>
+  def getById(sessionID: String): Action[AnyContent] = authentication.async {  request =>
+    // Here is required internalID => request.internalId
     sessionService.get(sessionID) map {
       case Right(Some(session: SessionData)) =>
         logger.info(s"[SessionController][getById]: Successfully retrieved session data: $session")
@@ -53,6 +54,7 @@ class SessionController @Inject()(cc: ControllerComponents,
   }
 
   def set(): Action[AnyContent] = authentication.async { implicit request =>
+    // Here is required internalID => request.internalId
     request.body.asJson.getOrElse(Json.obj())
       .validate[SessionData] match {
       case err: JsError =>
