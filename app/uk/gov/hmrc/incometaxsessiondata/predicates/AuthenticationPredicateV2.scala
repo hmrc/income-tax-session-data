@@ -52,14 +52,13 @@ class AuthenticationPredicateV2 @Inject()(val authConnector: MicroserviceAuthCon
   override def invokeBlock[A](request: Request[A], f: SessionDataRequest[A] => Future[Result]): Future[Result] = {
     implicit val req: Request[A] = request
     implicit val hc: HeaderCarrier = headerExtractor.extractHeader(request, request.session)
-
         authorised().retrieve(affinityGroup and confidenceLevel and internalId) {
           case Some(AffinityGroup.Agent) ~ _ ~ Some(id) =>
             logger.info(s"[AuthenticationPredicate][authenticated] - IN-1 ")
-            f( SessionDataRequest[A](id))
+            f( SessionDataRequest[A](id, hc.sessionId.map(_.value)))
           case _ ~ userConfidence ~ Some(id) if minimumConfidenceLevelOpt.exists(minimumConfidenceLevel => userConfidence.level >= minimumConfidenceLevel) =>
             logger.info(s"[AuthenticationPredicate][authenticated] - IN-2 ")
-            f( SessionDataRequest[A](id))
+            f( SessionDataRequest[A](id, hc.sessionId.map(_.value) ) )
           case _ ~ _ =>
             logger.info(s"[AuthenticationPredicate][authenticated] User has confidence level below ${minimumConfidenceLevelOpt}")
             Future(Unauthorized)

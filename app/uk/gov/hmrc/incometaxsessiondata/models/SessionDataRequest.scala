@@ -18,5 +18,5 @@ package uk.gov.hmrc.incometaxsessiondata.models
 
 import play.api.mvc.{Request, WrappedRequest}
 
-case class SessionDataRequest[A](internalId: String
+case class SessionDataRequest[A](internalId: String, sessionId: Option[String]
                                  )(implicit request: Request[A]) extends WrappedRequest[A](request)

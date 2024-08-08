@@ -35,7 +35,7 @@ class SessionController @Inject()(cc: ControllerComponents,
     extends BackendController(cc) with Logging {
 
   def getById(sessionID: String): Action[AnyContent] = authentication.async {  request =>
-    // Here is required internalID => request.internalId
+    // Here is required internalID => request.internalId and request.sessionId
     sessionService.get(sessionID) map {
       case Right(Some(session: SessionData)) =>
         logger.info(s"[SessionController][getById]: Successfully retrieved session data: $session")
@@ -54,7 +54,7 @@ class SessionController @Inject()(cc: ControllerComponents,
   }
 
   def set(): Action[AnyContent] = authentication.async { implicit request =>
-    // Here is required internalID => request.internalId
+    // Here is required internalID => request.internalId and request.sessionId
     request.body.asJson.getOrElse(Json.obj())
       .validate[SessionData] match {
       case err: JsError =>
