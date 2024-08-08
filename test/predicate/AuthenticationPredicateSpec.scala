@@ -24,7 +24,8 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.stubControllerComponents
 import uk.gov.hmrc.auth.core.syntax.retrieved.authSyntaxForRetrieved
 import uk.gov.hmrc.auth.core.{AffinityGroup, ConfidenceLevel, MissingBearerToken}
-import uk.gov.hmrc.incometaxsessiondata.predicates.AuthenticationPredicate
+import uk.gov.hmrc.incometaxsessiondata.predicates.{AuthenticationPredicate, AuthenticationPredicateV2}
+
 import scala.concurrent.Future
 
 class AuthenticationPredicateSpec  extends MockMicroserviceAuthConnector {
@@ -32,10 +33,10 @@ class AuthenticationPredicateSpec  extends MockMicroserviceAuthConnector {
   "The AuthenticationPredicate.authenticated method" should {
 
     lazy val mockCC = stubControllerComponents()
-    object TestAuthenticationPredicate extends AuthenticationPredicate(mockMicroserviceAuthConnector,
+    object TestAuthenticationPredicate extends AuthenticationPredicateV2(mockMicroserviceAuthConnector,
       mockCC, appConfig)
 
-    def result(authenticationPredicate: AuthenticationPredicate): Future[Result] = authenticationPredicate.async {
+    def result(authenticationPredicate: AuthenticationPredicateV2): Future[Result] = authenticationPredicate.async {
       request =>
         Future.successful(Ok)
     }.apply(FakeRequest())
