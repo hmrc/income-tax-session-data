@@ -16,15 +16,18 @@
 
 package helpers
 
+import auth.{TestHeaderExtractor}
 import org.scalatest.concurrent.{Eventually, IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, TestSuite}
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
+import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.JsValue
 import play.api.libs.ws.WSResponse
 import play.api.{Application, Environment, Mode}
 import uk.gov.hmrc.auth.core.AffinityGroup.{Agent, Individual}
+import uk.gov.hmrc.incometaxsessiondata.auth.HeaderExtractor
 import uk.gov.hmrc.incometaxsessiondata.config.AppConfig
 
 trait ComponentSpecBase extends TestSuite with GuiceOneServerPerSuite with ScalaFutures
@@ -33,6 +36,7 @@ trait ComponentSpecBase extends TestSuite with GuiceOneServerPerSuite with Scala
 
   override implicit lazy val app: Application = new GuiceApplicationBuilder()
     .in(Environment.simple(mode = Mode.Dev))
+    .overrides(bind[HeaderExtractor].to[TestHeaderExtractor])
     .build()
 
   override def beforeAll(): Unit = {
@@ -53,7 +57,6 @@ trait ComponentSpecBase extends TestSuite with GuiceOneServerPerSuite with Scala
   def get(uri: String): WSResponse = {
     buildClient(uri)
       .withHttpHeaders( "X-Session-ID" -> testSessionId)
-      .withHttpHeaders("Authorization" -> "Bearer123")
       .get().futureValue
   }
 
@@ -61,7 +64,6 @@ trait ComponentSpecBase extends TestSuite with GuiceOneServerPerSuite with Scala
     buildClient(uri)
       .withFollowRedirects(false)
       .withHttpHeaders("Csrf-Token" -> "nocheck",  "X-Session-ID" -> testSessionId)
-      .withHttpHeaders("Authorization" -> "Bearer123")
       .post(body).futureValue
   }
 

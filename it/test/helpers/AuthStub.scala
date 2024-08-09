@@ -27,11 +27,14 @@ object AuthStub extends ComponentSpecBase {
   val requiredConfidenceLevel = appConfig.confidenceLevel
 
   private def successfulAuthResponse(confidenceLevel: Option[ConfidenceLevel]): JsObject = {
-    confidenceLevel.fold(Json.obj())(unwrappedConfidenceLevel => Json.obj("confidenceLevel" -> unwrappedConfidenceLevel))
+    confidenceLevel.fold(Json.obj())(unwrappedConfidenceLevel =>
+      Json.obj("confidenceLevel" -> unwrappedConfidenceLevel, "internalId" -> "123") )
   }
 
   def stubAuthorised(): Unit = {
-    WiremockHelper.stubPost(postAuthoriseUrl, Status.OK, successfulAuthResponse(Some(ConfidenceLevel.L200)).toString())
+    WiremockHelper.stubPost(postAuthoriseUrl, Status.OK,
+      successfulAuthResponse( Some(ConfidenceLevel.L250) ).toString()
+    )
   }
   def stubUnauthorised(): Unit = {
     WiremockHelper.stubPost(postAuthoriseUrl, Status.UNAUTHORIZED, "{}")

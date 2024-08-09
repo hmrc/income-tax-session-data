@@ -19,7 +19,7 @@ package mocks
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{doReturn, mock}
 import org.scalatest.BeforeAndAfterEach
-import play.api.mvc.Result
+import uk.gov.hmrc.auth.core.retrieve.~
 import uk.gov.hmrc.auth.core.syntax.retrieved.authSyntaxForRetrieved
 import uk.gov.hmrc.auth.core.{AffinityGroup, ConfidenceLevel}
 import uk.gov.hmrc.incometaxsessiondata.connectors.MicroserviceAuthConnector
@@ -30,15 +30,16 @@ import scala.concurrent.Future
 trait MockMicroserviceAuthConnector extends TestSupport with BeforeAndAfterEach {
 
   val mockMicroserviceAuthConnector: MicroserviceAuthConnector = mock(classOf[MicroserviceAuthConnector])
+  val authResponseWithCL250: Some[AffinityGroup.Individual.type] ~ ConfidenceLevel.L250.type ~ Some[String] = Some(AffinityGroup.Individual) and ConfidenceLevel.L250 and Some("internalId")
+  val authResponseWithCL50: Some[AffinityGroup.Individual.type] ~ ConfidenceLevel.L50.type ~ Some[String] = Some(AffinityGroup.Individual) and ConfidenceLevel.L50 and Some("internalId")
+  val agentResponseWithCL50: Some[AffinityGroup.Agent.type] ~ ConfidenceLevel.L50.type ~ Some[String] = Some(AffinityGroup.Agent) and ConfidenceLevel.L50 and Some("internalId")
 
-  def mockAuth(response: Future[Any] = Future.successful(Some(AffinityGroup.Individual) and ConfidenceLevel.L250)): Future[Nothing] = {
+
+
+  def mockAuth(response: Future[Any] = Future.successful( authResponseWithCL250 ) ): Future[Nothing] = {
     doReturn(response, Nil: _*).when(mockMicroserviceAuthConnector)
       .authorise(ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any(), ArgumentMatchers.any())
   }
 
-  def checkStatusOf(result: Result)(expectedStatus: Int): Unit = {
-    s"return status ($expectedStatus)" in {
-      result.header.status shouldBe expectedStatus
-    }
-  }
+
 }

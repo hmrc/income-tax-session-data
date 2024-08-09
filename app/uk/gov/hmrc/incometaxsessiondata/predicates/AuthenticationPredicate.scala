@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,38 +17,57 @@
 package uk.gov.hmrc.incometaxsessiondata.predicates
 
 import play.api.Logging
+import play.api.mvc.Results.Unauthorized
 import play.api.mvc._
-import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{affinityGroup, confidenceLevel}
+import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{affinityGroup, confidenceLevel, internalId}
 import uk.gov.hmrc.auth.core.retrieve.~
 import uk.gov.hmrc.auth.core.{AffinityGroup, AuthorisationException, AuthorisedFunctions, ConfidenceLevel}
+import uk.gov.hmrc.http.{Authorization, HeaderCarrier}
+import uk.gov.hmrc.incometaxsessiondata.auth.HeaderExtractor
 import uk.gov.hmrc.incometaxsessiondata.config.AppConfig
 import uk.gov.hmrc.incometaxsessiondata.connectors.MicroserviceAuthConnector
-import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+import uk.gov.hmrc.incometaxsessiondata.models.SessionDataRequest
+import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
+
 @Singleton
-class AuthenticationPredicate @Inject()(val authConnector: MicroserviceAuthConnector, cc: ControllerComponents,
+class AuthenticationPredicate @Inject()(val authConnector: MicroserviceAuthConnector,
+                                        cc: ControllerComponents,
                                         val appConfig: AppConfig,
-                                       )(implicit ec: ExecutionContext) extends BackendController(cc) with AuthorisedFunctions with Logging {
+                                        val headerExtractor: HeaderExtractor
+                                         )(implicit val ec: ExecutionContext)
+  extends ActionBuilder[SessionDataRequest, AnyContent] with ActionFunction[Request, SessionDataRequest]
+    with AuthorisedFunctions with Logging {
 
-  private val minimumConfidenceLevelOpt: Option[Int] = ConfidenceLevel.fromInt(appConfig.confidenceLevel).map(_.level).toOption
+  private val minimumConfidenceLevelOpt: Option[Int] = ConfidenceLevel
+    .fromInt(appConfig.confidenceLevel)
+    .map(_.level).toOption
 
-  def async(action: Request[AnyContent] => Future[Result]): Action[AnyContent] =
-    Action.async { implicit request =>
-      authorised().retrieve(affinityGroup and confidenceLevel) {
-        case Some(AffinityGroup.Agent) ~ _ =>
-          action(request)
-        case _ ~ userConfidence if minimumConfidenceLevelOpt.exists(minimumConfidenceLevel => userConfidence.level >= minimumConfidenceLevel) =>
-          action(request)
-        case _ ~ _ =>
-          logger.info(s"[AuthenticationPredicate][authenticated] User has confidence level below ${minimumConfidenceLevelOpt}")
-          Future(Unauthorized)
-      } recover {
-        case ex: AuthorisationException =>
-          logger.error(s"[AuthenticationPredicate][authenticated] Unauthorised Request to Backend. Propagating Unauthorised Response, ${ex.getMessage}")
-          Unauthorized
-      }
+  override val parser: BodyParser[AnyContent] = cc.parsers.defaultBodyParser
+  override val executionContext: ExecutionContext = cc.executionContext
+
+  override def invokeBlock[A](request: Request[A], f: SessionDataRequest[A] => Future[Result]): Future[Result] = {
+    implicit val req: Request[A] = request
+    implicit val hc: HeaderCarrier = headerExtractor
+      .extractHeader(request, request.session)
+    authorised().retrieve(affinityGroup and confidenceLevel and internalId) {
+      case Some(AffinityGroup.Agent) ~ _ ~ Some(id) =>
+        logger.info(s"[AuthenticationPredicate][authenticated] - authenticated as agent")
+        f(SessionDataRequest[A](id, hc.sessionId.map(_.value)))
+      case _ ~ userConfidence ~ Some(id) if minimumConfidenceLevelOpt.exists(minimumConfidenceLevel => userConfidence.level >= minimumConfidenceLevel) =>
+        logger.info(s"[AuthenticationPredicate][authenticated] - authenticated as individual")
+        f(SessionDataRequest[A](id, hc.sessionId.map(_.value)))
+      case _ ~ _ =>
+        logger.info(s"[AuthenticationPredicate][authenticated] User has confidence level below ${minimumConfidenceLevelOpt}")
+        Future(Unauthorized)
+    }.recover {
+      case ex: AuthorisationException =>
+        logger.error(s"[AuthenticationPredicate][authenticated] Unauthorised Request to Backend. Propagating Unauthorised Response, ${ex.getMessage}")
+        Unauthorized
     }
+  }
+
 }
