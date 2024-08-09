@@ -23,7 +23,7 @@ import play.api.mvc.Result
 import play.api.mvc.Results.Ok
 import play.api.test.Helpers.stubControllerComponents
 import uk.gov.hmrc.auth.core.MissingBearerToken
-import uk.gov.hmrc.incometaxsessiondata.predicates.AuthenticationPredicateV2
+import uk.gov.hmrc.incometaxsessiondata.predicates.AuthenticationPredicate
 
 import scala.concurrent.Future
 
@@ -32,11 +32,11 @@ class AuthenticationPredicateSpec extends MockMicroserviceAuthConnector {
   def fixture = new {
       val headerExtractor = new TestHeaderExtractor()
       lazy val mockCC = stubControllerComponents()
-      val predicate = new AuthenticationPredicateV2(mockMicroserviceAuthConnector,
+      val predicate = new AuthenticationPredicate(mockMicroserviceAuthConnector,
         mockCC, appConfig, headerExtractor)
     }
 
-  def result(authenticationPredicate: AuthenticationPredicateV2): Future[Result] = authenticationPredicate.async {
+  def result(authenticationPredicate: AuthenticationPredicate): Future[Result] = authenticationPredicate.async {
     _ => Future.successful(Ok)
   }(fakeRequestWithActiveSession)
 

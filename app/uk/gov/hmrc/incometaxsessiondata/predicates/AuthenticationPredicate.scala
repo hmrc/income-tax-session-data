@@ -34,10 +34,10 @@ import scala.concurrent.{ExecutionContext, Future}
 
 
 @Singleton
-class AuthenticationPredicateV2 @Inject()(val authConnector: MicroserviceAuthConnector,
-                                          cc: ControllerComponents,
-                                          val appConfig: AppConfig,
-                                          val headerExtractor: HeaderExtractor
+class AuthenticationPredicate @Inject()(val authConnector: MicroserviceAuthConnector,
+                                        cc: ControllerComponents,
+                                        val appConfig: AppConfig,
+                                        val headerExtractor: HeaderExtractor
                                          )(implicit val ec: ExecutionContext)
   extends ActionBuilder[SessionDataRequest, AnyContent] with ActionFunction[Request, SessionDataRequest]
     with AuthorisedFunctions with Logging {

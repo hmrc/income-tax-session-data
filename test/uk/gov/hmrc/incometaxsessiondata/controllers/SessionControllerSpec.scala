@@ -26,7 +26,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.incometaxsessiondata.auth.HeaderExtractor
 import uk.gov.hmrc.incometaxsessiondata.models.SessionData
-import uk.gov.hmrc.incometaxsessiondata.predicates.AuthenticationPredicateV2
+import uk.gov.hmrc.incometaxsessiondata.predicates.AuthenticationPredicate
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 
 import scala.concurrent.Future
@@ -36,7 +36,7 @@ class SessionControllerSpec extends MockMicroserviceAuthConnector {
   val mockSessionService: SessionService = mock(classOf[SessionService])
   val cc: ControllerComponents = app.injector.instanceOf[ControllerComponents]
   val headerExtractor : HeaderExtractor = new TestHeaderExtractor()
-  val authPredicate = new AuthenticationPredicateV2(mockMicroserviceAuthConnector, cc, appConfig, headerExtractor)
+  val authPredicate = new AuthenticationPredicate(mockMicroserviceAuthConnector, cc, appConfig, headerExtractor)
 
   object testSessionController extends SessionController(cc, authPredicate, mockSessionService)
 
