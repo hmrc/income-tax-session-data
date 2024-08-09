@@ -20,7 +20,7 @@ import play.api.Logging
 import play.api.libs.json.{JsError, JsSuccess, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.incometaxsessiondata.models.SessionData
-import uk.gov.hmrc.incometaxsessiondata.predicates.{AuthenticationPredicate, AuthenticationPredicateV2}
+import uk.gov.hmrc.incometaxsessiondata.predicates.AuthenticationPredicateV2
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 

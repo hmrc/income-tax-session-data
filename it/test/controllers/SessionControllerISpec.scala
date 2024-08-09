@@ -37,81 +37,80 @@ class SessionControllerISpec
     with GuiceOneServerPerSuite
     with ComponentSpecBase {
 
-    def httpStatus(expectedValue: Int): HavePropertyMatcher[WSResponse, Int] =
-        (response: WSResponse) => {
-            HavePropertyMatchResult(
-                response.status == expectedValue,
-                "httpStatus",
-                expectedValue,
-                response.status
-            )
-        }
-
-
-    val sessionService: SessionService = app.injector.instanceOf[SessionService]
-
-    override def beforeEach(): Unit = {
-        super.beforeEach()
-        await(sessionService.deleteSession(testSessionData.sessionID))
+  def httpStatus(expectedValue: Int): HavePropertyMatcher[WSResponse, Int] =
+    (response: WSResponse) => {
+      HavePropertyMatchResult(
+        response.status == expectedValue,
+        "httpStatus",
+        expectedValue,
+        response.status
+      )
     }
 
-    val testSessionData: SessionData = SessionData(
-        sessionID = "session-123",
-        mtditid = "id-123",
-        nino = "nino-123",
-        saUtr = "utr-123",
-        clientFirstName = Some("David"),
-        clientLastName = None,
-        userType = "Individual"
-    )
+  val sessionService: SessionService = app.injector.instanceOf[SessionService]
 
-    "Sending a GET request to the session data service" should {
-        "return some session data" when {
-            "there is data in mongo under that id" in {
-                UserDetailsStub.stubGetUserDetails()
-                AuthStub.stubAuthorised()
-                await(sessionService.set(testSessionData))
-                val result = get("/session-123")
-                result should have(
-                    httpStatus(OK)
-                )
-            }
-        }
-        "return Not Found" when {
-            "there is no data in mongo with that id" in {
-                await(sessionService.set(testSessionData))
-                val result = get("/session-999")
-                result should have(
-                    httpStatus(NOT_FOUND)
-                )
-            }
-        }
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    await(sessionService.deleteSession(testSessionData.sessionID))
+  }
+
+  val testSessionData: SessionData = SessionData(
+    sessionID = "session-123",
+    mtditid = "id-123",
+    nino = "nino-123",
+    saUtr = "utr-123",
+    clientFirstName = Some("David"),
+    clientLastName = None,
+    userType = "Individual"
+  )
+
+  "Sending a GET request to the session data service" should {
+    "return some session data" when {
+      "there is data in mongo under that id" in {
+        UserDetailsStub.stubGetUserDetails()
+        AuthStub.stubAuthorised()
+        await(sessionService.set(testSessionData))
+        val result = get("/session-123")
+        result should have(
+          httpStatus(OK)
+        )
+      }
+    }
+    "return Not Found" when {
+      "there is no data in mongo with that id" in {
+        await(sessionService.set(testSessionData))
+        val result = get("/session-999")
+        result should have(
+          httpStatus(NOT_FOUND)
+        )
+      }
+    }
+  }
+
+  "Sending a POST request to the session data service" should {
+    "add data to mongo" when {
+      "data provided is valid" in {
+        UserDetailsStub.stubGetUserDetails()
+        AuthStub.stubAuthorised()
+        val result = post("/")(Json.toJson[SessionData](testSessionData))
+        sessionService.get(testSessionData.sessionID).futureValue shouldBe Right(Some(testSessionData))
+        result should have(
+          httpStatus(OK)
+        )
+      }
     }
 
-    "Sending a POST request to the session data service" should {
-        "add data to mongo" when {
-            "data provided is valid" in {
-                UserDetailsStub.stubGetUserDetails()
-                AuthStub.stubAuthorised()
-                val result = post("/")(Json.toJson[SessionData](testSessionData))
-                sessionService.get(testSessionData.sessionID).futureValue shouldBe Right(Some(testSessionData))
-                result should have(
-                    httpStatus(OK)
-                )
-            }
-        }
-
-        "return BAD_REQUEST" when {
-            "data provided in invalid" in {
-                UserDetailsStub.stubGetUserDetails()
-                AuthStub.stubAuthorised()
-                val result = post("/")(Json.toJson[String]("not a valid session"))
-                result should have(
-                    httpStatus(BAD_REQUEST)
-                )
-            }
-        }
-
+    "return BAD_REQUEST" when {
+      "data provided in invalid" in {
+        UserDetailsStub.stubGetUserDetails()
+        AuthStub.stubAuthorised()
+        val result = post("/")(Json.toJson[String]("not a valid session"))
+        result should have(
+          httpStatus(BAD_REQUEST)
+        )
+      }
     }
+
+  }
 
 }

@@ -22,7 +22,7 @@ import play.api.mvc._
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{affinityGroup, confidenceLevel, internalId}
 import uk.gov.hmrc.auth.core.retrieve.~
 import uk.gov.hmrc.auth.core.{AffinityGroup, AuthorisationException, AuthorisedFunctions, ConfidenceLevel}
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{Authorization, HeaderCarrier}
 import uk.gov.hmrc.incometaxsessiondata.auth.HeaderExtractor
 import uk.gov.hmrc.incometaxsessiondata.config.AppConfig
 import uk.gov.hmrc.incometaxsessiondata.connectors.MicroserviceAuthConnector
@@ -38,9 +38,9 @@ class AuthenticationPredicateV2 @Inject()(val authConnector: MicroserviceAuthCon
                                           cc: ControllerComponents,
                                           val appConfig: AppConfig,
                                           val headerExtractor: HeaderExtractor
-                                       )(implicit val ec: ExecutionContext)
+                                         )(implicit val ec: ExecutionContext)
   extends ActionBuilder[SessionDataRequest, AnyContent] with ActionFunction[Request, SessionDataRequest]
-      with AuthorisedFunctions with Logging {
+    with AuthorisedFunctions with Logging {
 
   private val minimumConfidenceLevelOpt: Option[Int] = ConfidenceLevel
     .fromInt(appConfig.confidenceLevel)
@@ -51,22 +51,23 @@ class AuthenticationPredicateV2 @Inject()(val authConnector: MicroserviceAuthCon
 
   override def invokeBlock[A](request: Request[A], f: SessionDataRequest[A] => Future[Result]): Future[Result] = {
     implicit val req: Request[A] = request
-    implicit val hc: HeaderCarrier = headerExtractor.extractHeader(request, request.session)
-        authorised().retrieve(affinityGroup and confidenceLevel and internalId) {
-          case Some(AffinityGroup.Agent) ~ _ ~ Some(id) =>
-            logger.info(s"[AuthenticationPredicate][authenticated] - IN-1 ")
-            f( SessionDataRequest[A](id, hc.sessionId.map(_.value)))
-          case _ ~ userConfidence ~ Some(id) if minimumConfidenceLevelOpt.exists(minimumConfidenceLevel => userConfidence.level >= minimumConfidenceLevel) =>
-            logger.info(s"[AuthenticationPredicate][authenticated] - IN-2 ")
-            f( SessionDataRequest[A](id, hc.sessionId.map(_.value) ) )
-          case _ ~ _ =>
-            logger.info(s"[AuthenticationPredicate][authenticated] User has confidence level below ${minimumConfidenceLevelOpt}")
-            Future(Unauthorized)
-        }.recover {
-          case ex: AuthorisationException =>
-            logger.error(s"[AuthenticationPredicate][authenticated] Unauthorised Request to Backend. Propagating Unauthorised Response, ${ex.getMessage}")
-            Unauthorized
-          }
-      }
+    implicit val hc: HeaderCarrier = headerExtractor
+      .extractHeader(request, request.session)
+    authorised().retrieve(affinityGroup and confidenceLevel and internalId) {
+      case Some(AffinityGroup.Agent) ~ _ ~ Some(id) =>
+        logger.info(s"[AuthenticationPredicate][authenticated] - IN-1 ")
+        f(SessionDataRequest[A](id, hc.sessionId.map(_.value)))
+      case _ ~ userConfidence ~ Some(id) if minimumConfidenceLevelOpt.exists(minimumConfidenceLevel => userConfidence.level >= minimumConfidenceLevel) =>
+        logger.info(s"[AuthenticationPredicate][authenticated] - IN-2 ")
+        f(SessionDataRequest[A](id, hc.sessionId.map(_.value)))
+      case _ ~ _ =>
+        logger.info(s"[AuthenticationPredicate][authenticated] User has confidence level below ${minimumConfidenceLevelOpt}")
+        Future(Unauthorized)
+    }.recover {
+      case ex: AuthorisationException =>
+        logger.error(s"[AuthenticationPredicate][authenticated] Unauthorised Request to Backend. Propagating Unauthorised Response, ${ex.getMessage}")
+        Unauthorized
+    }
+  }
 
 }
