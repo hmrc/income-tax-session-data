@@ -22,12 +22,11 @@ import play.api.mvc._
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{affinityGroup, confidenceLevel, internalId}
 import uk.gov.hmrc.auth.core.retrieve.~
 import uk.gov.hmrc.auth.core.{AffinityGroup, AuthorisationException, AuthorisedFunctions, ConfidenceLevel}
-import uk.gov.hmrc.http.{Authorization, HeaderCarrier}
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.incometaxsessiondata.auth.HeaderExtractor
 import uk.gov.hmrc.incometaxsessiondata.config.AppConfig
 import uk.gov.hmrc.incometaxsessiondata.connectors.MicroserviceAuthConnector
 import uk.gov.hmrc.incometaxsessiondata.models.SessionDataRequest
-import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -54,12 +53,12 @@ class AuthenticationPredicate @Inject()(val authConnector: MicroserviceAuthConne
     implicit val hc: HeaderCarrier = headerExtractor
       .extractHeader(request, request.session)
     authorised().retrieve(affinityGroup and confidenceLevel and internalId) {
-      case Some(AffinityGroup.Agent) ~ _ ~ Some(id) =>
+      case Some(AffinityGroup.Agent) ~ _ ~ Some(id) if hc.sessionId.isDefined =>
         logger.info(s"[AuthenticationPredicate][authenticated] - authenticated as agent")
-        f(SessionDataRequest[A](id, hc.sessionId.map(_.value)))
-      case _ ~ userConfidence ~ Some(id) if minimumConfidenceLevelOpt.exists(minimumConfidenceLevel => userConfidence.level >= minimumConfidenceLevel) =>
+        f(SessionDataRequest[A](id, hc.sessionId.map(_.value).get))
+      case _ ~ userConfidence ~ Some(id) if hc.sessionId.isDefined && minimumConfidenceLevelOpt.exists(minimumConfidenceLevel => userConfidence.level >= minimumConfidenceLevel) =>
         logger.info(s"[AuthenticationPredicate][authenticated] - authenticated as individual")
-        f(SessionDataRequest[A](id, hc.sessionId.map(_.value)))
+        f(SessionDataRequest[A](id, hc.sessionId.map(_.value).get))
       case _ ~ _ =>
         logger.info(s"[AuthenticationPredicate][authenticated] User has confidence level below ${minimumConfidenceLevelOpt}")
         Future(Unauthorized)

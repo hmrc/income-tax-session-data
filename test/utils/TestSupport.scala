@@ -44,11 +44,16 @@ trait TestSupport extends AnyWordSpec with AnyWordSpecLike with Matchers with Op
 
   implicit val defaultPatience: PatienceConfig = PatienceConfig(timeout = Span(3, Seconds), interval = Span(5, Millis))
 
-  val fakeRequestWithActiveSession = FakeRequest().withSession(
+  val fakeRequestWithActiveSession: FakeRequest[AnyContentAsEmpty.type] = FakeRequest().withSession(
     SessionKeys.lastRequestTimestamp -> "1498236506662",
     SessionKeys.authToken -> "Bearer Token"
   ).withHeaders(
     HeaderNames.REFERER -> "/test/url",
-    "X-Session-ID" -> "testSessionId"
+    "X-Session-ID" -> "test1123"
   )
+
+  val fakeRequestWithActiveSessionAndEmptySessionId: FakeRequest[AnyContentAsEmpty.type] = FakeRequest().withSession(
+    SessionKeys.lastRequestTimestamp -> "1498236506662",
+    SessionKeys.authToken -> "Bearer Token"
+  ).withHeaders(HeaderNames.REFERER -> "/test/url")
 }
