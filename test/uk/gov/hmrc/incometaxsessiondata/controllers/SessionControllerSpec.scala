@@ -22,7 +22,6 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{mock, when}
 import play.api.libs.json.Json
 import play.api.mvc.{ControllerComponents, Result}
-import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.incometaxsessiondata.auth.HeaderExtractor
 import uk.gov.hmrc.incometaxsessiondata.models.SessionData
@@ -80,6 +79,14 @@ class SessionControllerSpec extends MockMicroserviceAuthConnector {
         when(mockSessionService.get(any())).thenReturn(Future.failed(new Error("")))
         val result: Future[Result] = testSessionController.getById("123")(fakeRequestWithActiveSession)
         status(result) shouldBe INTERNAL_SERVER_ERROR
+      }
+    }
+
+    "Recover" when {
+      "Unauthorised error when sessionId empty" in {
+        when(mockSessionService.get(any())).thenReturn(Future(Right(Some(testSessionData))))
+        val result: Future[Result] = testSessionController.getById("123")(fakeRequestWithActiveSessionAndEmptySessionId)
+        status(result) shouldBe UNAUTHORIZED
       }
     }
   }
