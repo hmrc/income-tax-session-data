@@ -34,12 +34,9 @@ trait MockMicroserviceAuthConnector extends TestSupport with BeforeAndAfterEach 
   val individualAuthResponseWithCL50: Some[AffinityGroup.Individual.type] ~ ConfidenceLevel.L50.type ~ Some[String] = Some(AffinityGroup.Individual) and ConfidenceLevel.L50 and Some("internalId")
   val agentResponseWithCL50: Some[AffinityGroup.Agent.type] ~ ConfidenceLevel.L50.type ~ Some[String] = Some(AffinityGroup.Agent) and ConfidenceLevel.L50 and Some("internalId")
 
-
-
   def mockAuth(response: Future[Any] = Future.successful( individualAuthResponseWithCL250 ) ): Future[Nothing] = {
     doReturn(response, Nil: _*).when(mockMicroserviceAuthConnector)
       .authorise(ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any(), ArgumentMatchers.any())
   }
-
 
 }

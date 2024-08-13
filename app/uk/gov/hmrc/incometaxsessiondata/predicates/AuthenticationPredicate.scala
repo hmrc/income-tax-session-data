@@ -53,10 +53,10 @@ class AuthenticationPredicate @Inject()(val authConnector: MicroserviceAuthConne
     implicit val hc: HeaderCarrier = headerExtractor
       .extractHeader(request, request.session)
     authorised().retrieve(affinityGroup and confidenceLevel and internalId) {
-      case Some(AffinityGroup.Agent) ~ _ ~ Some(id) =>
+      case Some(AffinityGroup.Agent) ~ _ ~ Some(id) if hc.sessionId.isDefined =>
         logger.info(s"[AuthenticationPredicate][authenticated] - authenticated as agent")
         f(SessionDataRequest[A](id, hc.sessionId.map(_.value).get))
-      case _ ~ userConfidence ~ Some(id) if minimumConfidenceLevelOpt.exists(minimumConfidenceLevel => userConfidence.level >= minimumConfidenceLevel) =>
+      case _ ~ userConfidence ~ Some(id) if hc.sessionId.isDefined && minimumConfidenceLevelOpt.exists(minimumConfidenceLevel => userConfidence.level >= minimumConfidenceLevel) =>
         logger.info(s"[AuthenticationPredicate][authenticated] - authenticated as individual")
         f(SessionDataRequest[A](id, hc.sessionId.map(_.value).get))
       case _ ~ _ =>
