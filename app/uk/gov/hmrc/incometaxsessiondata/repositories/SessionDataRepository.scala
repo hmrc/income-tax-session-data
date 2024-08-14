@@ -41,29 +41,36 @@ class SessionDataRepository @Inject()(
     domainFormat = Session.format,
     indexes = Seq(
       IndexModel(
-        Indexes.ascending("sessionID"),
+        Indexes.ascending("sessionId", "internalId", "mtditid"),
+        IndexOptions()
+          .name("compoundIndex")
+          .unique(true)
+      ),
+      IndexModel(
+        Indexes.ascending("mtditid"),
         IndexOptions()
           .name("sessionIDIndex")
-          .unique(true)
+          .unique(false)
       ),
       IndexModel(
         Indexes.ascending("lastUpdated"),
         IndexOptions()
           .name("lastUpdatedIndex")
           .expireAfter(config.cacheTtl, TimeUnit.SECONDS)
+          .unique(false)
       )
     ),
     replaceIndexes = true
   ) {
 
-  private def dataFilter(sessionId: String): Bson = {
+  private def dataFilter(sessionId: String, internalId: String, mtditid: String): Bson = {
     import Filters._
-    and(equal("sessionID", sessionId))
+    and(equal("sessionID", sessionId), equal("internalId", internalId), equal("mtditid", mtditid))
   }
 
-  def get(sessionId: String): Future[Option[Session]] = {
+  def get(sessionId: String, internalId: String, mtditid: String): Future[Option[Session]] = {
     collection
-      .find(dataFilter(sessionId))
+      .find(dataFilter(sessionId, internalId, mtditid))
       .headOption()
   }
 
@@ -73,7 +80,7 @@ class SessionDataRepository @Inject()(
 
     collection
       .replaceOne(
-        filter = dataFilter(data.sessionID),
+        filter = dataFilter(data.sessionId, data.internalId, data.mtditid),
         replacement = updatedAnswers,
         options = ReplaceOptions().upsert(true)
       )
@@ -81,7 +88,7 @@ class SessionDataRepository @Inject()(
       .map(_.wasAcknowledged())
   }
 
-  def deleteOne(sessionId: String): Future[Boolean] = {
-    collection.deleteOne(dataFilter(sessionId)).toFuture().map(_.wasAcknowledged())
+  def deleteOne(sessionId: String, internalId: String, mtditid: String): Future[Boolean] = {
+    collection.deleteOne(dataFilter(sessionId, internalId, mtditid)).toFuture().map(_.wasAcknowledged())
   }
 }

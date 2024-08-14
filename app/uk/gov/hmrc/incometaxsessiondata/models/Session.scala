@@ -22,34 +22,29 @@ import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 
 import java.time.Instant
 
-case class Session(sessionID: String,
-                   mtditid: String,
+case class Session(mtditid: String,
                    nino: String,
-                   saUtr: String,
-                   clientFirstName: Option[String],
-                   clientLastName: Option[String],
-                   userType: String,
+                   utr: String,
+                   internalId: String,
+                   sessionId: String,
                    lastUpdated: Instant = Instant.now)
+
 object Session {
   implicit val fromSessionData: SessionData => Session = sessionData => Session(
-    sessionID = sessionData.sessionID,
     mtditid = sessionData.mtditid,
     nino = sessionData.nino,
-    saUtr = sessionData.saUtr,
-    clientFirstName = sessionData.clientFirstName,
-    clientLastName = sessionData.clientLastName,
-    userType = sessionData.userType
+    utr = sessionData.utr,
+    internalId = sessionData.internalId,
+    sessionId = sessionData.sessionId
   )
 
   implicit val format: OFormat[Session] = {
 
-    ((__ \ "sessionID").format[String]
-      ~ (__ \ "mtditid").format[String]
+    ((__ \ "mtditid").format[String]
       ~ (__ \ "nino").format[String]
-      ~ (__ \ "saUtr").format[String]
-      ~ (__ \ "clientFirstName").formatNullable[String]
-      ~ (__ \ "clientLastName").formatNullable[String]
-      ~ (__ \ "userType").format[String]
+      ~ (__ \ "utr").format[String]
+      ~ (__ \ "internalId").format[String]
+      ~ (__ \ "sessionId").format[String]
       ~ (__ \ "lastUpdated").format(MongoJavatimeFormats.instantFormat)
       )(Session.apply, unlift(Session.unapply)
     )

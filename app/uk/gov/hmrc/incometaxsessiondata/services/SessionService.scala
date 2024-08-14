@@ -27,8 +27,8 @@ class SessionService @Inject()(
                                 repository: SessionDataRepository
                               )(implicit ec: ExecutionContext) {
 
-  def get(sessionId: String): Future[Either[Throwable, Option[SessionData]]] = {
-    repository.get(sessionId) map {
+  def get(sessionId: String, internalId: String, mtditid: String): Future[Either[Throwable, Option[SessionData]]] = {
+    repository.get(sessionId, internalId, mtditid) map {
       case Some(data: Session) =>
         Right(Some(data))
       case None => Right(None)
@@ -39,8 +39,8 @@ class SessionService @Inject()(
     repository.set(sessionData)
   }
 
-  def deleteSession(sessionId: String): Future[Unit] = {
-    repository.deleteOne(sessionId).map{
+  def deleteSession(sessionId: String, internalId: String, mtditid: String): Future[Unit] = {
+    repository.deleteOne(sessionId, internalId, mtditid).map{
       case true => Future.successful(())
       case false => Future.failed(new Exception("failed to delete session data"))
     }

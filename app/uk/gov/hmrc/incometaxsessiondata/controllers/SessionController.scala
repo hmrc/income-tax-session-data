@@ -34,9 +34,9 @@ class SessionController @Inject()(cc: ControllerComponents,
                                  )(implicit ec: ExecutionContext)
     extends BackendController(cc) with Logging {
 
-  def getById(sessionID: String): Action[AnyContent] = authentication.async {  request =>
+  def get(mtditid: String): Action[AnyContent] = authentication.async { request =>
     // Here is required internalID => request.internalId and request.sessionId
-    sessionService.get(sessionID) map {
+    sessionService.get(request.sessionId, request.sessionId, mtditid) map {
       case Right(Some(session: SessionData)) =>
         logger.info(s"[SessionController][getById]: Successfully retrieved session data: $session")
         Ok(Json.toJson(session))
@@ -44,8 +44,8 @@ class SessionController @Inject()(cc: ControllerComponents,
         logger.info(s"[SessionController][getById]: No live session")
         NotFound("No session data found")
       case Left(ex) =>
-        logger.error(s"[SessionController][getById]: Failed to retrieve session with id: $sessionID - ${ex.getMessage}")
-        InternalServerError(s"Failed to retrieve session with id: $sessionID")
+        logger.error(s"[SessionController][getById]: Failed to retrieve session with mtditid: $mtditid - ${ex.getMessage}")
+        InternalServerError(s"Failed to retrieve session with mtditid: $mtditid")
     } recover {
       case ex =>
         logger.error(s"[SessionController][getById]: Unexpected error while getting session: $ex")
@@ -56,7 +56,7 @@ class SessionController @Inject()(cc: ControllerComponents,
   def set(): Action[AnyContent] = authentication.async { implicit request =>
     // Here is required internalID => request.internalId and request.sessionId
     request.body.asJson.getOrElse(Json.obj())
-      .validate[SessionData] match {
+      .validate(SessionData.readsWithRequest(request)) match {
       case err: JsError =>
         logger.error(s"[SessionController][set]: Json validation error while parsing request: $err")
         Future.successful(BadRequest(s"Json validation error while parsing request: $err"))

@@ -40,7 +40,7 @@ class SessionServiceSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSu
     sessionID = "session-123",
     mtditid = "id-123",
     nino = "nino-123",
-    saUtr = "utr-123",
+    utr = "utr-123",
     clientFirstName = Some("David"),
     clientLastName = None,
     userType = "Individual"
@@ -50,7 +50,7 @@ class SessionServiceSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSu
     sessionID ="session-123",
     mtditid = "id-123",
     nino = "nino-123",
-    saUtr = "utr-123",
+    utr = "utr-123",
     clientFirstName = Some("David"),
     clientLastName = None,
     userType = "Individual"
