@@ -17,7 +17,7 @@
 package uk.gov.hmrc.incometaxsessiondata.auth
 
 import com.google.inject.ImplementedBy
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{Authorization, HeaderCarrier, HeaderNames}
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
 import javax.inject.Singleton
@@ -26,8 +26,11 @@ import javax.inject.Singleton
 trait HeaderExtractor {
 
   def extractHeader(request: play.api.mvc.Request[_], session: play.api.mvc.Session): HeaderCarrier = {
+    val authHeader = request.headers.get(HeaderNames.authorisation)
+    request.headers
     HeaderCarrierConverter
       .fromRequestAndSession(request, request.session)
+      .copy(authorization = authHeader.map(Authorization))
   }
 
 }
