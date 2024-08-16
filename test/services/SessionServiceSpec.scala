@@ -37,37 +37,33 @@ class SessionServiceSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSu
   )(ec)
 
   val testSession: Session = Session(
-    sessionID = "session-123",
+    sessionId = "session-123",
     mtditid = "id-123",
     nino = "nino-123",
     utr = "utr-123",
-    clientFirstName = Some("David"),
-    clientLastName = None,
-    userType = "Individual"
+    internalId = "test-internal-id"
   )
 
   val testSessionData: SessionData = SessionData(
-    sessionID ="session-123",
+    sessionId ="session-123",
     mtditid = "id-123",
     nino = "nino-123",
     utr = "utr-123",
-    clientFirstName = Some("David"),
-    clientLastName = None,
-    userType = "Individual"
+    internalId = "test-internal-id"
   )
 
   "SessionService.get" should {
     "return session data" when {
       "data returned from the repository" in {
-        when(mockRepository.get(any())).thenReturn(Future(Some(testSession)))
-        val result = testSessionService.get("123")
+        when(mockRepository.get(any(), any(), any())).thenReturn(Future(Some(testSession)))
+        val result = testSessionService.get("test-session", "test-internal", "test-mtditid")
         result.futureValue shouldBe Right(Some(testSessionData))
       }
     }
     "return None" when {
       "no data returned from repository" in {
-        when(mockRepository.get(any())).thenReturn(Future(None))
-        val result = testSessionService.get("123")
+        when(mockRepository.get(any(), any(), any())).thenReturn(Future(None))
+        val result = testSessionService.get("test-session", "test-internal", "test-mtditid")
         result.futureValue shouldBe Right(None)
       }
     }

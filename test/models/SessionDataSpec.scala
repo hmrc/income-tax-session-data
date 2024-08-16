@@ -24,24 +24,21 @@ class SessionDataSpec extends AnyWordSpec with Matchers {
 
 
   val testSessionData: SessionData = SessionData(
-    sessionID ="session-123",
+    sessionId ="session-123",
     mtditid = "id-123",
     nino = "nino-123",
     utr = "utr-123",
-    clientFirstName = Some("David"),
-    clientLastName = None,
-    userType = "Individual")
+    internalId = "test-internal-id"
+  )
 
   "SessionData" should{
     "implicitly convert a Session to the relevant SessionData" in {
       val session = Session(
-        sessionID = "session-123",
+        sessionId = "session-123",
         mtditid = "id-123",
         nino = "nino-123",
         utr = "utr-123",
-        clientFirstName = Some("David"),
-        clientLastName = None,
-        userType = "Individual"
+        internalId = "test-internal-id"
       )
       val data: SessionData = session
       data shouldBe testSessionData
