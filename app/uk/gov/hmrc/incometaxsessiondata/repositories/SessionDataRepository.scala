@@ -65,7 +65,7 @@ class SessionDataRepository @Inject()(
 
   private def dataFilter(sessionId: String, internalId: String, mtditid: String): Bson = {
     import Filters._
-    and(equal("sessionID", sessionId), equal("internalId", internalId), equal("mtditid", mtditid))
+    and(equal("sessionId", sessionId), equal("internalId", internalId), equal("mtditid", mtditid))
   }
 
   def get(sessionId: String, internalId: String, mtditid: String): Future[Option[Session]] = {

@@ -36,7 +36,7 @@ class SessionController @Inject()(cc: ControllerComponents,
 
   def get(mtditid: String): Action[AnyContent] = authentication.async { request =>
     // Here is required internalID => request.internalId and request.sessionId
-    sessionService.get(request.sessionId, request.sessionId, mtditid) map {
+    sessionService.get(request.sessionId, request.internalId, mtditid) map {
       case Right(Some(session: SessionData)) =>
         logger.info(s"[SessionController][getById]: Successfully retrieved session data: $session")
         Ok(Json.toJson(session))
