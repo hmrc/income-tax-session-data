@@ -20,7 +20,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.incometaxsessiondata.models.{Session, SessionData}
 
-class SessionDataSpec extends AnyWordSpec with Matchers{
+class SessionDataSpec extends AnyWordSpec with Matchers {
 
 
   val testSessionData: SessionData = SessionData(
