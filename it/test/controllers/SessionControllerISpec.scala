@@ -51,17 +51,15 @@ class SessionControllerISpec
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    await(sessionService.deleteSession(testSessionData.sessionID))
+    await(sessionService.deleteSession(testSessionData.sessionId, testSessionData.internalId, testSessionData.mtditid))
   }
 
   val testSessionData: SessionData = SessionData(
-    sessionID = "session-123",
+    sessionId = "session-123",
     mtditid = "id-123",
     nino = "nino-123",
     utr = "utr-123",
-    clientFirstName = Some("David"),
-    clientLastName = None,
-    userType = "Individual"
+    internalId = "test-internal-id"
   )
 
   "Sending a GET request to the session data service" should {
@@ -93,7 +91,7 @@ class SessionControllerISpec
         UserDetailsStub.stubGetUserDetails()
         AuthStub.stubAuthorised()
         val result = post("/")(Json.toJson[SessionData](testSessionData))
-        sessionService.get(testSessionData.sessionID).futureValue shouldBe Right(Some(testSessionData))
+        sessionService.get(testSessionData.sessionId, testSessionData.internalId, testSessionData.mtditid).futureValue shouldBe Right(Some(testSessionData))
         result should have(
           httpStatus(OK)
         )

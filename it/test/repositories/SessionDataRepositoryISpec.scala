@@ -37,30 +37,26 @@ class SessionDataRepositoryISpec extends AnyWordSpec
   private val repository = app.injector.instanceOf[SessionDataRepository]
 
   def beforeEach(): Unit = {
-    await(repository.deleteOne(testSessionId))
-    await(repository.deleteOne(otherTestSessionId))
+    await(repository.deleteOne(testSessionId, testSession.internalId, testSession.mtditid))
+    await(repository.deleteOne(otherTestSessionId, otherTestSession.internalId, otherTestSession.mtditid))
   }
 
   val testSessionId = "session-123"
   val otherTestSessionId = "session-xxx"
 
   val testSession = Session(
-    sessionID = testSessionId,
+    sessionId = testSessionId,
     mtditid = "testId",
     nino = "testNino",
     utr = "testUtr",
-    clientFirstName = Some("John"),
-    clientLastName = Some("Smith"),
-    userType = "Individual"
+    internalId = "test-internal-id"
   )
   val otherTestSession = Session(
-    sessionID = otherTestSessionId,
+    sessionId = otherTestSessionId,
     mtditid = "testId",
     nino = "testNino",
     utr = "testUtr",
-    clientFirstName = Some("John"),
-    clientLastName = Some("Smith"),
-    userType = "Individual"
+    internalId = "test-internal-id"
   )
 
   "Session Data Repository" should {
@@ -70,18 +66,18 @@ class SessionDataRepositoryISpec extends AnyWordSpec
     }
     "get some data" in {
       await(repository.set(testSession))
-      val result = await(repository.get(testSessionId)).get
+      val result = await(repository.get(testSessionId, testSession.internalId, testSession.mtditid)).get
       result.mtditid shouldBe "testId"
-      result.userType shouldBe "Individual"
+      result.utr shouldBe "testUtr"
     }
     "delete specified data" in {
       await(repository.set(testSession))
       await(repository.set(otherTestSession))
-      await(repository.deleteOne(testSessionId))
-      val result = await(repository.get(testSessionId))
-      val otherResult = await(repository.get(otherTestSessionId)).get
+      await(repository.deleteOne(testSessionId, testSession.internalId, testSession.mtditid))
+      val result = await(repository.get(testSessionId, testSession.internalId, testSession.mtditid))
+      val otherResult = await(repository.get(otherTestSessionId, otherTestSession.internalId, otherTestSession.mtditid)).get
       result shouldBe None
-      otherResult.sessionID shouldBe "session-xxx"
+      otherResult.sessionId shouldBe "session-xxx"
     }
   }
 
