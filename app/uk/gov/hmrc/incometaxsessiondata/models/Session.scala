@@ -17,7 +17,7 @@
 package uk.gov.hmrc.incometaxsessiondata.models
 
 import play.api.libs.functional.syntax.{toFunctionalBuilderOps, unlift}
-import play.api.libs.json.{OFormat, __}
+import play.api.libs.json.{OFormat, Reads, __}
 import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 
 import java.time.Instant
@@ -30,13 +30,29 @@ case class Session(mtditid: String,
                    lastUpdated: Instant = Instant.now)
 
 object Session {
-  implicit val fromSessionData: SessionData => Session = sessionData => Session(
-    mtditid = sessionData.mtditid,
-    nino = sessionData.nino,
-    utr = sessionData.utr,
-    internalId = sessionData.internalId,
-    sessionId = sessionData.sessionId
-  )
+//  implicit val fromSessionData: SessionData => Session = sessionData => Session(
+//    mtditid = sessionData.mtditid,
+//    nino = sessionData.nino,
+//    utr = sessionData.utr,
+//    internalId = sessionData.internalId,
+//    sessionId = sessionData.sessionId
+//  )
+
+  def readsWithRequest(request: SessionDataRequest[_]): Reads[Session] = {
+    Reads[Session] { json =>
+      for {
+        mtditid <- (json \ "mtditid").validate[String]
+        nino <- (json \ "nino").validate[String]
+        utr <- (json \ "utr").validate[String]
+      } yield Session(
+        mtditid = mtditid,
+        nino = nino,
+        utr = utr,
+        internalId = request.internalId,
+        sessionId = request.sessionId
+      )
+    }
+  }
 
   implicit val format: OFormat[Session] = {
 

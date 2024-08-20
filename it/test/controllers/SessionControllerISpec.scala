@@ -16,6 +16,7 @@
 
 package controllers
 
+import helpers.AuthStub.testAuthInternalId
 import helpers.{AuthStub, ComponentSpecBase, UserDetailsStub}
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.should.Matchers
@@ -26,7 +27,7 @@ import play.api.http.Status.{BAD_REQUEST, NOT_FOUND, OK}
 import play.api.libs.json.Json
 import play.api.libs.ws.WSResponse
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.incometaxsessiondata.models.SessionData
+import uk.gov.hmrc.incometaxsessiondata.models.Session
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 
 class SessionControllerISpec
@@ -51,24 +52,24 @@ class SessionControllerISpec
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    await(sessionService.deleteSession(testSessionData.sessionId, testSessionData.internalId, testSessionData.mtditid))
+    await(sessionService.deleteSession(testSession.sessionId, testSession.internalId, testSession.mtditid))
   }
 
-  val testSessionData: SessionData = SessionData(
-    sessionId = "session-123",
+  val testSession: Session = Session(
+    sessionId = testSessionId,
     mtditid = "id-123",
     nino = "nino-123",
     utr = "utr-123",
-    internalId = "test-internal-id"
+    internalId = testAuthInternalId
   )
 
   "Sending a GET request to the session data service" should {
     "return some session data" when {
-      "there is data in mongo under that id" in {
+      "there is data in mongo under that id, with the user's current session id and internal id" in {
         UserDetailsStub.stubGetUserDetails()
         AuthStub.stubAuthorised()
-        await(sessionService.set(testSessionData))
-        val result = get("/session-123")
+        await(sessionService.set(testSession))
+        val result = get(s"/${testSession.mtditid}")
         result should have(
           httpStatus(OK)
         )
@@ -76,7 +77,7 @@ class SessionControllerISpec
     }
     "return Not Found" when {
       "there is no data in mongo with that id" in {
-        await(sessionService.set(testSessionData))
+        await(sessionService.set(testSession))
         val result = get("/session-999")
         result should have(
           httpStatus(NOT_FOUND)
@@ -90,8 +91,17 @@ class SessionControllerISpec
       "data provided is valid" in {
         UserDetailsStub.stubGetUserDetails()
         AuthStub.stubAuthorised()
-        val result = post("/")(Json.toJson[SessionData](testSessionData))
-        sessionService.get(testSessionData.sessionId, testSessionData.internalId, testSessionData.mtditid).futureValue shouldBe Right(Some(testSessionData))
+        val result = post("/")(Json.toJson[Session](testSession))
+
+        sessionService.get(testSession.sessionId, testAuthInternalId, testSession.mtditid).futureValue match {
+          case Right(Some(value)) =>
+            value.sessionId shouldBe testSession.sessionId
+            value.mtditid shouldBe testSession.mtditid
+            value.utr shouldBe testSession.utr
+            value.nino shouldBe testSession.nino
+          case Right(None) => fail("failed because result was None")
+          case Left(_) => fail("failed because result was a left")
+        }
         result should have(
           httpStatus(OK)
         )

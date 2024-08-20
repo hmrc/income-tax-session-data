@@ -20,6 +20,7 @@ import play.api.Logging
 import play.api.libs.json.{JsError, JsSuccess, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.incometaxsessiondata.models.SessionData
+import uk.gov.hmrc.incometaxsessiondata.models.Session
 import uk.gov.hmrc.incometaxsessiondata.predicates.AuthenticationPredicate
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -32,7 +33,7 @@ class SessionController @Inject()(cc: ControllerComponents,
                                   authentication: AuthenticationPredicate,
                                   sessionService: SessionService
                                  )(implicit ec: ExecutionContext)
-    extends BackendController(cc) with Logging {
+  extends BackendController(cc) with Logging {
 
   def get(mtditid: String): Action[AnyContent] = authentication.async { request =>
     // Here is required internalID => request.internalId and request.sessionId
@@ -53,10 +54,28 @@ class SessionController @Inject()(cc: ControllerComponents,
     }
   }
 
+  def getByMtditid(mtditid: String): Action[AnyContent] = authentication.async { _ =>
+    sessionService.getByMtditid(mtditid) map {
+      case sessionList: List[SessionData] if sessionList.nonEmpty =>
+        logger.info(s"[SessionController][getByMtditid]" +
+          s" Successfully retrieved a list of session data that matches the given mtdidit: $mtditid, list of sessions: $sessionList")
+        Ok(Json.toJson(sessionList))
+      case sessionList: List[SessionData] if sessionList.isEmpty =>
+        logger.info(s"[SessionController][getByMtditid]: No live sessions matching mtditid: $mtditid")
+        NotFound("No session data found for this mtditid")
+    } recover {
+      case ex =>
+        logger.error(s"[SessionController][getByMtditid]: Unexpected error while getting sessions matching mtditid: $mtditid. Exception: $ex")
+        InternalServerError(s"Unexpected error while getting session using mtditid: $ex")
+    }
+  }
+
   def set(): Action[AnyContent] = authentication.async { implicit request =>
     // Here is required internalID => request.internalId and request.sessionId
+    println("AAAAAAA" + request.internalId)
+    println("BBBBBBBB" + request.sessionId)
     request.body.asJson.getOrElse(Json.obj())
-      .validate(SessionData.readsWithRequest(request)) match {
+      .validate(Session.readsWithRequest(request)) match {
       case err: JsError =>
         logger.error(s"[SessionController][set]: Json validation error while parsing request: $err")
         Future.successful(BadRequest(s"Json validation error while parsing request: $err"))
@@ -70,7 +89,7 @@ class SessionController @Inject()(cc: ControllerComponents,
     }
   }
 
-  private def save(validRequest: SessionData) = {
+  private def save(validRequest: Session) = {
     sessionService.set(validRequest) map {
       case true =>
         logger.info(s"[SessionController][save]: Successfully set session")

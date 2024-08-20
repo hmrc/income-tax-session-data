@@ -43,8 +43,7 @@ class SessionControllerSpec extends MockMicroserviceAuthConnector {
     sessionId = "session-123",
     mtditid = "id-123",
     nino = "nino-123",
-    utr = "utr-123",
-    internalId = "test-internal-id"
+    utr = "utr-123"
   )
 
   "SessionController.getById" should {

@@ -21,7 +21,7 @@ import play.api.libs.json.{Format, Json, Reads}
 case class SessionData(mtditid: String,
                        nino: String,
                        utr: String,
-                       internalId: String,
+//                       internalId: String,
                        sessionId: String)
 
 object SessionData {
@@ -29,19 +29,19 @@ object SessionData {
     mtditid = session.mtditid,
     nino = session.nino,
     utr = session.utr,
-    internalId = session.internalId,
+//    internalId = session.internalId,
     sessionId = session.sessionId
   )
   implicit val format: Format[SessionData] = Json.format[SessionData]
 
-  def readsWithRequest(request: SessionDataRequest[_]): Reads[SessionData] = {
-    Reads[SessionData] { json =>
-      for {
-        mtditid <- (json \ "mtditid").validate[String]
-        nino <- (json \ "nino").validate[String]
-        utr <- (json \ "utr").validate[String]
-      } yield SessionData(mtditid = mtditid, nino = nino, utr = utr, internalId = request.internalId, sessionId = request.sessionId)
-    }
-  }
+//  def readsWithRequest(request: SessionDataRequest[_]): Reads[SessionData] = {
+//    Reads[SessionData] { json =>
+//      for {
+//        mtditid <- (json \ "mtditid").validate[String]
+//        nino <- (json \ "nino").validate[String]
+//        utr <- (json \ "utr").validate[String]
+//      } yield SessionData(mtditid = mtditid, nino = nino, utr = utr, internalId = request.internalId, sessionId = request.sessionId)
+//    }
+//  }
 
 }

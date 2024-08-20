@@ -23,6 +23,7 @@ import uk.gov.hmrc.incometaxsessiondata.config.AppConfig
 import uk.gov.hmrc.incometaxsessiondata.models.Session
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+import Filters._
 
 import java.time.{Clock, Instant}
 import java.util.concurrent.TimeUnit
@@ -64,14 +65,23 @@ class SessionDataRepository @Inject()(
   ) {
 
   private def dataFilter(sessionId: String, internalId: String, mtditid: String): Bson = {
-    import Filters._
     and(equal("sessionId", sessionId), equal("internalId", internalId), equal("mtditid", mtditid))
+  }
+
+  private def dataFilterMtditid(mtditid: String): Bson = {
+    and(equal("mtditid", mtditid))
   }
 
   def get(sessionId: String, internalId: String, mtditid: String): Future[Option[Session]] = {
     collection
       .find(dataFilter(sessionId, internalId, mtditid))
       .headOption()
+  }
+
+  def getByMtditid(mtditid: String): Future[Seq[Session]] = {
+    collection
+      .find(dataFilterMtditid(mtditid))
+      .toFuture()
   }
 
   def set(data: Session): Future[Boolean] = {

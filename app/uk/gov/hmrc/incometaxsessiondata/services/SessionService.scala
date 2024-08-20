@@ -30,17 +30,21 @@ class SessionService @Inject()(
   def get(sessionId: String, internalId: String, mtditid: String): Future[Either[Throwable, Option[SessionData]]] = {
     repository.get(sessionId, internalId, mtditid) map {
       case Some(data: Session) =>
-        Right(Some(data))
+        Right(Some(SessionData.fromSession(data)))
       case None => Right(None)
     }
   }
 
-  def set(sessionData: SessionData): Future[Boolean] = {
+  def getByMtditid(sessionId: String): Future[Seq[SessionData]] = {
+    repository.getByMtditid(sessionId) map (seq => seq.map(item => SessionData.fromSession(item)))
+  }
+
+  def set(sessionData: Session): Future[Boolean] = {
     repository.set(sessionData)
   }
 
   def deleteSession(sessionId: String, internalId: String, mtditid: String): Future[Unit] = {
-    repository.deleteOne(sessionId, internalId, mtditid).map{
+    repository.deleteOne(sessionId, internalId, mtditid).map {
       case true => Future.successful(())
       case false => Future.failed(new Exception("failed to delete session data"))
     }

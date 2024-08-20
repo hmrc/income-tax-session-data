@@ -26,9 +26,10 @@ object AuthStub extends ComponentSpecBase {
 
   val requiredConfidenceLevel = appConfig.confidenceLevel
 
+  val testAuthInternalId: String = "123"
   private def successfulAuthResponse(confidenceLevel: Option[ConfidenceLevel]): JsObject = {
     confidenceLevel.fold(Json.obj())(unwrappedConfidenceLevel =>
-      Json.obj("confidenceLevel" -> unwrappedConfidenceLevel, "internalId" -> "123") )
+      Json.obj("confidenceLevel" -> unwrappedConfidenceLevel, "internalId" -> testAuthInternalId) )
   }
 
   def stubAuthorised(): Unit = {
