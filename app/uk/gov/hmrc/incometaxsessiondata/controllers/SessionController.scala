@@ -72,8 +72,6 @@ class SessionController @Inject()(cc: ControllerComponents,
 
   def set(): Action[AnyContent] = authentication.async { implicit request =>
     // Here is required internalID => request.internalId and request.sessionId
-    println("AAAAAAA" + request.internalId)
-    println("BBBBBBBB" + request.sessionId)
     request.body.asJson.getOrElse(Json.obj())
       .validate(Session.readsWithRequest(request)) match {
       case err: JsError =>
