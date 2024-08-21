@@ -51,14 +51,14 @@ class AuthenticationPredicateSpec extends MockMicroserviceAuthConnector {
       futureResult.futureValue.header.status shouldBe Status.UNAUTHORIZED
     }
 
-    "called with an authenticated user (Some Bearer Token in Header)" in {
+    "called with individual authenticated user (Some Bearer Token in Header)" in {
       val f = fixture()
       mockAuth()
       val futureResult = result(f.predicate, fakeRequestWithActiveSession)
       futureResult.futureValue.header.status shouldBe Status.OK
     }
 
-    "called with an authenticated user and empty sessionId" in {
+    "called with individual authenticated user and empty sessionId" in {
       val f = fixture()
       mockAuth()
       val futureResult = result(authenticationPredicate = f.predicate, fakeRequestWithActiveSessionAndEmptySessionId)

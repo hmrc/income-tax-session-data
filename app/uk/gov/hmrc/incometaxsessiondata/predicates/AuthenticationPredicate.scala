@@ -19,9 +19,9 @@ package uk.gov.hmrc.incometaxsessiondata.predicates
 import play.api.Logging
 import play.api.mvc.Results.Unauthorized
 import play.api.mvc._
-import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{affinityGroup, confidenceLevel, internalId}
+import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{affinityGroup, allEnrolments, confidenceLevel, internalId}
 import uk.gov.hmrc.auth.core.retrieve.~
-import uk.gov.hmrc.auth.core.{AffinityGroup, AuthorisationException, AuthorisedFunctions, ConfidenceLevel}
+import uk.gov.hmrc.auth.core.{AffinityGroup, AuthorisationException, AuthorisedFunctions, ConfidenceLevel, Enrolments}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.incometaxsessiondata.auth.HeaderExtractor
 import uk.gov.hmrc.incometaxsessiondata.config.AppConfig
@@ -37,7 +37,7 @@ class AuthenticationPredicate @Inject()(val authConnector: MicroserviceAuthConne
                                         cc: ControllerComponents,
                                         val appConfig: AppConfig,
                                         val headerExtractor: HeaderExtractor
-                                         )(implicit val ec: ExecutionContext)
+                                       )(implicit val ec: ExecutionContext)
   extends ActionBuilder[SessionDataRequest, AnyContent] with ActionFunction[Request, SessionDataRequest]
     with AuthorisedFunctions with Logging {
 
@@ -48,18 +48,36 @@ class AuthenticationPredicate @Inject()(val authConnector: MicroserviceAuthConne
   override val parser: BodyParser[AnyContent] = cc.parsers.defaultBodyParser
   override val executionContext: ExecutionContext = cc.executionContext
 
+  val agentServiceEnrolmentName = "HMRC-AS-AGENT"
+  val agentServiceIdentifierKey = "AgentReferenceNumber"
+
+  // TODO: clarify if we really need Individual auth handling
   override def invokeBlock[A](request: Request[A], f: SessionDataRequest[A] => Future[Result]): Future[Result] = {
     implicit val req: Request[A] = request
     implicit val hc: HeaderCarrier = headerExtractor
       .extractHeader(request, request.session)
-    authorised().retrieve(affinityGroup and confidenceLevel and internalId) {
-      case Some(AffinityGroup.Agent) ~ _ ~ Some(id) if hc.sessionId.isDefined =>
+
+    authorised().retrieve(affinityGroup and confidenceLevel and internalId and allEnrolments) {
+      case Some(AffinityGroup.Agent) ~ _ ~ Some(id) ~ enrolments if hc.sessionId.isDefined =>
+        logger.info(s"[AuthenticationPredicate][authenticated] - DDD ${enrolments.getEnrolment(agentServiceEnrolmentName)
+          .flatMap(_.getIdentifier(agentServiceIdentifierKey))
+          .map(_.value)}")
+
+        val mtditid : String = enrolments.getEnrolment(agentServiceEnrolmentName)
+          .flatMap(_.getIdentifier(agentServiceIdentifierKey))
+          .map(_.value).get
+
+        val sessionId : String = hc.sessionId.map(_.value).get
         logger.info(s"[AuthenticationPredicate][authenticated] - authenticated as agent")
-        f(SessionDataRequest[A](id, hc.sessionId.map(_.value).get))
-      case _ ~ userConfidence ~ Some(id) if hc.sessionId.isDefined && minimumConfidenceLevelOpt.exists(minimumConfidenceLevel => userConfidence.level >= minimumConfidenceLevel) =>
+        f(SessionDataRequest[A](internalId = id, sessionId = sessionId, mtditid = mtditid))
+      case _ ~ userConfidence ~ Some(id) ~ enrolments if hc.sessionId.isDefined && minimumConfidenceLevelOpt.exists(minimumConfidenceLevel => userConfidence.level >= minimumConfidenceLevel) =>
+        val mtditid : String = enrolments.getEnrolment(appConfig.mtdItEnrolmentKey)
+            .flatMap(_.getIdentifier(appConfig.mtdItIdentifierKey))
+            .map(_.value).get
+        val sessionId : String = hc.sessionId.map(_.value).get
         logger.info(s"[AuthenticationPredicate][authenticated] - authenticated as individual")
-        f(SessionDataRequest[A](id, hc.sessionId.map(_.value).get))
-      case _ ~ _ =>
+        f(SessionDataRequest[A](internalId = id, sessionId = sessionId, mtditid = mtditid))
+      case _ ~ _ ~ _ =>
         logger.info(s"[AuthenticationPredicate][authenticated] User has confidence level below ${minimumConfidenceLevelOpt}")
         Future(Unauthorized)
     }.recover {

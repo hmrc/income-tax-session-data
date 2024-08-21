@@ -22,10 +22,11 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.wordspec.{AnyWordSpec, AnyWordSpecLike}
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
+import play.api.Configuration
 import play.api.http.HeaderNames
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
-import uk.gov.hmrc.http.{SessionKeys}
+import uk.gov.hmrc.http.SessionKeys
 import uk.gov.hmrc.incometaxsessiondata.config.AppConfig
 
 import scala.concurrent.ExecutionContext
@@ -39,7 +40,11 @@ trait TestSupport extends AnyWordSpec with AnyWordSpecLike with Matchers with Op
   def fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("", "")
 
   val fakePostRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest().withMethod("POST")
-  val appConfig: AppConfig = app.injector.instanceOf[AppConfig]
+  val appConfig: AppConfig = new AppConfig( app.injector.instanceOf[Configuration] ){
+    override val mtdItIdentifierKey: String = "MTDITID"
+    override val mtdItEnrolmentKey: String = "HMRC-MTD-IT"
+  }
+
 
 
   implicit val defaultPatience: PatienceConfig = PatienceConfig(timeout = Span(3, Seconds), interval = Span(5, Millis))

@@ -21,7 +21,7 @@ import org.mockito.Mockito.{doReturn, mock}
 import org.scalatest.BeforeAndAfterEach
 import uk.gov.hmrc.auth.core.retrieve.~
 import uk.gov.hmrc.auth.core.syntax.retrieved.authSyntaxForRetrieved
-import uk.gov.hmrc.auth.core.{AffinityGroup, ConfidenceLevel}
+import uk.gov.hmrc.auth.core.{AffinityGroup, ConfidenceLevel, Enrolment, EnrolmentIdentifier, Enrolments}
 import uk.gov.hmrc.incometaxsessiondata.connectors.MicroserviceAuthConnector
 import utils.TestSupport
 
@@ -29,10 +29,24 @@ import scala.concurrent.Future
 
 trait MockMicroserviceAuthConnector extends TestSupport with BeforeAndAfterEach {
 
+  // TODO: clarify if we really need Individual auth handling
+  val individualEnrollments: Enrolments = Enrolments(Set(
+    Enrolment("HMRC-MTD-IT", Seq(EnrolmentIdentifier("MTDITID", "testMtditid")), "activated")
+  ))
+  val arnEnrolment: Enrolment = Enrolment(
+    "HMRC-AS-AGENT", Seq(EnrolmentIdentifier("AgentReferenceNumber", "testArn")), "activated")
+
+  val agentsEnrollments: Enrolments =  Enrolments(Set(arnEnrolment))
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
   val mockMicroserviceAuthConnector: MicroserviceAuthConnector = mock(classOf[MicroserviceAuthConnector])
-  val individualAuthResponseWithCL250: Some[AffinityGroup.Individual.type] ~ ConfidenceLevel.L250.type ~ Some[String] = Some(AffinityGroup.Individual) and ConfidenceLevel.L250 and Some("internalId")
-  val individualAuthResponseWithCL50: Some[AffinityGroup.Individual.type] ~ ConfidenceLevel.L50.type ~ Some[String] = Some(AffinityGroup.Individual) and ConfidenceLevel.L50 and Some("internalId")
-  val agentResponseWithCL50: Some[AffinityGroup.Agent.type] ~ ConfidenceLevel.L50.type ~ Some[String] = Some(AffinityGroup.Agent) and ConfidenceLevel.L50 and Some("internalId")
+
+  val individualAuthResponseWithCL250: Some[AffinityGroup.Individual.type] ~ ConfidenceLevel.L250.type ~ Some[String] ~ Enrolments = Some(AffinityGroup.Individual) and ConfidenceLevel.L250 and Some("internalId") and  individualEnrollments
+
+  val individualAuthResponseWithCL50: Some[AffinityGroup.Individual.type] ~ ConfidenceLevel.L50.type ~ Some[String] ~ Enrolments = Some(AffinityGroup.Individual) and ConfidenceLevel.L50 and Some("internalId") and individualEnrollments
+
+  val agentResponseWithCL50: Some[AffinityGroup.Agent.type] ~ ConfidenceLevel.L50.type ~ Some[String] ~ Enrolments = Some(AffinityGroup.Agent) and ConfidenceLevel.L50 and Some("internalId") and agentsEnrollments
 
   def mockAuth(response: Future[Any] = Future.successful( individualAuthResponseWithCL250 ) ): Future[Nothing] = {
     doReturn(response, Nil: _*).when(mockMicroserviceAuthConnector)
