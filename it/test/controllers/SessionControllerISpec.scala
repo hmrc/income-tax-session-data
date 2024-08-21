@@ -76,6 +76,7 @@ class SessionControllerISpec
         )
       }
     }
+
     "return Not Found" when {
       "there is no data in mongo with that id" in {
         await(sessionService.set(testSessionData))

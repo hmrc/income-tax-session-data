@@ -19,6 +19,8 @@ package helpers
 import play.api.http.Status
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.auth.core.ConfidenceLevel
+import play.api.libs.functional.syntax._
+import play.api.libs.json._
 
 object AuthStub extends ComponentSpecBase {
 
@@ -26,11 +28,35 @@ object AuthStub extends ComponentSpecBase {
 
   val requiredConfidenceLevel = appConfig.confidenceLevel
 
+  // TODO: refactor below imports
+  case class KVPair(key: String, value: String)
+  case class Enrolment(key: String, identifiers: Seq[KVPair], state: String)
+
+  implicit val kvPairWrites: Writes[KVPair] = (
+    (JsPath \ "key").write[String] and
+      (JsPath \ "value").write[String]
+    ) (unlift(KVPair.unapply))
+
+  implicit val enrolmentWrites: Writes[Enrolment] = (
+    (JsPath \ "key").write[String] and
+      (JsPath \ "identifiers").write[Seq[KVPair]] and
+      (JsPath \ "state").write[String]
+    ) (unlift(Enrolment.unapply))
+
   private def successfulAuthResponse(confidenceLevel: Option[ConfidenceLevel]): JsObject = {
+    val es = Seq(Enrolment(key = "HMRC-AS-AGENT", identifiers = Seq(KVPair(key = "AgentReferenceNumber", value = "1")), state = "Activated"))
+    val json = Json.toJson[Seq[Enrolment]](es)
     confidenceLevel.fold(Json.obj())(unwrappedConfidenceLevel =>
-      Json.obj("confidenceLevel" -> unwrappedConfidenceLevel, "internalId" -> "123") )
+      Json.obj(
+        "confidenceLevel" -> unwrappedConfidenceLevel,
+        "internalId" -> "123",
+        "affinityGroup" -> "Agent",
+        "allEnrolments" -> json
+      )
+    )
   }
 
+  // TODO: only as Agent at this moment, do we really need to add tests cases for Individuals?
   def stubAuthorised(): Unit = {
     WiremockHelper.stubPost(postAuthoriseUrl, Status.OK,
       successfulAuthResponse( Some(ConfidenceLevel.L250) ).toString()
