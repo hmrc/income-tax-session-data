@@ -59,7 +59,7 @@ class AuthenticationPredicate @Inject()(val authConnector: MicroserviceAuthConne
         logger.info(s"[AuthenticationPredicate][authenticated] - authenticated as an agent")
         f(SessionDataRequest[A](internalId = id, sessionId = sessionId, mtditid = mtditid))
       case _ ~ _ ~ _ =>
-        logger.info(s"[AuthenticationPredicate][authenticated]")
+        logger.info(s"[AuthenticationPredicate][unauthorized]")
         Future(Unauthorized)
     }.recover {
       case ex: AuthorisationException =>
