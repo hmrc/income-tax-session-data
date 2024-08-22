@@ -40,12 +40,7 @@ trait TestSupport extends AnyWordSpec with AnyWordSpecLike with Matchers with Op
   def fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("", "")
 
   val fakePostRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest().withMethod("POST")
-  val appConfig: AppConfig = new AppConfig( app.injector.instanceOf[Configuration] ){
-    override val mtdItIdentifierKey: String = "MTDITID"
-    override val mtdItEnrolmentKey: String = "HMRC-MTD-IT"
-  }
-
-
+  val appConfig: AppConfig = new AppConfig( app.injector.instanceOf[Configuration] ){}
 
   implicit val defaultPatience: PatienceConfig = PatienceConfig(timeout = Span(3, Seconds), interval = Span(5, Millis))
 

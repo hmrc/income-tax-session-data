@@ -56,7 +56,7 @@ class AuthenticationPredicate @Inject()(val authConnector: MicroserviceAuthConne
           .flatMap(_.getIdentifier(agentServiceIdentifierKey))
           .map(_.value).getOrElse(throw new Error("Unable to extract mtditid"))
         val sessionId: String = hc.sessionId.map(_.value).get
-        logger.info(s"[AuthenticationPredicate][authenticated] - authenticated as an agent ${mtditid}")
+        logger.info(s"[AuthenticationPredicate][authenticated] - authenticated as an agent")
         f(SessionDataRequest[A](internalId = id, sessionId = sessionId, mtditid = mtditid))
       case _ ~ _ ~ _ =>
         logger.info(s"[AuthenticationPredicate][authenticated]")

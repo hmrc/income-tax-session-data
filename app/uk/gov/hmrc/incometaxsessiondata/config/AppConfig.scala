@@ -27,8 +27,4 @@ class AppConfig @Inject()(config: Configuration) {
   val appName: String = config.get[String]("appName")
 
   val cacheTtl: Int = config.get[Int]("mongodb.timeToLiveInSeconds")
-
-  val mtdItEnrolmentKey: String = config.get[String]("enrolments.mtd.key")
-
-  val mtdItIdentifierKey: String = config.get[String]("enrolments.mtd.identifier")
 }
