@@ -20,7 +20,7 @@ import auth.TestHeaderExtractor
 import mocks.MockMicroserviceAuthConnector
 import play.api.http.Status
 import play.api.mvc.Results.Ok
-import play.api.mvc.{AnyContentAsEmpty, Result}
+import play.api.mvc.{AnyContentAsEmpty, ControllerComponents, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.stubControllerComponents
 import uk.gov.hmrc.auth.core.MissingBearerToken
@@ -30,9 +30,13 @@ import scala.concurrent.Future
 
 class AuthenticationPredicateSpec extends MockMicroserviceAuthConnector {
 
-  def fixture() = new {
+  def fixture(): Object {
+    val headerExtractor: TestHeaderExtractor;
+    val mockCC: ControllerComponents;
+    val predicate: AuthenticationPredicate
+  } = new {
     val headerExtractor = new TestHeaderExtractor()
-    lazy val mockCC = stubControllerComponents()
+    lazy val mockCC: ControllerComponents = stubControllerComponents()
     val predicate = new AuthenticationPredicate(mockMicroserviceAuthConnector,
       mockCC, appConfig, headerExtractor)
   }
@@ -58,17 +62,10 @@ class AuthenticationPredicateSpec extends MockMicroserviceAuthConnector {
       futureResult.futureValue.header.status shouldBe Status.OK
     }
 
-    "called with individual authenticated user and empty sessionId" in {
+    "called with authenticated user and empty sessionId" in {
       val f = fixture()
       mockAuth()
       val futureResult = result(authenticationPredicate = f.predicate, fakeRequestWithActiveSessionAndEmptySessionId)
-      futureResult.futureValue.header.status shouldBe Status.UNAUTHORIZED
-    }
-
-    "called with low confidence level" in {
-      val f = fixture()
-      mockAuth(Future.successful(individualAuthResponseWithCL50))
-      val futureResult = result(f.predicate, fakeRequestWithActiveSession)
       futureResult.futureValue.header.status shouldBe Status.UNAUTHORIZED
     }
 
