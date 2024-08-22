@@ -38,42 +38,35 @@ class AuthenticationPredicate @Inject()(val authConnector: MicroserviceAuthConne
                                         val appConfig: AppConfig,
                                         val headerExtractor: HeaderExtractor
                                        )(implicit val ec: ExecutionContext)
-  extends ActionBuilder[SessionDataRequest, AnyContent] with ActionFunction[Request, SessionDataRequest]
-    with AuthorisedFunctions with Logging {
-
-  private val minimumConfidenceLevelOpt: Option[Int] = ConfidenceLevel
-    .fromInt(appConfig.confidenceLevel)
-    .map(_.level).toOption
+  extends ActionBuilder[SessionDataRequest, AnyContent] with ActionFunction[Request, SessionDataRequest] with AuthorisedFunctions with Logging {
 
   override val parser: BodyParser[AnyContent] = cc.parsers.defaultBodyParser
   override val executionContext: ExecutionContext = cc.executionContext
 
-  val agentServiceEnrolmentName = "HMRC-AS-AGENT"
-  val agentServiceIdentifierKey = "AgentReferenceNumber"
+  private val agentServiceEnrolmentName = "HMRC-AS-AGENT"
+  private val agentServiceIdentifierKey = "AgentReferenceNumber"
 
   override def invokeBlock[A](request: Request[A], f: SessionDataRequest[A] => Future[Result]): Future[Result] = {
     implicit val req: Request[A] = request
-    implicit val hc: HeaderCarrier = headerExtractor
-      .extractHeader(request, request.session)
+    implicit val hc: HeaderCarrier = headerExtractor.extractHeader(request, request.session)
 
     authorised().retrieve(affinityGroup and confidenceLevel and internalId and allEnrolments) {
-
       case Some(AffinityGroup.Agent) ~ _ ~ Some(id) ~ enrolments if hc.sessionId.isDefined =>
-        val mtditid : String = enrolments.getEnrolment(agentServiceEnrolmentName)
+        val mtditid: String = enrolments.getEnrolment(agentServiceEnrolmentName)
           .flatMap(_.getIdentifier(agentServiceIdentifierKey))
-          .map(_.value).get
-        val sessionId : String = hc.sessionId.map(_.value).get
-        logger.info(s"[AuthenticationPredicate][authenticated] - authenticated as agent: ${mtditid} - ${sessionId} - ${id}")
+          .map(_.value).getOrElse(throw new Error("Unable to extract mtditid"))
+        val sessionId: String = hc.sessionId.map(_.value).get
+        logger.info(s"[AuthenticationPredicate][authenticated] - authenticated as an agent")
         f(SessionDataRequest[A](internalId = id, sessionId = sessionId, mtditid = mtditid))
-
       case _ ~ _ ~ _ =>
-        logger.info(s"[AuthenticationPredicate][authenticated] User has confidence level below ${minimumConfidenceLevelOpt}")
+        logger.info(s"[AuthenticationPredicate][authenticated]")
         Future(Unauthorized)
     }.recover {
       case ex: AuthorisationException =>
         logger.error(s"[AuthenticationPredicate][authenticated] Unauthorised Request to Backend. Propagating Unauthorised Response, ${ex.getMessage}")
         Unauthorized
     }
+
   }
 
 }
