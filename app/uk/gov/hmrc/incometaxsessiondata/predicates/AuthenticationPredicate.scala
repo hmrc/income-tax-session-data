@@ -51,13 +51,18 @@ class AuthenticationPredicate @Inject()(val authConnector: MicroserviceAuthConne
     implicit val hc: HeaderCarrier = headerExtractor.extractHeader(request, request.session)
 
     authorised().retrieve(affinityGroup and internalId and allEnrolments) {
-      case Some(AffinityGroup.Agent) ~ Some(id) ~ enrolments if hc.sessionId.isDefined =>
-        val mtditid: String = enrolments.getEnrolment(agentServiceEnrolmentName)
-          .flatMap(_.getIdentifier(agentServiceIdentifierKey))
-          .map(_.value).getOrElse(throw new Error("Unable to extract mtditid"))
-        val sessionId: String = hc.sessionId.map(_.value).get
-        logger.info(s"[AuthenticationPredicate][authenticated] - authenticated as an agent")
-        f(SessionDataRequest[A](internalId = id, sessionId = sessionId, mtditid = mtditid))
+      case Some(AffinityGroup.Agent) ~ Some(id) ~ enrolments =>
+        if (hc.sessionId.isDefined) {
+          val mtditid: String = enrolments.getEnrolment(agentServiceEnrolmentName)
+            .flatMap(_.getIdentifier(agentServiceIdentifierKey))
+            .map(_.value).getOrElse(throw new Error("Unable to extract mtditid"))
+          val sessionId: String = hc.sessionId.map(_.value).get
+          logger.info(s"[AuthenticationPredicate][authenticated] - authenticated as an agent")
+          f(SessionDataRequest[A](internalId = id, sessionId = sessionId, mtditid = mtditid))
+        } else {
+          logger.info(s"[AuthenticationPredicate][unauthorized] - unable to extract sessionId")
+          Future(Unauthorized)
+        }
       case _ ~ _ ~ _ =>
         logger.info(s"[AuthenticationPredicate][unauthorized]")
         Future(Unauthorized)
