@@ -50,13 +50,13 @@ class AuthenticationPredicate @Inject()(val authConnector: MicroserviceAuthConne
     implicit val req: Request[A] = request
     implicit val hc: HeaderCarrier = headerExtractor.extractHeader(request, request.session)
 
-    authorised().retrieve(affinityGroup and confidenceLevel and internalId and allEnrolments) {
-      case Some(AffinityGroup.Agent) ~ _ ~ Some(id) ~ enrolments if hc.sessionId.isDefined =>
+    authorised().retrieve(affinityGroup and internalId and allEnrolments) {
+      case Some(AffinityGroup.Agent) ~ Some(id) ~ enrolments if hc.sessionId.isDefined =>
         val mtditid: String = enrolments.getEnrolment(agentServiceEnrolmentName)
           .flatMap(_.getIdentifier(agentServiceIdentifierKey))
           .map(_.value).getOrElse(throw new Error("Unable to extract mtditid"))
         val sessionId: String = hc.sessionId.map(_.value).get
-        logger.info(s"[AuthenticationPredicate][authenticated] - authenticated as an agent")
+        logger.info(s"[AuthenticationPredicate][authenticated] - authenticated as an agent ${mtditid}")
         f(SessionDataRequest[A](internalId = id, sessionId = sessionId, mtditid = mtditid))
       case _ ~ _ ~ _ =>
         logger.info(s"[AuthenticationPredicate][authenticated]")

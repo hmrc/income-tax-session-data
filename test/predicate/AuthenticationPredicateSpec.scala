@@ -19,7 +19,7 @@ package predicate
 import auth.TestHeaderExtractor
 import mocks.MockMicroserviceAuthConnector
 import play.api.http.Status
-import play.api.mvc.Results.Ok
+import play.api.mvc.Results.{Ok, Unauthorized}
 import play.api.mvc.{AnyContentAsEmpty, ControllerComponents, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.stubControllerComponents
@@ -44,7 +44,12 @@ class AuthenticationPredicateSpec extends MockMicroserviceAuthConnector {
   def result(authenticationPredicate: AuthenticationPredicate,
              request: FakeRequest[AnyContentAsEmpty.type]): Future[Result] = authenticationPredicate.async {
     _ => Future.successful(Ok)
-  }(request)
+  }(request).recoverWith {
+    case ex if ex.getCause.getMessage.contains("Unable to extract mtditid") =>
+      Future.successful(Unauthorized)
+    case ex =>
+      Future.failed(ex)
+  }
 
   "The AuthenticationPredicate.authenticated method" should {
 
@@ -69,11 +74,18 @@ class AuthenticationPredicateSpec extends MockMicroserviceAuthConnector {
       futureResult.futureValue.header.status shouldBe Status.UNAUTHORIZED
     }
 
-    "agent called with low confidence level" in {
+    "called authenticated agent" in {
       val f = fixture()
-      mockAuth(Future.successful(agentResponseWithCL50))
+      mockAuth(Future.successful(agentResponse))
       val futureResult = result(f.predicate, fakeRequestWithActiveSession)
       futureResult.futureValue.header.status shouldBe Status.OK
+    }
+
+    "agent called no ARN assigned" in {
+      val f = fixture()
+      mockAuth(Future.successful(agentResponseWithEmptyArn))
+      val futureResult = result(f.predicate, fakeRequestWithActiveSession)
+      futureResult.futureValue.header.status shouldBe Status.UNAUTHORIZED
     }
 
   }
