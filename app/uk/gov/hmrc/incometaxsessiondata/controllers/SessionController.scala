@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.incometaxsessiondata.controllers
 
+import org.mongodb.scala.DuplicateKeyException
 import play.api.Logging
 import play.api.libs.json.{JsError, JsSuccess, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
@@ -58,7 +59,7 @@ class SessionController @Inject()(cc: ControllerComponents,
     sessionService.getByMtditid(mtditid) map {
       case sessionList: List[SessionData] if sessionList.nonEmpty =>
         logger.info(s"[SessionController][getByMtditid]" +
-          s" Successfully retrieved a list of session data that matches the given mtdidit: $mtditid, list of sessions: $sessionList")
+          s" Successfully retrieved a list of session data that matches the given mtditid: $mtditid, list of sessions: $sessionList")
         Ok(Json.toJson(sessionList))
       case sessionList: List[SessionData] if sessionList.isEmpty =>
         logger.info(s"[SessionController][getByMtditid]: No live sessions matching mtditid: $mtditid")
@@ -88,13 +89,57 @@ class SessionController @Inject()(cc: ControllerComponents,
   }
 
   private def save(validRequest: Session) = {
+    sessionService.getByMtditid(validRequest.mtditid) flatMap {
+      case sessionList: List[Session] if sessionList.nonEmpty && !isFullDuplicate(sessionList, validRequest) =>
+        logger.info(s"[SessionController][save]" +
+          s" Another document matching mtditid: ${validRequest.mtditid} but different sessionId: ${validRequest.sessionId} and internalId ${validRequest.internalId}")
+        Future.successful(Forbidden(s"Another document matching mtditid: ${validRequest.mtditid} but different sessionId: ${validRequest.sessionId} and internalId ${validRequest.internalId}"))
+      case sessionList: List[Session] if sessionList.nonEmpty && isFullDuplicate(sessionList, validRequest) =>
+        logger.info(s"[SessionController][save]" +
+          s" A session in the database matched the current session request, list of sessions: $sessionList")
+        handleConflictScenario(validRequest)
+      case sessionList: List[Session] if sessionList.isEmpty =>
+        logger.info(s"[SessionController][save]: No live sessions matching mtditid: ${validRequest.mtditid}")
+        handleOkScenario(validRequest)
+    }
+
+  }
+
+  private def handleConflictScenario(validRequest: Session) = {
     sessionService.set(validRequest) map {
-      case true =>
-        logger.info(s"[SessionController][save]: Successfully set session")
-        Ok("Successfully set session")
-      case false =>
-        logger.error(s"[SessionController][save]: Failed to set session")
-        InternalServerError("Failed to set session")
+      case Right(true) =>
+        logger.info(s"[SessionController][handleConflictScenario]: Successfully set session despite matching documenting existing in the database")
+        Conflict("Successfully set session despite matching documenting existing in the database")
+      case Right(false) =>
+        logger.info(s"[SessionController][handleConflictScenario]: Write operation was not acknowledged")
+        InternalServerError("Write operation was not acknowledged")
+      case Left(ex: Throwable) =>
+        logger.error(s"[SessionController][handleConflictScenario]: Unknown exception < Message: ${ex.getMessage}, Cause: ${ex.getCause} >")
+        InternalServerError("Unknown exception")
     }
   }
+
+  private def handleOkScenario(validRequest: Session) = {
+    sessionService.set(validRequest) map {
+      case Right(true) =>
+        logger.info(s"[SessionController][handleOkScenario]: Successfully set session")
+        Ok("Successfully set session")
+      case Right(false) =>
+        logger.info(s"[SessionController][handleOkScenario]: Write operation was not acknowledged")
+        InternalServerError("Write operation was not acknowledged")
+      case Left(ex: Throwable) =>
+        logger.error(s"[SessionController][handleOkScenario]: Unknown exception < Message: ${ex.getMessage}, Cause: ${ex.getCause} >")
+        InternalServerError("Unknown exception")
+    }
+  }
+
+  private def isFullDuplicate(sessionList: List[Session], validRequest: Session): Boolean = {
+    val requestIndex: IndexFields = IndexFields(validRequest.sessionId, validRequest.internalId, validRequest.mtditid)
+    sessionList.map(item => IndexFields(item.sessionId, item.internalId, item.mtditid)).contains(requestIndex)
+  }
+
+  private case class IndexFields(sessionId: String,
+                                 internalId: String,
+                                 mtditid: String)
+
 }

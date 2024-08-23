@@ -24,6 +24,8 @@ import uk.gov.hmrc.incometaxsessiondata.models.Session
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 import Filters._
+import com.mongodb.client.result.InsertOneResult
+import org.mongodb.scala.result
 
 import java.time.{Clock, Instant}
 import java.util.concurrent.TimeUnit
@@ -84,21 +86,24 @@ class SessionDataRepository @Inject()(
       .toFuture()
   }
 
-  def set(data: Session): Future[Boolean] = {
+  def set(data: Session): Future[result.UpdateResult] = {
 
-    val updatedAnswers = data copy (lastUpdated = Instant.now(clock))
-
-    collection
+    val a = collection
       .replaceOne(
         filter = dataFilter(data.sessionId, data.internalId, data.mtditid),
-        replacement = updatedAnswers,
+        replacement = data,
         options = ReplaceOptions().upsert(true)
       )
       .toFuture()
-      .map(_.wasAcknowledged())
+
+
+    Thread.sleep(1000)
+    println("AAAAAAAA" + a)
+    a
   }
 
   def deleteOne(sessionId: String, internalId: String, mtditid: String): Future[Boolean] = {
     collection.deleteOne(dataFilter(sessionId, internalId, mtditid)).toFuture().map(_.wasAcknowledged())
   }
+
 }

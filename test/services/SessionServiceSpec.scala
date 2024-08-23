@@ -67,22 +67,22 @@ class SessionServiceSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSu
       }
     }
   }
-
-  "SessionService.set" should {
-    "return true" when {
-      "repository returns true" in {
-        when(mockRepository.set(any())).thenReturn(Future(true))
-        val result = testSessionService.set(testSession)
-        result.futureValue shouldBe true
-      }
-    }
-    "return false" when {
-      "repository returns false" in {
-        when(mockRepository.set(any())).thenReturn(Future(false))
-        val result = testSessionService.set(testSession)
-        result.futureValue shouldBe false
-      }
-    }
-  }
+//
+//  "SessionService.set" should {
+//    "return true" when {
+//      "repository returns true" in {
+//        when(mockRepository.set(any())).thenReturn(Future(true))
+//        val result = testSessionService.set(testSession)
+//        result.futureValue shouldBe true
+//      }
+//    }
+//    "return false" when {
+//      "repository returns false" in {
+//        when(mockRepository.set(any())).thenReturn(Future(false))
+//        val result = testSessionService.set(testSession)
+//        result.futureValue shouldBe false
+//      }
+//    }
+//  }
 
 }

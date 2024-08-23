@@ -16,11 +16,17 @@
 
 package uk.gov.hmrc.incometaxsessiondata.services
 
+import com.mongodb.DuplicateKeyException
+import com.mongodb.client.result.{DeleteResult, InsertOneResult}
+import org.mongodb.scala.{DuplicateKeyException, MongoException, WriteConcernException, result}
+import play.api.mvc.Result
+import play.api.mvc.Results.{Conflict, InternalServerError, Ok}
 import uk.gov.hmrc.incometaxsessiondata.models.{Session, SessionData}
 import uk.gov.hmrc.incometaxsessiondata.repositories.SessionDataRepository
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
+import scala.reflect.runtime.universe.Try
 
 @Singleton
 class SessionService @Inject()(
@@ -35,12 +41,17 @@ class SessionService @Inject()(
     }
   }
 
-  def getByMtditid(sessionId: String): Future[Seq[SessionData]] = {
-    repository.getByMtditid(sessionId) map (seq => seq.map(item => SessionData.fromSession(item)))
+  def getByMtditid(sessionId: String): Future[Seq[Session]] = {
+    repository.getByMtditid(sessionId)
+//    map (seq => seq.map(item => SessionData.fromSession(item)))
   }
 
-  def set(sessionData: Session): Future[Boolean] = {
-    repository.set(sessionData)
+  def set(session: Session): Future[Either[Throwable, Boolean]] = {
+    try {
+      repository.set(session).flatMap(res => Future.successful(Right(res.wasAcknowledged)))
+    } catch {
+      case ex: Throwable => Future.successful(Left(ex))
+    }
   }
 
   def deleteSession(sessionId: String, internalId: String, mtditid: String): Future[Unit] = {
