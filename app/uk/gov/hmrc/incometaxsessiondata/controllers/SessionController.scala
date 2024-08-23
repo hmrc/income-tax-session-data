@@ -28,56 +28,56 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton()
-class SessionController @Inject()(cc: ControllerComponents,
-                                  authentication: AuthenticationPredicate,
-                                  sessionService: SessionService
-                                 )(implicit ec: ExecutionContext)
-    extends BackendController(cc) with Logging {
+class SessionController @Inject() (
+  cc: ControllerComponents,
+  authentication: AuthenticationPredicate,
+  sessionService: SessionService
+)(implicit ec: ExecutionContext)
+    extends BackendController(cc)
+    with Logging {
 
-  def getById(sessionID: String): Action[AnyContent] = authentication.async {  request =>
+  def getById(sessionID: String): Action[AnyContent] = authentication.async { request =>
     // Here is required internalID => request.internalId and request.sessionId
     sessionService.get(sessionID) map {
       case Right(Some(session: SessionData)) =>
         logger.info(s"[SessionController][getById]: Successfully retrieved session data: $session")
         Ok(Json.toJson(session))
-      case Right(None) =>
+      case Right(None)                       =>
         logger.info(s"[SessionController][getById]: No live session")
         NotFound("No session data found")
-      case Left(ex) =>
+      case Left(ex)                          =>
         logger.error(s"[SessionController][getById]: Failed to retrieve session with id: $sessionID - ${ex.getMessage}")
         InternalServerError(s"Failed to retrieve session with id: $sessionID")
-    } recover {
-      case ex =>
-        logger.error(s"[SessionController][getById]: Unexpected error while getting session: $ex")
-        InternalServerError(s"Unexpected error while getting session: $ex")
+    } recover { case ex =>
+      logger.error(s"[SessionController][getById]: Unexpected error while getting session: $ex")
+      InternalServerError(s"Unexpected error while getting session: $ex")
     }
   }
 
   def set(): Action[AnyContent] = authentication.async { implicit request =>
     // Here is required internalID => request.internalId and request.sessionId
-    request.body.asJson.getOrElse(Json.obj())
+    request.body.asJson
+      .getOrElse(Json.obj())
       .validate[SessionData] match {
-      case err: JsError =>
+      case err: JsError               =>
         logger.error(s"[SessionController][set]: Json validation error while parsing request: $err")
         Future.successful(BadRequest(s"Json validation error while parsing request: $err"))
       case JsSuccess(validRequest, _) =>
         save(validRequest)
-          .recover {
-            case ex =>
-              logger.error(s"[SessionController][set]: Unexpected error while setting session: $ex")
-              InternalServerError(s"Unexpected error while setting session: $ex")
+          .recover { case ex =>
+            logger.error(s"[SessionController][set]: Unexpected error while setting session: $ex")
+            InternalServerError(s"Unexpected error while setting session: $ex")
           }
     }
   }
 
-  private def save(validRequest: SessionData) = {
+  private def save(validRequest: SessionData) =
     sessionService.set(validRequest) map {
-      case true =>
+      case true  =>
         logger.info(s"[SessionController][save]: Successfully set session")
         Ok("Successfully set session")
       case false =>
         logger.error(s"[SessionController][save]: Failed to set session")
         InternalServerError("Failed to set session")
     }
-  }
 }

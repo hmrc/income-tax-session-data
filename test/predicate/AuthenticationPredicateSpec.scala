@@ -35,54 +35,57 @@ class AuthenticationPredicateSpec extends MockMicroserviceAuthConnector {
     val mockCC: ControllerComponents;
     val predicate: AuthenticationPredicate
   } = new {
-    val headerExtractor = new TestHeaderExtractor()
+    val headerExtractor                   = new TestHeaderExtractor()
     lazy val mockCC: ControllerComponents = stubControllerComponents()
-    val predicate = new AuthenticationPredicate(mockMicroserviceAuthConnector,
-      mockCC, appConfig, headerExtractor)
+    val predicate                         = new AuthenticationPredicate(mockMicroserviceAuthConnector, mockCC, appConfig, headerExtractor)
   }
 
-  def result(authenticationPredicate: AuthenticationPredicate,
-             request: FakeRequest[AnyContentAsEmpty.type]): Future[Result] = authenticationPredicate.async {
-    _ => Future.successful(Ok)
-  }(request).recoverWith {
-    case ex if ex.getCause.getMessage.contains("Unable to extract mtditid") =>
-      Future.successful(Unauthorized)
-    case ex =>
-      Future.failed(ex)
-  }
+  def result(
+    authenticationPredicate: AuthenticationPredicate,
+    request: FakeRequest[AnyContentAsEmpty.type]
+  ): Future[Result] = authenticationPredicate
+    .async { _ =>
+      Future.successful(Ok)
+    }(request)
+    .recoverWith {
+      case ex if ex.getCause.getMessage.contains("Unable to extract mtditid") =>
+        Future.successful(Unauthorized)
+      case ex                                                                 =>
+        Future.failed(ex)
+    }
 
   "The AuthenticationPredicate.authenticated method" should {
 
     "called with an Unauthenticated user (No Bearer Token in Header)" in {
-      val f = fixture()
+      val f            = fixture()
       mockAuth(Future.failed(new MissingBearerToken))
       val futureResult = result(f.predicate, fakeRequestWithActiveSession)
       futureResult.futureValue.header.status shouldBe Status.UNAUTHORIZED
     }
 
     "called with individual authenticated user (Some Bearer Token in Header)" in {
-      val f = fixture()
+      val f            = fixture()
       mockAuth()
       val futureResult = result(f.predicate, fakeRequestWithActiveSession)
       futureResult.futureValue.header.status shouldBe Status.OK
     }
 
     "called with authenticated user and empty sessionId" in {
-      val f = fixture()
+      val f            = fixture()
       mockAuth()
       val futureResult = result(authenticationPredicate = f.predicate, fakeRequestWithActiveSessionAndEmptySessionId)
       futureResult.futureValue.header.status shouldBe Status.UNAUTHORIZED
     }
 
     "called authenticated agent" in {
-      val f = fixture()
+      val f            = fixture()
       mockAuth(Future.successful(agentResponse))
       val futureResult = result(f.predicate, fakeRequestWithActiveSession)
       futureResult.futureValue.header.status shouldBe Status.OK
     }
 
     "agent called no ARN assigned" in {
-      val f = fixture()
+      val f            = fixture()
       mockAuth(Future.successful(agentResponseWithEmptyArn))
       val futureResult = result(f.predicate, fakeRequestWithActiveSession)
       futureResult.futureValue.header.status shouldBe Status.UNAUTHORIZED

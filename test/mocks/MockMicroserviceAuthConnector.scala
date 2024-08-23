@@ -28,19 +28,21 @@ import scala.concurrent.Future
 
 trait MockMicroserviceAuthConnector extends TestSupport with BeforeAndAfterEach {
 
-  val arnEnrolment: Enrolment = Enrolment("HMRC-AS-AGENT",
-    Seq(EnrolmentIdentifier("AgentReferenceNumber", "testArn")), "activated")
+  val arnEnrolment: Enrolment =
+    Enrolment("HMRC-AS-AGENT", Seq(EnrolmentIdentifier("AgentReferenceNumber", "testArn")), "activated")
 
   val arnEnrolmentWithEmptyArn: Enrolment = Enrolment("HMRC-AS-AGENT", Seq(), "activated")
 
   val mockMicroserviceAuthConnector: MicroserviceAuthConnector = mock(classOf[MicroserviceAuthConnector])
 
-  val agentResponse: Some[AffinityGroup.Agent.type] ~ Some[String] ~ Enrolments = Some(AffinityGroup.Agent)  and Some("internalId") and  Enrolments(Set(arnEnrolment))
-  val agentResponseWithEmptyArn: Some[AffinityGroup.Agent.type] ~ Some[String] ~ Enrolments = Some(AffinityGroup.Agent) and Some("internalId") and  Enrolments(Set(arnEnrolmentWithEmptyArn))
+  val agentResponse: Some[AffinityGroup.Agent.type] ~ Some[String] ~ Enrolments             =
+    Some(AffinityGroup.Agent) and Some("internalId") and Enrolments(Set(arnEnrolment))
+  val agentResponseWithEmptyArn: Some[AffinityGroup.Agent.type] ~ Some[String] ~ Enrolments =
+    Some(AffinityGroup.Agent) and Some("internalId") and Enrolments(Set(arnEnrolmentWithEmptyArn))
 
-  def mockAuth(response: Future[Any] = Future.successful( agentResponse ) ): Future[Nothing] = {
-    doReturn(response, Nil: _*).when(mockMicroserviceAuthConnector)
+  def mockAuth(response: Future[Any] = Future.successful(agentResponse)): Future[Nothing] =
+    doReturn(response, Nil: _*)
+      .when(mockMicroserviceAuthConnector)
       .authorise(ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any(), ArgumentMatchers.any())
-  }
 
 }

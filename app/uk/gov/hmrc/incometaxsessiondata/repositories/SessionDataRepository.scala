@@ -30,42 +30,41 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class SessionDataRepository @Inject()(
-                                       mongoComponent: MongoComponent,
-                                       config: AppConfig,
-                                       clock: Clock
-                                     )(implicit ec: ExecutionContext)
-  extends PlayMongoRepository[Session](
-    collectionName = "session-data",
-    mongoComponent = mongoComponent,
-    domainFormat = Session.format,
-    indexes = Seq(
-      IndexModel(
-        Indexes.ascending("sessionID"),
-        IndexOptions()
-          .name("sessionIDIndex")
-          .unique(true)
+class SessionDataRepository @Inject() (
+  mongoComponent: MongoComponent,
+  config: AppConfig,
+  clock: Clock
+)(implicit ec: ExecutionContext)
+    extends PlayMongoRepository[Session](
+      collectionName = "session-data",
+      mongoComponent = mongoComponent,
+      domainFormat = Session.format,
+      indexes = Seq(
+        IndexModel(
+          Indexes.ascending("sessionID"),
+          IndexOptions()
+            .name("sessionIDIndex")
+            .unique(true)
+        ),
+        IndexModel(
+          Indexes.ascending("lastUpdated"),
+          IndexOptions()
+            .name("lastUpdatedIndex")
+            .expireAfter(config.cacheTtl, TimeUnit.SECONDS)
+        )
       ),
-      IndexModel(
-        Indexes.ascending("lastUpdated"),
-        IndexOptions()
-          .name("lastUpdatedIndex")
-          .expireAfter(config.cacheTtl, TimeUnit.SECONDS)
-      )
-    ),
-    replaceIndexes = true
-  ) {
+      replaceIndexes = true
+    ) {
 
   private def dataFilter(sessionId: String): Bson = {
     import Filters._
     and(equal("sessionID", sessionId))
   }
 
-  def get(sessionId: String): Future[Option[Session]] = {
+  def get(sessionId: String): Future[Option[Session]] =
     collection
       .find(dataFilter(sessionId))
       .headOption()
-  }
 
   def set(data: Session): Future[Boolean] = {
 
@@ -81,7 +80,6 @@ class SessionDataRepository @Inject()(
       .map(_.wasAcknowledged())
   }
 
-  def deleteOne(sessionId: String): Future[Boolean] = {
+  def deleteOne(sessionId: String): Future[Boolean] =
     collection.deleteOne(dataFilter(sessionId)).toFuture().map(_.wasAcknowledged())
-  }
 }

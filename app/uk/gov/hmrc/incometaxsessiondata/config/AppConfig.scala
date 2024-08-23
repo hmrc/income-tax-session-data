@@ -20,9 +20,9 @@ import javax.inject.{Inject, Singleton}
 import play.api.Configuration
 
 @Singleton
-class AppConfig @Inject()(config: Configuration) {
+class AppConfig @Inject() (config: Configuration) {
 
-  val confidenceLevel:Int = config.get[Int]("auth.confidenceLevel")
+  val confidenceLevel: Int = config.get[Int]("auth.confidenceLevel")
 
   val appName: String = config.get[String]("appName")
 
