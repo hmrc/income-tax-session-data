@@ -22,8 +22,6 @@ import play.api.Configuration
 @Singleton
 class AppConfig @Inject() (config: Configuration) {
 
-  val confidenceLevel: Int = config.get[Int]("auth.confidenceLevel")
-
   val appName: String = config.get[String]("appName")
 
   val cacheTtl: Int = config.get[Int]("mongodb.timeToLiveInSeconds")
