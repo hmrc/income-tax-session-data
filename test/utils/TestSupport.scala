@@ -22,16 +22,22 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.wordspec.{AnyWordSpec, AnyWordSpecLike}
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
+import play.api.Configuration
 import play.api.http.HeaderNames
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
-import uk.gov.hmrc.http.{SessionKeys}
+import uk.gov.hmrc.http.SessionKeys
 import uk.gov.hmrc.incometaxsessiondata.config.AppConfig
 
 import scala.concurrent.ExecutionContext
 
-trait TestSupport extends AnyWordSpec with AnyWordSpecLike with Matchers with OptionValues
-  with GuiceOneServerPerSuite  with ScalaFutures {
+trait TestSupport
+    extends AnyWordSpec
+    with AnyWordSpecLike
+    with Matchers
+    with OptionValues
+    with GuiceOneServerPerSuite
+    with ScalaFutures {
   this: Suite =>
 
   implicit val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
@@ -39,23 +45,20 @@ trait TestSupport extends AnyWordSpec with AnyWordSpecLike with Matchers with Op
   def fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("", "")
 
   val fakePostRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest().withMethod("POST")
-  val appConfig: AppConfig = app.injector.instanceOf[AppConfig]
-
+  val appConfig: AppConfig                                 = new AppConfig(app.injector.instanceOf[Configuration]) {}
 
   implicit val defaultPatience: PatienceConfig = PatienceConfig(timeout = Span(3, Seconds), interval = Span(5, Millis))
 
   val fakeRequestWithActiveSession: FakeRequest[AnyContentAsEmpty.type] = FakeRequest()
-    .withSession(
-      SessionKeys.lastRequestTimestamp -> "1498236506662")
+    .withSession(SessionKeys.lastRequestTimestamp -> "1498236506662")
     .withHeaders(
-      HeaderNames.REFERER -> "/test/url",
-      "X-Session-ID" -> "test1123",
+      HeaderNames.REFERER       -> "/test/url",
+      "X-Session-ID"            -> "test1123",
       HeaderNames.AUTHORIZATION -> "Bearer Token"
     )
 
   val fakeRequestWithActiveSessionAndEmptySessionId: FakeRequest[AnyContentAsEmpty.type] = FakeRequest()
-    .withSession(
-      SessionKeys.lastRequestTimestamp -> "1498236506662")
+    .withSession(SessionKeys.lastRequestTimestamp -> "1498236506662")
     .withHeaders(
       HeaderNames.REFERER -> "/test/url"
     )

@@ -28,7 +28,7 @@ object UserDetailsStub extends ComponentSpecBase {
       s"""{
          |    "name":"$testUserName",
          |    "email":"test@test.com",
-         |    "affinityGroup" : "affinityGroup",
+         |    "affinityGroup" : "Agent",
          |    "credentialRole": "n/a",
          |    "description" : "description",
          |    "lastName":"test",

@@ -22,27 +22,29 @@ import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 
 import java.time.Instant
 
-case class Session(sessionID: String,
-                   mtditid: String,
-                   nino: String,
-                   saUtr: String,
-                   clientFirstName: Option[String],
-                   clientLastName: Option[String],
-                   userType: String,
-                   lastUpdated: Instant = Instant.now)
+case class Session(
+  sessionID: String,
+  mtditid: String,
+  nino: String,
+  saUtr: String,
+  clientFirstName: Option[String],
+  clientLastName: Option[String],
+  userType: String,
+  lastUpdated: Instant = Instant.now
+)
 object Session {
-  implicit val fromSessionData: SessionData => Session = sessionData => Session(
-    sessionID = sessionData.sessionID,
-    mtditid = sessionData.mtditid,
-    nino = sessionData.nino,
-    saUtr = sessionData.saUtr,
-    clientFirstName = sessionData.clientFirstName,
-    clientLastName = sessionData.clientLastName,
-    userType = sessionData.userType
-  )
+  implicit val fromSessionData: SessionData => Session = sessionData =>
+    Session(
+      sessionID = sessionData.sessionID,
+      mtditid = sessionData.mtditid,
+      nino = sessionData.nino,
+      saUtr = sessionData.saUtr,
+      clientFirstName = sessionData.clientFirstName,
+      clientLastName = sessionData.clientLastName,
+      userType = sessionData.userType
+    )
 
-  implicit val format: OFormat[Session] = {
-
+  implicit val format: OFormat[Session] =
     ((__ \ "sessionID").format[String]
       ~ (__ \ "mtditid").format[String]
       ~ (__ \ "nino").format[String]
@@ -50,8 +52,5 @@ object Session {
       ~ (__ \ "clientFirstName").formatNullable[String]
       ~ (__ \ "clientLastName").formatNullable[String]
       ~ (__ \ "userType").format[String]
-      ~ (__ \ "lastUpdated").format(MongoJavatimeFormats.instantFormat)
-      )(Session.apply, unlift(Session.unapply)
-    )
-  }
+      ~ (__ \ "lastUpdated").format(MongoJavatimeFormats.instantFormat))(Session.apply, unlift(Session.unapply))
 }

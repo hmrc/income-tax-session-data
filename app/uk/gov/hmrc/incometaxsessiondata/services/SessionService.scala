@@ -23,26 +23,23 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class SessionService @Inject()(
-                                repository: SessionDataRepository
-                              )(implicit ec: ExecutionContext) {
+class SessionService @Inject() (
+  repository: SessionDataRepository
+)(implicit ec: ExecutionContext) {
 
-  def get(sessionId: String): Future[Either[Throwable, Option[SessionData]]] = {
+  def get(sessionId: String): Future[Either[Throwable, Option[SessionData]]] =
     repository.get(sessionId) map {
       case Some(data: Session) =>
         Right(Some(data))
-      case None => Right(None)
+      case None                => Right(None)
     }
-  }
 
-  def set(sessionData: SessionData): Future[Boolean] = {
+  def set(sessionData: SessionData): Future[Boolean] =
     repository.set(sessionData)
-  }
 
-  def deleteSession(sessionId: String): Future[Unit] = {
-    repository.deleteOne(sessionId).map{
-      case true => Future.successful(())
+  def deleteSession(sessionId: String): Future[Unit] =
+    repository.deleteOne(sessionId).map {
+      case true  => Future.successful(())
       case false => Future.failed(new Exception("failed to delete session data"))
     }
-  }
 }

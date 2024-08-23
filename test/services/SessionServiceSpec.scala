@@ -28,13 +28,14 @@ import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class SessionServiceSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite with ScalaFutures{
+class SessionServiceSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite with ScalaFutures {
 
   val mockRepository: SessionDataRepository = mock(classOf[SessionDataRepository])
-  implicit val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
-  object testSessionService extends SessionService(
-    mockRepository
-  )(ec)
+  implicit val ec: ExecutionContext         = app.injector.instanceOf[ExecutionContext]
+  object testSessionService
+      extends SessionService(
+        mockRepository
+      )(ec)
 
   val testSession: Session = Session(
     sessionID = "session-123",
@@ -47,7 +48,7 @@ class SessionServiceSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSu
   )
 
   val testSessionData: SessionData = SessionData(
-    sessionID ="session-123",
+    sessionID = "session-123",
     mtditid = "id-123",
     nino = "nino-123",
     saUtr = "utr-123",

@@ -16,7 +16,7 @@
 
 package helpers
 
-import auth.{TestHeaderExtractor}
+import auth.TestHeaderExtractor
 import org.scalatest.concurrent.{Eventually, IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, TestSuite}
@@ -95,4 +95,7 @@ trait ComponentSpecBase extends TestSuite with GuiceOneServerPerSuite with Scala
   val mockUrl: String = s"http://$mockHost:$mockPort"
   val userDetailsUrl = "/user-details/id/5397272a3d00003d002f3ca9"
   val testUserDetailsWiremockUrl: String = mockUrl + userDetailsUrl
+
+  case class KVPair(key: String, value: String)
+  case class Enrolment(key: String, identifiers: Seq[KVPair], state: String)
 }

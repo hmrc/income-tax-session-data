@@ -22,19 +22,19 @@ import uk.gov.hmrc.incometaxsessiondata.models.{Session, SessionData}
 
 class SessionDataSpec extends AnyWordSpec with Matchers {
 
-
   val testSessionData: SessionData = SessionData(
-    sessionID ="session-123",
+    sessionID = "session-123",
     mtditid = "id-123",
     nino = "nino-123",
     saUtr = "utr-123",
     clientFirstName = Some("David"),
     clientLastName = None,
-    userType = "Individual")
+    userType = "Individual"
+  )
 
-  "SessionData" should{
+  "SessionData" should {
     "implicitly convert a Session to the relevant SessionData" in {
-      val session = Session(
+      val session           = Session(
         sessionID = "session-123",
         mtditid = "id-123",
         nino = "nino-123",

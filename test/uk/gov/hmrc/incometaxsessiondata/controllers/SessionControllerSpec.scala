@@ -33,9 +33,9 @@ import scala.concurrent.Future
 class SessionControllerSpec extends MockMicroserviceAuthConnector {
 
   val mockSessionService: SessionService = mock(classOf[SessionService])
-  val cc: ControllerComponents = app.injector.instanceOf[ControllerComponents]
-  val headerExtractor: HeaderExtractor = new TestHeaderExtractor()
-  val authPredicate = new AuthenticationPredicate(mockMicroserviceAuthConnector, cc, appConfig, headerExtractor)
+  val cc: ControllerComponents           = app.injector.instanceOf[ControllerComponents]
+  val headerExtractor: HeaderExtractor   = new TestHeaderExtractor()
+  val authPredicate                      = new AuthenticationPredicate(mockMicroserviceAuthConnector, cc, appConfig, headerExtractor)
 
   object testSessionController extends SessionController(cc, authPredicate, mockSessionService)
 
@@ -95,14 +95,18 @@ class SessionControllerSpec extends MockMicroserviceAuthConnector {
     "Return successful" when {
       "the body is correct and the service returns true" in {
         when(mockSessionService.set(any())).thenReturn(Future(true))
-        val result: Future[Result] = testSessionController.set()(fakeRequestWithActiveSession.withJsonBody(Json.toJson[SessionData](testSessionData)))
+        val result: Future[Result] = testSessionController.set()(
+          fakeRequestWithActiveSession.withJsonBody(Json.toJson[SessionData](testSessionData))
+        )
         status(result) shouldBe OK
       }
     }
     "Return an error" when {
       "the service fails to set the session" in {
         when(mockSessionService.set(any())).thenReturn(Future(false))
-        val result: Future[Result] = testSessionController.set()(fakeRequestWithActiveSession.withJsonBody(Json.toJson[SessionData](testSessionData)))
+        val result: Future[Result] = testSessionController.set()(
+          fakeRequestWithActiveSession.withJsonBody(Json.toJson[SessionData](testSessionData))
+        )
         status(result) shouldBe INTERNAL_SERVER_ERROR
       }
     }
@@ -115,7 +119,9 @@ class SessionControllerSpec extends MockMicroserviceAuthConnector {
     "Recover" when {
       "Unexpected error from service" in {
         when(mockSessionService.set(any())).thenReturn(Future.failed(new Error("")))
-        val result: Future[Result] = testSessionController.set()(fakeRequestWithActiveSession.withJsonBody(Json.toJson[SessionData](testSessionData)))
+        val result: Future[Result] = testSessionController.set()(
+          fakeRequestWithActiveSession.withJsonBody(Json.toJson[SessionData](testSessionData))
+        )
         status(result) shouldBe INTERNAL_SERVER_ERROR
       }
     }

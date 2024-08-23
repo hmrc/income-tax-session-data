@@ -25,14 +25,15 @@ class HeaderExtractorSpec extends TestSupport {
 
   "HeaderExtractor" should {
     "copy Authorization header from request" in {
-      val actual = underTest.extractHeader(fakeRequestWithActiveSession,
-        fakeRequestWithActiveSession.session)
+      val actual = underTest.extractHeader(fakeRequestWithActiveSession, fakeRequestWithActiveSession.session)
       actual.authorization shouldBe Some(Authorization("Bearer Token"))
     }
 
     "copy empty Authorization header from request" in {
-      val actual = underTest.extractHeader(fakeRequestWithActiveSessionAndEmptySessionId,
-        fakeRequestWithActiveSessionAndEmptySessionId.session)
+      val actual = underTest.extractHeader(
+        fakeRequestWithActiveSessionAndEmptySessionId,
+        fakeRequestWithActiveSessionAndEmptySessionId.session
+      )
       actual.authorization shouldBe None
     }
   }
