@@ -70,7 +70,7 @@ class AuthenticationPredicate @Inject() (
             Future(Unauthorized)
           }
         // TODO: re-enable ConfidenceLevel check when enabling this part of the flow
-        case Some(AffinityGroup.Individual) ~ _ ~ _ =>
+        case Some(AffinityGroup.Individual) ~ _ ~ _            =>
           logger.info(s"[AuthenticationPredicate][unauthorized] - Individuals not supported")
           Future(Unauthorized)
         case _ ~ _ ~ _                                         =>
