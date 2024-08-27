@@ -21,24 +21,31 @@ import org.mockito.Mockito.{doReturn, mock}
 import org.scalatest.BeforeAndAfterEach
 import uk.gov.hmrc.auth.core.retrieve.~
 import uk.gov.hmrc.auth.core.syntax.retrieved.authSyntaxForRetrieved
-import uk.gov.hmrc.auth.core.{AffinityGroup, Enrolment, EnrolmentIdentifier, Enrolments}
+import uk.gov.hmrc.auth.core.{AffinityGroup, ConfidenceLevel, Enrolment, EnrolmentIdentifier, Enrolments}
 import uk.gov.hmrc.incometaxsessiondata.connectors.MicroserviceAuthConnector
 import utils.TestSupport
+
 import scala.concurrent.Future
 
 trait MockMicroserviceAuthConnector extends TestSupport with BeforeAndAfterEach {
 
-  val arnEnrolment: Enrolment =
+  val agentArnEnrolment: Enrolment =
     Enrolment("HMRC-AS-AGENT", Seq(EnrolmentIdentifier("AgentReferenceNumber", "testArn")), "activated")
+
+  val individualEnrolment : Enrolment = Enrolment("HMRC-MTD-IT", Seq(EnrolmentIdentifier("MTDITID", "testMtditid")), "activated")
 
   val arnEnrolmentWithEmptyArn: Enrolment = Enrolment("HMRC-AS-AGENT", Seq(), "activated")
 
   val mockMicroserviceAuthConnector: MicroserviceAuthConnector = mock(classOf[MicroserviceAuthConnector])
 
   val agentResponse: Some[AffinityGroup.Agent.type] ~ Some[String] ~ Enrolments             =
-    Some(AffinityGroup.Agent) and Some("internalId") and Enrolments(Set(arnEnrolment))
+    Some(AffinityGroup.Agent) and Some("internalId") and Enrolments(Set(agentArnEnrolment))
+
   val agentResponseWithEmptyArn: Some[AffinityGroup.Agent.type] ~ Some[String] ~ Enrolments =
     Some(AffinityGroup.Agent) and Some("internalId") and Enrolments(Set(arnEnrolmentWithEmptyArn))
+
+  val individualAuthResponseWithCL250: Some[AffinityGroup.Individual.type]  ~ Some[String] ~ Enrolments = Some(AffinityGroup.Individual) and Some("internalId") and Enrolments(Set(individualEnrolment))
+  val individualAuthResponseWithCL50: Some[AffinityGroup.Individual.type] ~ Some[String] ~ Enrolments = Some(AffinityGroup.Individual) and Some("internalId") and Enrolments(Set(individualEnrolment))
 
   def mockAuth(response: Future[Any] = Future.successful(agentResponse)): Future[Nothing] =
     doReturn(response, Nil: _*)
