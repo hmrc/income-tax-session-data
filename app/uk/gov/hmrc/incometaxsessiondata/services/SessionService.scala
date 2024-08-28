@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.incometaxsessiondata.services
 
-import uk.gov.hmrc.incometaxsessiondata.models.{Session, SessionData, SessionDataRequest}
+import uk.gov.hmrc.incometaxsessiondata.models.{FullDuplicate, MtditidDuplicate, NonDuplicate, Session, SessionData, SessionDataRequest, SessionDuplicationType}
 import uk.gov.hmrc.incometaxsessiondata.repositories.SessionDataRepository
 
 import javax.inject.{Inject, Singleton}
@@ -45,5 +45,18 @@ class SessionService @Inject() (
       case ex: Throwable => Future.successful(Left(ex))
     }
   }
+
+  def getDuplicationStatus(sessionListForMtditid: Seq[Session], validRequest: Session): SessionDuplicationType = {
+    sessionListForMtditid match {
+      case Nil => NonDuplicate
+      case _ =>
+        val requestIndex: IndexFields = IndexFields(validRequest.sessionId, validRequest.internalId, validRequest.mtditid)
+        val condition: Boolean = sessionListForMtditid.map(item => IndexFields(item.sessionId, item.internalId, item.mtditid)).contains(requestIndex)
+
+        if (condition) FullDuplicate else MtditidDuplicate
+    }
+  }
+
+  private case class IndexFields(sessionId: String, internalId: String, mtditid: String)
 
 }

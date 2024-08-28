@@ -18,8 +18,8 @@ package uk.gov.hmrc.incometaxsessiondata.controllers
 
 import play.api.Logging
 import play.api.libs.json.{JsError, JsSuccess, Json}
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.incometaxsessiondata.models.{Session, SessionData}
+import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
+import uk.gov.hmrc.incometaxsessiondata.models.{FullDuplicate, MtditidDuplicate, NonDuplicate, Session, SessionData}
 import uk.gov.hmrc.incometaxsessiondata.predicates.AuthenticationPredicate
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -47,9 +47,9 @@ class SessionController @Inject() (
         NotFound("No session data found")
       case Left(ex)                          =>
         logger.error(
-          s"[SessionController][getById]: Failed to retrieve session with mtditid: $mtditid - ${ex.getMessage}"
+          s"[SessionController][getById]: Failed to retrieve session with mtditid: ${request.mtditid} - ${ex.getMessage}"
         )
-        InternalServerError(s"Failed to retrieve session with mtditid: $mtditid")
+        InternalServerError(s"Failed to retrieve session with mtditid: ${request.mtditid}")
     } recover { case ex =>
       logger.error(s"[SessionController][getById]: Unexpected error while getting session: $ex")
       InternalServerError(s"Unexpected error while getting session: $ex")
@@ -65,7 +65,7 @@ class SessionController @Inject() (
         logger.error(s"[SessionController][set]: Json validation error while parsing request: $err")
         Future.successful(BadRequest(s"Json validation error while parsing request: $err"))
       case JsSuccess(validRequest, _) =>
-        save(validRequest)
+        handleValidRequest(validRequest)
           .recover { case ex =>
             logger.error(s"[SessionController][set]: Unexpected error while setting session: $ex")
             InternalServerError(s"Unexpected error while setting session: $ex")
@@ -73,37 +73,41 @@ class SessionController @Inject() (
     }
   }
 
-  private def save(validRequest: Session) =
-    sessionService.getByMtditid(validRequest.mtditid) flatMap {
-      case sessionList: List[Session] if sessionList.nonEmpty && !isFullDuplicate(sessionList, validRequest) =>
-        logger.info(
-          s"[SessionController][save]" +
-            s" Another document matching mtditid: ${validRequest.mtditid} but different sessionId: ${validRequest.sessionId} and internalId ${validRequest.internalId}"
-        )
-        Future.successful(
-          Forbidden(
-            s"Another document matching mtditid: ${validRequest.mtditid} but different sessionId: ${validRequest.sessionId} and internalId ${validRequest.internalId}"
+  private def handleValidRequest(validRequest: Session): Future[Result] = {
+    for {
+      sessions <- sessionService.getByMtditid(validRequest.mtditid)
+      result <- sessionService.getDuplicationStatus(sessions, validRequest) match {
+        case FullDuplicate =>
+          logger.info(
+            s"[SessionController][handleValidRequest]" +
+              s" A session in the database matched the current session request, list of sessions: $sessions"
           )
-        )
-      case sessionList: List[Session] if sessionList.nonEmpty && isFullDuplicate(sessionList, validRequest)  =>
-        logger.info(
-          s"[SessionController][save]" +
-            s" A session in the database matched the current session request, list of sessions: $sessionList"
-        )
-        handleConflictScenario(validRequest)
-      case sessionList: List[Session] if sessionList.isEmpty                                                 =>
-        logger.info(s"[SessionController][save]: No live sessions matching mtditid: ${validRequest.mtditid}")
-        handleOkScenario(validRequest)
-    }
+          handleConflictScenario(validRequest)
+        case MtditidDuplicate =>
+          logger.info(
+            s"[SessionController][handleValidRequest]" +
+              s" Another document matching mtditid: ${validRequest.mtditid} but different sessionId: ${validRequest.sessionId} and internalId ${validRequest.internalId}"
+          )
+          Future.successful(
+            Forbidden(
+              s"Another document matching mtditid: ${validRequest.mtditid} but different sessionId: ${validRequest.sessionId} and internalId ${validRequest.internalId}"
+            )
+          )
+        case NonDuplicate =>
+          logger.info(s"[SessionController][handleValidRequest]: No live sessions matching mtditid: ${validRequest.mtditid}")
+          handleOkScenario(validRequest)
+      }
+    } yield result
+  }
 
-  private def handleConflictScenario(validRequest: Session) =
+  private def handleConflictScenario(validRequest: Session): Future[Result] = {
     sessionService.set(validRequest) map {
-      case Right(true)         =>
+      case Right(true) =>
         logger.info(
           s"[SessionController][handleConflictScenario]: Successfully set session despite matching documenting existing in the database"
         )
         Conflict("Successfully set session despite matching documenting existing in the database")
-      case Right(false)        =>
+      case Right(false) =>
         logger.info(s"[SessionController][handleConflictScenario]: Write operation was not acknowledged")
         InternalServerError("Write operation was not acknowledged")
       case Left(ex: Throwable) =>
@@ -112,13 +116,14 @@ class SessionController @Inject() (
         )
         InternalServerError("Unknown exception")
     }
+  }
 
-  private def handleOkScenario(validRequest: Session) =
+  private def handleOkScenario(validRequest: Session): Future[Result] = {
     sessionService.set(validRequest) map {
-      case Right(true)         =>
+      case Right(true) =>
         logger.info(s"[SessionController][handleOkScenario]: Successfully set session")
         Ok("Successfully set session")
-      case Right(false)        =>
+      case Right(false) =>
         logger.info(s"[SessionController][handleOkScenario]: Write operation was not acknowledged")
         InternalServerError("Write operation was not acknowledged")
       case Left(ex: Throwable) =>
@@ -127,12 +132,6 @@ class SessionController @Inject() (
         )
         InternalServerError("Unknown exception")
     }
-
-  private def isFullDuplicate(sessionList: List[Session], validRequest: Session): Boolean = {
-    val requestIndex: IndexFields = IndexFields(validRequest.sessionId, validRequest.internalId, validRequest.mtditid)
-    sessionList.map(item => IndexFields(item.sessionId, item.internalId, item.mtditid)).contains(requestIndex)
   }
-
-  private case class IndexFields(sessionId: String, internalId: String, mtditid: String)
 
 }
