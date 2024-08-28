@@ -56,27 +56,6 @@ class SessionController @Inject() (
     }
   }
 
-  def getByMtditid(): Action[AnyContent] = authentication.async { request =>
-    val sessionList: Future[List[SessionData]] = sessionService.getByMtditid(request.mtditid).map(res => res.map(item => SessionData.fromSession(item)).toList)
-
-    sessionList.map {
-      case sessionList: List[SessionData] if sessionList.nonEmpty =>
-        logger.info(
-          s"[SessionController][getByMtditid]" +
-            s" Successfully retrieved a list of session data that matches the given mtditid: $mtditid, list of sessions: $sessionList"
-        )
-        Ok(Json.toJson(sessionList))
-      case sessionList: List[SessionData] if sessionList.isEmpty  =>
-        logger.info(s"[SessionController][getByMtditid]: No live sessions matching mtditid: $mtditid")
-        NotFound("No session data found for this mtditid")
-    } recover { case ex =>
-      logger.error(
-        s"[SessionController][getByMtditid]: Unexpected error while getting sessions matching mtditid: $mtditid. Exception: $ex"
-      )
-      InternalServerError(s"Unexpected error while getting session using mtditid: $ex")
-    }
-  }
-
   def set(): Action[AnyContent] = authentication.async { implicit request =>
     // Here is required internalID => request.internalId and request.sessionId
     request.body.asJson
