@@ -63,14 +63,14 @@ class AuthenticationPredicateSpec extends MockMicroserviceAuthConnector {
       futureResult.futureValue.header.status shouldBe Status.UNAUTHORIZED
     }
 
-    "called with individual authenticated user (Some Bearer Token in Header)" in {
+    "called with agent authenticated user (Some Bearer Token in Header)" in {
       val f            = fixture()
       mockAuth()
       val futureResult = result(f.predicate, fakeRequestWithActiveSession)
       futureResult.futureValue.header.status shouldBe Status.OK
     }
 
-    "called with authenticated user and empty sessionId" in {
+    "called with agent authenticated user and empty sessionId" in {
       val f            = fixture()
       mockAuth()
       val futureResult = result(authenticationPredicate = f.predicate, fakeRequestWithActiveSessionAndEmptySessionId)
@@ -82,6 +82,13 @@ class AuthenticationPredicateSpec extends MockMicroserviceAuthConnector {
       mockAuth(Future.successful(agentResponse))
       val futureResult = result(f.predicate, fakeRequestWithActiveSession)
       futureResult.futureValue.header.status shouldBe Status.OK
+    }
+
+    "called authenticated individual" in {
+      val f            = fixture()
+      mockAuth(Future.successful(individualAuthResponseWithCL50))
+      val futureResult = result(f.predicate, fakeRequestWithActiveSession)
+      futureResult.futureValue.header.status shouldBe Status.UNAUTHORIZED
     }
 
     "agent called no ARN assigned" in {
