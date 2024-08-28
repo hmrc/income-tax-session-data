@@ -49,7 +49,7 @@ class SessionService @Inject() (
   }
 
   def getDuplicationStatus(sessionListForMtditid: Seq[Session], validRequest: Session): SessionDuplicationType = {
-    sessionListForMtditid match {
+    val a = sessionListForMtditid match {
       case Nil => NonDuplicate
       case _ =>
         val requestIndex: IndexFields = IndexFields(validRequest.sessionId, validRequest.internalId, validRequest.mtditid)
@@ -57,6 +57,8 @@ class SessionService @Inject() (
 
         if (condition) FullDuplicate else MtditidDuplicate
     }
+    println("BBBBBBBB" + a)
+    a
   }
 
   private case class IndexFields(sessionId: String, internalId: String, mtditid: String)

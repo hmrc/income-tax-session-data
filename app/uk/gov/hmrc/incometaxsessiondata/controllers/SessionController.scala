@@ -40,24 +40,25 @@ class SessionController @Inject() (
     // Here is required internalID => request.internalId and request.sessionId
     sessionService.get(request) map {
       case Right(Some(session: SessionData)) =>
-        logger.info(s"[SessionController][getById]: Successfully retrieved session data: $session")
+        logger.info(s"[SessionController][get]: Successfully retrieved session data: $session")
         Ok(Json.toJson(session))
       case Right(None)                       =>
-        logger.info(s"[SessionController][getById]: No live session")
+        logger.info(s"[SessionController][get]: No live session")
         NotFound("No session data found")
       case Left(ex)                          =>
         logger.error(
-          s"[SessionController][getById]: Failed to retrieve session with mtditid: ${request.mtditid} - ${ex.getMessage}"
+          s"[SessionController][get]: Failed to retrieve session with mtditid: ${request.mtditid} - ${ex.getMessage}"
         )
         InternalServerError(s"Failed to retrieve session with mtditid: ${request.mtditid}")
     } recover { case ex =>
-      logger.error(s"[SessionController][getById]: Unexpected error while getting session: $ex")
+      logger.error(s"[SessionController][get]: Unexpected error while getting session: $ex")
       InternalServerError(s"Unexpected error while getting session: $ex")
     }
   }
 
   def set(): Action[AnyContent] = authentication.async { implicit request =>
     // Here is required internalID => request.internalId and request.sessionId
+    println("OOOOOOO")
     request.body.asJson
       .getOrElse(Json.obj())
       .validate(Session.readsWithRequest(request)) match {
@@ -65,6 +66,7 @@ class SessionController @Inject() (
         logger.error(s"[SessionController][set]: Json validation error while parsing request: $err")
         Future.successful(BadRequest(s"Json validation error while parsing request: $err"))
       case JsSuccess(validRequest, _) =>
+        println("AAAAAAAA")
         handleValidRequest(validRequest)
           .recover { case ex =>
             logger.error(s"[SessionController][set]: Unexpected error while setting session: $ex")
