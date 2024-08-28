@@ -69,6 +69,10 @@ class AuthenticationPredicate @Inject() (
             logger.info(s"[AuthenticationPredicate][unauthorized] - unable to extract sessionId")
             Future(Unauthorized)
           }
+        // TODO: re-enable ConfidenceLevel check when enabling this part of the flow
+        case Some(AffinityGroup.Individual) ~ _ ~ _            =>
+          logger.info(s"[AuthenticationPredicate][unauthorized] - Individuals not supported")
+          Future(Unauthorized)
         case _ ~ _ ~ _                                         =>
           logger.info(s"[AuthenticationPredicate][unauthorized]")
           Future(Unauthorized)
