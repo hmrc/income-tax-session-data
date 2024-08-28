@@ -23,7 +23,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.matchers.{HavePropertyMatchResult, HavePropertyMatcher}
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
-import play.api.http.Status.{BAD_REQUEST, NOT_FOUND, OK}
+import play.api.http.Status.{BAD_REQUEST, NOT_FOUND, OK, UNAUTHORIZED}
 import play.api.libs.json.Json
 import play.api.libs.ws.WSResponse
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
@@ -64,10 +64,11 @@ class SessionControllerISpec
   )
 
   "Sending a GET request to the session data service" should {
-    "return some session data" when {
-      "there is data in mongo under that id, with the user's current session id and internal id" in {
+
+    "return some session data when auth as agent, with the user's current session id and internal id" when {
+      "there is data in mongo under that id" in {
         UserDetailsStub.stubGetUserDetails()
-        AuthStub.stubAuthorised()
+        AuthStub.stubAuthorised(asAgent = true)
         await(sessionService.set(testSession))
         val result = get(s"/${testSession.mtditid}")
         result should have(
@@ -75,6 +76,19 @@ class SessionControllerISpec
         )
       }
     }
+
+    "return error when auth as Individual" when {
+      "there is data in mongo under that id" in {
+        UserDetailsStub.stubGetUserDetails()
+        AuthStub.stubAuthorised(asAgent = false)
+        await(sessionService.set(testSessionData))
+        val result = get("/session-123")
+        result should have(
+          httpStatus(UNAUTHORIZED)
+        )
+      }
+    }
+
     "return Not Found" when {
       "there is no data in mongo with that id" in {
         await(sessionService.set(testSession))
@@ -87,10 +101,10 @@ class SessionControllerISpec
   }
 
   "Sending a POST request to the session data service" should {
-    "add data to mongo" when {
+    "add data to mongo when auth as agent" when {
       "data provided is valid" in {
         UserDetailsStub.stubGetUserDetails()
-        AuthStub.stubAuthorised()
+        AuthStub.stubAuthorised(asAgent = true)
         val result = post("/")(Json.toJson[Session](testSession))
 
         sessionService.get(testSession.sessionId, testAuthInternalId, testSession.mtditid).futureValue match {
@@ -108,16 +122,36 @@ class SessionControllerISpec
       }
     }
 
-    "return BAD_REQUEST" when {
+    "add data to mongo when auth as individual" when {
+      "not data found" in {
+        UserDetailsStub.stubGetUserDetails()
+        AuthStub.stubAuthorised(asAgent = false)
+        val result = post("/")(Json.toJson[SessionData](testSessionData))
+        sessionService.get(testSessionData.sessionID).futureValue shouldBe Right(None)
+        result should have(httpStatus(UNAUTHORIZED))
+      }
+    }
+
+    "return BAD_REQUEST when auth as agent" when {
       "data provided in invalid" in {
         UserDetailsStub.stubGetUserDetails()
-        AuthStub.stubAuthorised()
+        AuthStub.stubAuthorised(asAgent = true)
         val result = post("/")(Json.toJson[String]("not a valid session"))
         result should have(
           httpStatus(BAD_REQUEST)
         )
       }
     }
+
+    "return UNAUTHORIZED when auth as individual" when {
+      "data provided in invalid" in {
+        UserDetailsStub.stubGetUserDetails()
+        AuthStub.stubAuthorised(asAgent = false)
+        val result = post("/")(Json.toJson[String]("not a valid session"))
+        result should have(httpStatus(UNAUTHORIZED))
+      }
+    }
+
 
   }
 

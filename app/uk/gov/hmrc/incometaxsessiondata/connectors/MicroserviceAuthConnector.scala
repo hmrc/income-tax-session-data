@@ -23,7 +23,7 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import javax.inject.{Inject, Singleton}
 
 @Singleton
-class MicroserviceAuthConnector @Inject()(val http: HttpClient,
-                                          val servicesConfig: ServicesConfig) extends PlayAuthConnector {
+class MicroserviceAuthConnector @Inject() (val http: HttpClient, val servicesConfig: ServicesConfig)
+    extends PlayAuthConnector {
   override val serviceUrl: String = servicesConfig.baseUrl("auth")
 }

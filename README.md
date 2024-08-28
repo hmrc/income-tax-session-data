@@ -33,6 +33,25 @@ To test the application execute:
 sbt test it/test
 ```
 
+## Scalafmt
+Check all project files are formatted as expected as follows:
+
+```
+sbt scalafmtCheckAll scalafmtCheck
+```
+
+Format *.sbt and project/*.scala files as follows:
+
+```
+sbt scalafmtSbt
+```
+
+Format all project files as follows:
+
+```
+sbt scalafmtAll
+```
+
 ### License
 
 This code is open source software licensed under the [Apache 2.0 License]("http://www.apache.org/licenses/LICENSE-2.0.html").

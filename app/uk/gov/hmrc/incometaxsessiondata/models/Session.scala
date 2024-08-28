@@ -30,13 +30,7 @@ case class Session(mtditid: String,
                    lastUpdated: Instant = Instant.now)
 
 object Session {
-//  implicit val fromSessionData: SessionData => Session = sessionData => Session(
-//    mtditid = sessionData.mtditid,
-//    nino = sessionData.nino,
-//    utr = sessionData.utr,
-//    internalId = sessionData.internalId,
-//    sessionId = sessionData.sessionId
-//  )
+
 
   def readsWithRequest(request: SessionDataRequest[_]): Reads[Session] = {
     Reads[Session] { json =>
@@ -61,8 +55,6 @@ object Session {
       ~ (__ \ "utr").format[String]
       ~ (__ \ "internalId").format[String]
       ~ (__ \ "sessionId").format[String]
-      ~ (__ \ "lastUpdated").format(MongoJavatimeFormats.instantFormat)
-      )(Session.apply, unlift(Session.unapply)
-    )
+      ~ (__ \ "lastUpdated").format(MongoJavatimeFormats.instantFormat))(Session.apply, unlift(Session.unapply))
   }
 }
