@@ -18,21 +18,24 @@ package uk.gov.hmrc.incometaxsessiondata.models
 
 import play.api.libs.json.{Format, Json, Reads}
 
-case class SessionData(mtditid: String,
-                       nino: String,
-                       utr: String,
+case class SessionData(
+  mtditid: String,
+  nino: String,
+  utr: String,
 //                       internalId: String,
-                       sessionId: String)
+  sessionId: String
+)
 
 object SessionData {
-  implicit val fromSession: Session => SessionData = session => SessionData(
-    mtditid = session.mtditid,
-    nino = session.nino,
-    utr = session.utr,
+  implicit val fromSession: Session => SessionData = session =>
+    SessionData(
+      mtditid = session.mtditid,
+      nino = session.nino,
+      utr = session.utr,
 //    internalId = session.internalId,
-    sessionId = session.sessionId
-  )
-  implicit val format: Format[SessionData] = Json.format[SessionData]
+      sessionId = session.sessionId
+    )
+  implicit val format: Format[SessionData]         = Json.format[SessionData]
 
 //  def readsWithRequest(request: SessionDataRequest[_]): Reads[SessionData] = {
 //    Reads[SessionData] { json =>

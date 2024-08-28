@@ -22,22 +22,23 @@ import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 
 import java.time.Instant
 
-case class Session(mtditid: String,
-                   nino: String,
-                   utr: String,
-                   internalId: String,
-                   sessionId: String,
-                   lastUpdated: Instant = Instant.now)
+case class Session(
+  mtditid: String,
+  nino: String,
+  utr: String,
+  internalId: String,
+  sessionId: String,
+  lastUpdated: Instant = Instant.now
+)
 
 object Session {
 
-
-  def readsWithRequest(request: SessionDataRequest[_]): Reads[Session] = {
+  def readsWithRequest(request: SessionDataRequest[_]): Reads[Session] =
     Reads[Session] { json =>
       for {
         mtditid <- (json \ "mtditid").validate[String]
-        nino <- (json \ "nino").validate[String]
-        utr <- (json \ "utr").validate[String]
+        nino    <- (json \ "nino").validate[String]
+        utr     <- (json \ "utr").validate[String]
       } yield Session(
         mtditid = mtditid,
         nino = nino,
@@ -46,15 +47,12 @@ object Session {
         sessionId = request.sessionId
       )
     }
-  }
 
-  implicit val format: OFormat[Session] = {
-
+  implicit val format: OFormat[Session] =
     ((__ \ "mtditid").format[String]
       ~ (__ \ "nino").format[String]
       ~ (__ \ "utr").format[String]
       ~ (__ \ "internalId").format[String]
       ~ (__ \ "sessionId").format[String]
       ~ (__ \ "lastUpdated").format(MongoJavatimeFormats.instantFormat))(Session.apply, unlift(Session.unapply))
-  }
 }

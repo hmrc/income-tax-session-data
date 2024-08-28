@@ -29,35 +29,31 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.runtime.universe.Try
 
 @Singleton
-class SessionService @Inject()(
-                                repository: SessionDataRepository
-                              )(implicit ec: ExecutionContext) {
+class SessionService @Inject() (
+  repository: SessionDataRepository
+)(implicit ec: ExecutionContext) {
 
-  def get(sessionId: String, internalId: String, mtditid: String): Future[Either[Throwable, Option[SessionData]]] = {
+  def get(sessionId: String, internalId: String, mtditid: String): Future[Either[Throwable, Option[SessionData]]] =
     repository.get(sessionId, internalId, mtditid) map {
       case Some(data: Session) =>
         Right(Some(SessionData.fromSession(data)))
-      case None => Right(None)
+      case None                => Right(None)
     }
-  }
 
-  def getByMtditid(sessionId: String): Future[Seq[Session]] = {
+  def getByMtditid(sessionId: String): Future[Seq[Session]] =
     repository.getByMtditid(sessionId)
 //    map (seq => seq.map(item => SessionData.fromSession(item)))
-  }
 
-  def set(session: Session): Future[Either[Throwable, Boolean]] = {
-    try {
+  def set(session: Session): Future[Either[Throwable, Boolean]] =
+    try
       repository.set(session).flatMap(res => Future.successful(Right(res.wasAcknowledged)))
-    } catch {
+    catch {
       case ex: Throwable => Future.successful(Left(ex))
     }
-  }
 
-  def deleteSession(sessionId: String, internalId: String, mtditid: String): Future[Unit] = {
+  def deleteSession(sessionId: String, internalId: String, mtditid: String): Future[Unit] =
     repository.deleteOne(sessionId, internalId, mtditid).map {
-      case true => Future.successful(())
+      case true  => Future.successful(())
       case false => Future.failed(new Exception("failed to delete session data"))
     }
-  }
 }

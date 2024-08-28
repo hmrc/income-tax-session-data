@@ -33,58 +33,54 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class SessionDataRepository @Inject()(
-                                       mongoComponent: MongoComponent,
-                                       config: AppConfig,
-                                       clock: Clock
-                                     )(implicit ec: ExecutionContext)
-  extends PlayMongoRepository[Session](
-    collectionName = "session-data",
-    mongoComponent = mongoComponent,
-    domainFormat = Session.format,
-    indexes = Seq(
-      IndexModel(
-        Indexes.ascending("sessionId", "internalId", "mtditid"),
-        IndexOptions()
-          .name("compoundIndex")
-          .unique(true)
+class SessionDataRepository @Inject() (
+  mongoComponent: MongoComponent,
+  config: AppConfig,
+  clock: Clock
+)(implicit ec: ExecutionContext)
+    extends PlayMongoRepository[Session](
+      collectionName = "session-data",
+      mongoComponent = mongoComponent,
+      domainFormat = Session.format,
+      indexes = Seq(
+        IndexModel(
+          Indexes.ascending("sessionId", "internalId", "mtditid"),
+          IndexOptions()
+            .name("compoundIndex")
+            .unique(true)
+        ),
+        IndexModel(
+          Indexes.ascending("mtditid"),
+          IndexOptions()
+            .name("sessionIDIndex")
+            .unique(false)
+        ),
+        IndexModel(
+          Indexes.ascending("lastUpdated"),
+          IndexOptions()
+            .name("lastUpdatedIndex")
+            .expireAfter(config.cacheTtl, TimeUnit.SECONDS)
+            .unique(false)
+        )
       ),
-      IndexModel(
-        Indexes.ascending("mtditid"),
-        IndexOptions()
-          .name("sessionIDIndex")
-          .unique(false)
-      ),
-      IndexModel(
-        Indexes.ascending("lastUpdated"),
-        IndexOptions()
-          .name("lastUpdatedIndex")
-          .expireAfter(config.cacheTtl, TimeUnit.SECONDS)
-          .unique(false)
-      )
-    ),
-    replaceIndexes = true
-  ) {
+      replaceIndexes = true
+    ) {
 
-  private def dataFilter(sessionId: String, internalId: String, mtditid: String): Bson = {
+  private def dataFilter(sessionId: String, internalId: String, mtditid: String): Bson =
     and(equal("sessionId", sessionId), equal("internalId", internalId), equal("mtditid", mtditid))
-  }
 
-  private def dataFilterMtditid(mtditid: String): Bson = {
+  private def dataFilterMtditid(mtditid: String): Bson =
     and(equal("mtditid", mtditid))
-  }
 
-  def get(sessionId: String, internalId: String, mtditid: String): Future[Option[Session]] = {
+  def get(sessionId: String, internalId: String, mtditid: String): Future[Option[Session]] =
     collection
       .find(dataFilter(sessionId, internalId, mtditid))
       .headOption()
-  }
 
-  def getByMtditid(mtditid: String): Future[Seq[Session]] = {
+  def getByMtditid(mtditid: String): Future[Seq[Session]] =
     collection
       .find(dataFilterMtditid(mtditid))
       .toFuture()
-  }
 
   def set(data: Session): Future[result.UpdateResult] = {
 
@@ -96,14 +92,12 @@ class SessionDataRepository @Inject()(
       )
       .toFuture()
 
-
     Thread.sleep(1000)
     println("AAAAAAAA" + a)
     a
   }
 
-  def deleteOne(sessionId: String, internalId: String, mtditid: String): Future[Boolean] = {
+  def deleteOne(sessionId: String, internalId: String, mtditid: String): Future[Boolean] =
     collection.deleteOne(dataFilter(sessionId, internalId, mtditid)).toFuture().map(_.wasAcknowledged())
-  }
 
 }
