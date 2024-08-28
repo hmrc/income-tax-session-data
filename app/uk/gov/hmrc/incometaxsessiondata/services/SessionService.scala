@@ -21,6 +21,7 @@ import uk.gov.hmrc.incometaxsessiondata.repositories.SessionDataRepository
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success, Try}
 
 @Singleton
 class SessionService @Inject() (
@@ -39,10 +40,11 @@ class SessionService @Inject() (
     repository.getByMtditid(mtditid)
 
   def set(session: Session): Future[Either[Throwable, Boolean]] = {
-    try
-      repository.set(session).flatMap(res => Future.successful(Right(res.wasAcknowledged)))
-    catch {
-      case ex: Throwable => Future.successful(Left(ex))
+    Try {
+      repository.set(session)
+    } match {
+      case Failure(exception) => Future.successful(Left(exception))
+      case Success(value) => value.flatMap(res => Future.successful(Right(res.wasAcknowledged)))
     }
   }
 
