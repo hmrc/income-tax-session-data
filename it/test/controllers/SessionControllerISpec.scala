@@ -16,7 +16,6 @@
 
 package controllers
 
-import helpers.AuthStub.testAuthInternalId
 import helpers.{AuthStub, ComponentSpecBase, UserDetailsStub}
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.should.Matchers
@@ -52,7 +51,7 @@ class SessionControllerISpec
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    await(sessionService.deleteSession(testSession.sessionId, testSession.internalId, testSession.mtditid))
+    await(clearDb(sessionService.repository, testSession.sessionId))
   }
 
   val testSession: Session = Session(

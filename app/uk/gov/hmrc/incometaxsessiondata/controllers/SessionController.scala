@@ -36,7 +36,7 @@ class SessionController @Inject() (
     extends BackendController(cc)
     with Logging {
 
-  def get(mtditid: String): Action[AnyContent] = authentication.async { request =>
+  def get(): Action[AnyContent] = authentication.async { request =>
     // Here is required internalID => request.internalId and request.sessionId
     sessionService.get(request) map {
       case Right(Some(session: SessionData)) =>
@@ -56,8 +56,10 @@ class SessionController @Inject() (
     }
   }
 
-  def getByMtditid(mtditid: String): Action[AnyContent] = authentication.async { _ =>
-    sessionService.getByMtditid(mtditid) map {
+  def getByMtditid(): Action[AnyContent] = authentication.async { request =>
+    val sessionList: Future[List[SessionData]] = sessionService.getByMtditid(request.mtditid).map(res => res.map(item => SessionData.fromSession(item)).toList)
+
+    sessionList.map {
       case sessionList: List[SessionData] if sessionList.nonEmpty =>
         logger.info(
           s"[SessionController][getByMtditid]" +

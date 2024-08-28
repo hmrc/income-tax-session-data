@@ -1,5 +1,5 @@
 # microservice specific routes
 
-GET        /:mtditid                    uk.gov.hmrc.incometaxsessiondata.controllers.SessionController.get(mtditid: String)
-GET        /get-by-mtditid/:mtditid     uk.gov.hmrc.incometaxsessiondata.controllers.SessionController.getByMtditid(mtditid: String)
+GET        /                            uk.gov.hmrc.incometaxsessiondata.controllers.SessionController.get()
+GET        /get-by-mtditid              uk.gov.hmrc.incometaxsessiondata.controllers.SessionController.getByMtditid()
 POST       /                            uk.gov.hmrc.incometaxsessiondata.controllers.SessionController.set()

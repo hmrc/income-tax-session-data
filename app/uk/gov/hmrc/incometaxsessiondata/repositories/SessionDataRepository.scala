@@ -91,7 +91,4 @@ class SessionDataRepository @Inject() (
       .toFuture()
   }
 
-  def deleteOne(sessionId: String, internalId: String, mtditid: String): Future[Boolean] =
-    collection.deleteOne(dataFilter(sessionId, internalId, mtditid)).toFuture().map(_.wasAcknowledged())
-
 }

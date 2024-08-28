@@ -24,29 +24,26 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class SessionService @Inject() (
-  repository: SessionDataRepository
+  val repository: SessionDataRepository
 )(implicit ec: ExecutionContext) {
 
-  def get(request: SessionDataRequest[_]): Future[Either[Throwable, Option[SessionData]]] =
+  def get(request: SessionDataRequest[_]): Future[Either[Throwable, Option[SessionData]]] = {
     repository.get(request) map {
       case Some(data: Session) =>
         Right(Some(SessionData.fromSession(data)))
-      case None                => Right(None)
+      case None => Right(None)
     }
+  }
 
   def getByMtditid(mtditid: String): Future[Seq[Session]] =
     repository.getByMtditid(mtditid)
 
-  def set(session: Session): Future[Either[Throwable, Boolean]] =
+  def set(session: Session): Future[Either[Throwable, Boolean]] = {
     try
       repository.set(session).flatMap(res => Future.successful(Right(res.wasAcknowledged)))
     catch {
       case ex: Throwable => Future.successful(Left(ex))
     }
+  }
 
-  def deleteSession(sessionId: String, internalId: String, mtditid: String): Future[Unit] =
-    repository.deleteOne(sessionId, internalId, mtditid).map {
-      case true  => Future.successful(())
-      case false => Future.failed(new Exception("failed to delete session data"))
-    }
 }

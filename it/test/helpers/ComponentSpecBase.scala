@@ -17,6 +17,9 @@
 package helpers
 
 import auth.TestHeaderExtractor
+import org.mongodb.scala.bson.conversions.Bson
+import org.mongodb.scala.model.Filters.and
+import org.mongodb.scala.result.DeleteResult
 import org.scalatest.concurrent.{Eventually, IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, TestSuite}
@@ -29,6 +32,9 @@ import play.api.{Application, Environment, Mode}
 import uk.gov.hmrc.auth.core.AffinityGroup.{Agent, Individual}
 import uk.gov.hmrc.incometaxsessiondata.auth.HeaderExtractor
 import uk.gov.hmrc.incometaxsessiondata.config.AppConfig
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+
+import scala.concurrent.Future
 
 trait ComponentSpecBase extends TestSuite with GuiceOneServerPerSuite with ScalaFutures
   with IntegrationPatience with Matchers
@@ -65,6 +71,14 @@ trait ComponentSpecBase extends TestSuite with GuiceOneServerPerSuite with Scala
       .withFollowRedirects(false)
       .withHttpHeaders("Csrf-Token" -> "nocheck",  "X-Session-ID" -> testSessionId)
       .post(body).futureValue
+  }
+
+  def clearDb[T](repository: PlayMongoRepository[T], mtditid: String): Future[DeleteResult] = {
+    repository.collection.deleteMany(dataFilter(mtditid)).toFuture()
+  }
+
+  private def dataFilter(mtditid: String): Bson = {
+    and(org.mongodb.scala.model.Filters.equal("mtditid", mtditid))
   }
 
   val appConfig: AppConfig = app.injector.instanceOf[AppConfig]
