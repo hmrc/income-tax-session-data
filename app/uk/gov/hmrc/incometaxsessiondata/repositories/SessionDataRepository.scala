@@ -18,16 +18,15 @@ package uk.gov.hmrc.incometaxsessiondata.repositories
 
 import com.google.inject.Singleton
 import org.mongodb.scala.bson.conversions.Bson
+import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.model._
+import org.mongodb.scala.result
 import uk.gov.hmrc.incometaxsessiondata.config.AppConfig
-import uk.gov.hmrc.incometaxsessiondata.models.Session
+import uk.gov.hmrc.incometaxsessiondata.models.{Session, SessionDataRequest}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
-import Filters._
-import com.mongodb.client.result.InsertOneResult
-import org.mongodb.scala.result
 
-import java.time.{Clock, Instant}
+import java.time.Clock
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -72,9 +71,9 @@ class SessionDataRepository @Inject() (
   private def dataFilterMtditid(mtditid: String): Bson =
     and(equal("mtditid", mtditid))
 
-  def get(sessionId: String, internalId: String, mtditid: String): Future[Option[Session]] =
+  def get(request: SessionDataRequest[_]): Future[Option[Session]] =
     collection
-      .find(dataFilter(sessionId, internalId, mtditid))
+      .find(dataFilter(request.sessionId, request.internalId, request.mtditid))
       .headOption()
 
   def getByMtditid(mtditid: String): Future[Seq[Session]] =
@@ -83,18 +82,13 @@ class SessionDataRepository @Inject() (
       .toFuture()
 
   def set(data: Session): Future[result.UpdateResult] = {
-
-    val a = collection
+    collection
       .replaceOne(
         filter = dataFilter(data.sessionId, data.internalId, data.mtditid),
         replacement = data,
         options = ReplaceOptions().upsert(true)
       )
       .toFuture()
-
-    Thread.sleep(1000)
-    println("AAAAAAAA" + a)
-    a
   }
 
   def deleteOne(sessionId: String, internalId: String, mtditid: String): Future[Boolean] =

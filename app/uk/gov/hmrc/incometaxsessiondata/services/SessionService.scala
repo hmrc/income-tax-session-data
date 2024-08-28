@@ -16,33 +16,26 @@
 
 package uk.gov.hmrc.incometaxsessiondata.services
 
-import com.mongodb.DuplicateKeyException
-import com.mongodb.client.result.{DeleteResult, InsertOneResult}
-import org.mongodb.scala.{DuplicateKeyException, MongoException, WriteConcernException, result}
-import play.api.mvc.Result
-import play.api.mvc.Results.{Conflict, InternalServerError, Ok}
-import uk.gov.hmrc.incometaxsessiondata.models.{Session, SessionData}
+import uk.gov.hmrc.incometaxsessiondata.models.{Session, SessionData, SessionDataRequest}
 import uk.gov.hmrc.incometaxsessiondata.repositories.SessionDataRepository
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
-import scala.reflect.runtime.universe.Try
 
 @Singleton
 class SessionService @Inject() (
   repository: SessionDataRepository
 )(implicit ec: ExecutionContext) {
 
-  def get(sessionId: String, internalId: String, mtditid: String): Future[Either[Throwable, Option[SessionData]]] =
-    repository.get(sessionId, internalId, mtditid) map {
+  def get(request: SessionDataRequest[_]): Future[Either[Throwable, Option[SessionData]]] =
+    repository.get(request) map {
       case Some(data: Session) =>
         Right(Some(SessionData.fromSession(data)))
       case None                => Right(None)
     }
 
-  def getByMtditid(sessionId: String): Future[Seq[Session]] =
-    repository.getByMtditid(sessionId)
-//    map (seq => seq.map(item => SessionData.fromSession(item)))
+  def getByMtditid(mtditid: String): Future[Seq[Session]] =
+    repository.getByMtditid(mtditid)
 
   def set(session: Session): Future[Either[Throwable, Boolean]] =
     try

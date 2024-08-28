@@ -16,12 +16,10 @@
 
 package uk.gov.hmrc.incometaxsessiondata.controllers
 
-import org.mongodb.scala.DuplicateKeyException
 import play.api.Logging
 import play.api.libs.json.{JsError, JsSuccess, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.incometaxsessiondata.models.SessionData
-import uk.gov.hmrc.incometaxsessiondata.models.Session
+import uk.gov.hmrc.incometaxsessiondata.models.{Session, SessionData}
 import uk.gov.hmrc.incometaxsessiondata.predicates.AuthenticationPredicate
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -40,7 +38,7 @@ class SessionController @Inject() (
 
   def get(mtditid: String): Action[AnyContent] = authentication.async { request =>
     // Here is required internalID => request.internalId and request.sessionId
-    sessionService.get(request.sessionId, request.internalId, mtditid) map {
+    sessionService.get(request) map {
       case Right(Some(session: SessionData)) =>
         logger.info(s"[SessionController][getById]: Successfully retrieved session data: $session")
         Ok(Json.toJson(session))
