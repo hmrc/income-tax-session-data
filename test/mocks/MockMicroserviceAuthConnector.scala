@@ -21,7 +21,7 @@ import org.mockito.Mockito.{doReturn, mock}
 import org.scalatest.BeforeAndAfterEach
 import uk.gov.hmrc.auth.core.retrieve.~
 import uk.gov.hmrc.auth.core.syntax.retrieved.authSyntaxForRetrieved
-import uk.gov.hmrc.auth.core.{AffinityGroup, ConfidenceLevel, Enrolment, EnrolmentIdentifier, Enrolments}
+import uk.gov.hmrc.auth.core.{AffinityGroup, Enrolment, EnrolmentIdentifier, Enrolments}
 import uk.gov.hmrc.incometaxsessiondata.connectors.MicroserviceAuthConnector
 import utils.TestSupport
 
@@ -30,12 +30,12 @@ import scala.concurrent.Future
 trait MockMicroserviceAuthConnector extends TestSupport with BeforeAndAfterEach {
 
   val agentArnEnrolment: Enrolment =
-    Enrolment("HMRC-AS-AGENT", Seq(EnrolmentIdentifier("AgentReferenceNumber", "testArn")), "activated")
+    Enrolment("HMRC-MTD-IT", Seq(EnrolmentIdentifier("MTDITID", "testArn")), "activated")
 
   val individualEnrolment: Enrolment =
     Enrolment("HMRC-MTD-IT", Seq(EnrolmentIdentifier("MTDITID", "testMtditid")), "activated")
 
-  val arnEnrolmentWithEmptyArn: Enrolment = Enrolment("HMRC-AS-AGENT", Seq(), "activated")
+  val arnEnrolmentWithEmptyArn: Enrolment = Enrolment("HMRC-MTD-IT", Seq(), "activated")
 
   val mockMicroserviceAuthConnector: MicroserviceAuthConnector = mock(classOf[MicroserviceAuthConnector])
 
