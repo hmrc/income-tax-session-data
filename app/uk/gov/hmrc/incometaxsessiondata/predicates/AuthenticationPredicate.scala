@@ -46,8 +46,8 @@ class AuthenticationPredicate @Inject() (
   override val parser: BodyParser[AnyContent]     = cc.parsers.defaultBodyParser
   override val executionContext: ExecutionContext = cc.executionContext
 
-  private val agentServiceEnrolmentName = "HMRC-AS-AGENT"
-  private val agentServiceIdentifierKey = "AgentReferenceNumber"
+  private val agentEnrolmentName = "HMRC-MTD-IT"
+  private val agentClientId = "MTDITID"
 
   override def invokeBlock[A](request: Request[A], f: SessionDataRequest[A] => Future[Result]): Future[Result] = {
     implicit val req: Request[A]   = request
@@ -58,8 +58,8 @@ class AuthenticationPredicate @Inject() (
         case Some(AffinityGroup.Agent) ~ Some(id) ~ enrolments =>
           if (hc.sessionId.isDefined) {
             val mtditid: String   = enrolments
-              .getEnrolment(agentServiceEnrolmentName)
-              .flatMap(_.getIdentifier(agentServiceIdentifierKey))
+              .getEnrolment(agentEnrolmentName)
+              .flatMap(_.getIdentifier(agentClientId))
               .map(_.value)
               .getOrElse(throw new Error("Unable to extract mtditid"))
             val sessionId: String = hc.sessionId.map(_.value).get
