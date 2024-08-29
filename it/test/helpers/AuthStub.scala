@@ -37,8 +37,8 @@ object AuthStub extends ComponentSpecBase {
     )(unlift(Enrolment.unapply))
 
   private def successfulAuthResponse(asAgent: Boolean): JsObject = {
-    val agentEnrolments = Seq(Enrolment(key = "HMRC-AS-AGENT",
-      identifiers = Seq(KVPair(key = "AgentReferenceNumber", value = "1")), state = "Activated"))
+    val agentEnrolments = Seq(Enrolment(key = "HMRC-MTD-IT",
+      identifiers = Seq(KVPair(key = "MTDITID", value = "1")), state = "Activated"))
     val individualEnrolments =
       Seq(Enrolment(key = "HMRC-MTD-IT",
         identifiers = Seq(KVPair(key = "MTDITID", value = testMtditid)), state = "Activated"))
