@@ -26,65 +26,63 @@ import uk.gov.hmrc.incometaxsessiondata.models.{Session, SessionDataRequest}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
-import java.time.Clock
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class SessionDataRepository @Inject() (
-  mongoComponent: MongoComponent,
-  config: AppConfig,
-  clock: Clock
-)(implicit ec: ExecutionContext)
-    extends PlayMongoRepository[Session](
-      collectionName = "session-data",
-      mongoComponent = mongoComponent,
-      domainFormat = Session.format,
-      indexes = Seq(
-        IndexModel(
-          Indexes.ascending("sessionId", "internalId", "mtditid"),
-          IndexOptions()
-            .name("compoundIndex")
-            .unique(true)
-        ),
-        IndexModel(
-          Indexes.ascending("mtditid"),
-          IndexOptions()
-            .name("sessionIDIndex")
-            .unique(false)
-        ),
-        IndexModel(
-          Indexes.ascending("lastUpdated"),
-          IndexOptions()
-            .name("lastUpdatedIndex")
-            .expireAfter(config.cacheTtl, TimeUnit.SECONDS)
-            .unique(false)
-        )
+class SessionDataRepository @Inject()(
+                                       mongoComponent: MongoComponent,
+                                       config: AppConfig
+                                     )(implicit ec: ExecutionContext)
+  extends PlayMongoRepository[Session](
+    collectionName = "session-data",
+    mongoComponent = mongoComponent,
+    domainFormat = Session.format,
+    indexes = Seq(
+      IndexModel(
+        Indexes.ascending("sessionId", "internalId"),
+        IndexOptions()
+          .name("compoundIndex")
+          .unique(true)
       ),
-      replaceIndexes = true
-    ) {
+      IndexModel(
+        Indexes.ascending("sessionId"),
+        IndexOptions()
+          .name("sessionIDIndex")
+          .unique(false)
+      ),
+      IndexModel(
+        Indexes.ascending("lastUpdated"),
+        IndexOptions()
+          .name("lastUpdatedIndex")
+          .expireAfter(config.cacheTtl, TimeUnit.SECONDS)
+          .unique(false)
+      )
+    ),
+    replaceIndexes = true
+  ) {
 
-  private def dataFilter(sessionId: String, internalId: String, mtditid: String): Bson =
-    and(equal("sessionId", sessionId), equal("internalId", internalId), equal("mtditid", mtditid))
+  private def dataFilter(sessionId: String, internalId: String): Bson =
+    and(equal("sessionId", sessionId), equal("internalId", internalId))
 
-  private def dataFilterMtditid(mtditid: String): Bson =
-    and(equal("mtditid", mtditid))
+  private def dataFilterSessionId(sessionId: String): Bson =
+    and(equal("sessionId", sessionId))
 
-  def get(request: SessionDataRequest[_], mtditid: String): Future[Option[Session]] =
+  def get(request: SessionDataRequest[_]): Future[Option[Session]] =
     collection
-      .find(dataFilter(request.sessionId, request.internalId, mtditid))
+      .find(dataFilter(request.sessionId, request.internalId))
       .headOption()
 
-  def getByMtditid(mtditid: String): Future[Seq[Session]] =
+  def getBySessionId(sessionId: String): Future[Seq[Session]] =
     collection
-      .find(dataFilterMtditid(mtditid))
+      .find(dataFilterSessionId(sessionId))
       .toFuture()
 
   def set(data: Session): Future[result.UpdateResult] = {
     collection
       .replaceOne(
-        filter = dataFilter(data.sessionId, data.internalId, data.mtditid),
+        filter = dataFilter(data.sessionId, data.internalId),
         replacement = data,
         options = ReplaceOptions().upsert(true)
       )

@@ -84,7 +84,7 @@ class SessionDataRepositoryISpec extends AnyWordSpec
     }
     "get some data using just mtditid when there is only one entry" in {
       await(repository.set(testSession))
-      val result = await(repository.getByMtditid(testSession.mtditid))
+      val result = await(repository.getBySessionId(testSession.mtditid))
       result.size shouldBe 1
       result.head.mtditid shouldBe "testId"
       result.head.utr shouldBe "testUtr"
@@ -92,7 +92,7 @@ class SessionDataRepositoryISpec extends AnyWordSpec
     "get some data using just mtditid when there is multiple entries with the same mtditid" in {
       await(repository.set(testSession))
       await(repository.set(testSessionDuplicateMtditid))
-      val result = await(repository.getByMtditid(testSession.mtditid))
+      val result = await(repository.getBySessionId(testSession.mtditid))
       result.size shouldBe 2
       result.head.mtditid shouldBe "testId"
       result.head.utr shouldBe "testUtr"
@@ -100,7 +100,7 @@ class SessionDataRepositoryISpec extends AnyWordSpec
       result(1).utr shouldBe "testUtrOther"
     }
     "get an empty list when searching with mtditid but there are no entries matching that mtditid" in {
-      val result = await(repository.getByMtditid(testSession.mtditid))
+      val result = await(repository.getBySessionId(testSession.mtditid))
 
       result.size shouldBe 0
     }

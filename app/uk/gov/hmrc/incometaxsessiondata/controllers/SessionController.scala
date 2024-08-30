@@ -36,9 +36,9 @@ class SessionController @Inject()(
   extends BackendController(cc)
     with Logging {
 
-  def get(mtditid: String): Action[AnyContent] = authentication.async { request =>
+  def get(): Action[AnyContent] = authentication.async { request =>
     // Here is required internalID => request.internalId and request.sessionId
-    sessionService.get(request, mtditid) map {
+    sessionService.get(request) map {
       case Right(Some(session: SessionData)) =>
         logger.info(s"[SessionController][get]: Successfully retrieved session data: $session")
         Ok(Json.toJson(session))

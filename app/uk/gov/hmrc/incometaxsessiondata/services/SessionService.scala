@@ -28,8 +28,8 @@ class SessionService @Inject() (
   val repository: SessionDataRepository
 )(implicit ec: ExecutionContext) {
 
-  def get(request: SessionDataRequest[_], mtditid: String): Future[Either[Throwable, Option[SessionData]]] = {
-    repository.get(request, mtditid) map {
+  def get(request: SessionDataRequest[_]): Future[Either[Throwable, Option[SessionData]]] = {
+    repository.get(request) map {
       case Some(data: Session) =>
         Right(Some(SessionData.fromSession(data)))
       case None => Right(None)
@@ -45,20 +45,17 @@ class SessionService @Inject() (
     }
   }
 
-  def getByMtditid(mtditid: String): Future[Seq[Session]] =
-    repository.getByMtditid(mtditid)
-
   def getDuplicationStatus(validRequest: Session): Future[SessionDuplicationType] = {
-    repository.getByMtditid(validRequest.mtditid) map {
+    repository.getBySessionId(validRequest.sessionId) map {
       case Nil => NonDuplicate
       case sessionList =>
-        val requestIndex: IndexFields = IndexFields(validRequest.sessionId, validRequest.internalId, validRequest.mtditid)
-        val condition: Boolean = sessionList.map(item => IndexFields(item.sessionId, item.internalId, item.mtditid)).contains(requestIndex)
+        val requestIndex: IndexFields = IndexFields(validRequest.sessionId, validRequest.internalId)
+        val condition: Boolean = sessionList.map(item => IndexFields(item.sessionId, item.internalId)).contains(requestIndex)
 
         if (condition) FullDuplicate else MtditidDuplicate
     }
   }
 
-  private case class IndexFields(sessionId: String, internalId: String, mtditid: String)
+  private case class IndexFields(sessionId: String, internalId: String)
 
 }
