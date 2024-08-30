@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.incometaxsessiondata.models
+package testConstants
 
-import play.api.http.Status.{CONFLICT, OK, FORBIDDEN}
+import play.api.test.FakeRequest
+import uk.gov.hmrc.incometaxsessiondata.models.SessionDataRequest
+import utils.TestSupport
 
-sealed trait SessionDuplicationType
+object BaseTestConstants extends TestSupport {
 
-case object FullDuplicate extends SessionDuplicationType {
-  val statusCode = CONFLICT
-}
+  val testRequest: SessionDataRequest[_] = SessionDataRequest(
+    internalId = "testInternalId",
+    sessionId = "test1123",
+    mtditid = "testMtditid"
+  )(FakeRequest())
 
-case object PartialDuplicate extends SessionDuplicationType {
-  val statusCode = FORBIDDEN
-}
-
-case object NonDuplicate extends SessionDuplicationType {
-  val statusCode = OK
 }

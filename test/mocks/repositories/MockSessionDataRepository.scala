@@ -14,20 +14,16 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.incometaxsessiondata.models
+package mocks.repositories
 
-import play.api.http.Status.{CONFLICT, OK, FORBIDDEN}
+import org.mockito.Mockito.mock
+import org.scalatest.BeforeAndAfterEach
+import uk.gov.hmrc.incometaxsessiondata.repositories.SessionDataRepository
+import utils.TestSupport
 
-sealed trait SessionDuplicationType
+trait MockSessionDataRepository extends TestSupport with BeforeAndAfterEach {
 
-case object FullDuplicate extends SessionDuplicationType {
-  val statusCode = CONFLICT
-}
+  val mockRepository: SessionDataRepository = mock(classOf[SessionDataRepository])
 
-case object PartialDuplicate extends SessionDuplicationType {
-  val statusCode = FORBIDDEN
-}
 
-case object NonDuplicate extends SessionDuplicationType {
-  val statusCode = OK
 }

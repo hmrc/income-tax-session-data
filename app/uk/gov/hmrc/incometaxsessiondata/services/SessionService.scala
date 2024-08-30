@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.incometaxsessiondata.services
 
-import uk.gov.hmrc.incometaxsessiondata.models.{FullDuplicate, MtditidDuplicate, NonDuplicate, Session, SessionData, SessionDataRequest, SessionDuplicationType}
+import uk.gov.hmrc.incometaxsessiondata.models.{FullDuplicate, PartialDuplicate, NonDuplicate, Session, SessionData, SessionDataRequest, SessionDuplicationType}
 import uk.gov.hmrc.incometaxsessiondata.repositories.SessionDataRepository
 
 import javax.inject.{Inject, Singleton}
@@ -52,7 +52,7 @@ class SessionService @Inject() (
         val requestIndex: IndexFields = IndexFields(validRequest.sessionId, validRequest.internalId)
         val condition: Boolean = sessionList.map(item => IndexFields(item.sessionId, item.internalId)).contains(requestIndex)
 
-        if (condition) FullDuplicate else MtditidDuplicate
+        if (condition) FullDuplicate else PartialDuplicate
     }
   }
 

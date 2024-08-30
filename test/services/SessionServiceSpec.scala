@@ -16,22 +16,18 @@
 
 package services
 
+import mocks.repositories.MockSessionDataRepository
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{mock, when}
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.wordspec.AnyWordSpec
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import org.mockito.Mockito.when
+import testConstants.BaseTestConstants.testRequest
 import uk.gov.hmrc.incometaxsessiondata.models.{Session, SessionData}
-import uk.gov.hmrc.incometaxsessiondata.repositories.SessionDataRepository
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
+import utils.TestSupport
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
-class SessionServiceSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite with ScalaFutures {
+class SessionServiceSpec extends TestSupport with MockSessionDataRepository {
 
-  val mockRepository: SessionDataRepository = mock(classOf[SessionDataRepository])
-  implicit val ec: ExecutionContext         = app.injector.instanceOf[ExecutionContext]
   object testSessionService
       extends SessionService(
         mockRepository
@@ -55,15 +51,15 @@ class SessionServiceSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSu
   "SessionService.get" should {
     "return session data" when {
       "data returned from the repository" in {
-        when(mockRepository.get(any(), any(), any())).thenReturn(Future(Some(testSession)))
-        val result = testSessionService.get("test-session", "test-internal", "test-mtditid")
+        when(mockRepository.get(any())).thenReturn(Future(Some(testSession)))
+        val result = testSessionService.get(testRequest)
         result.futureValue shouldBe Right(Some(testSessionData))
       }
     }
     "return None" when {
       "no data returned from repository" in {
-        when(mockRepository.get(any(), any(), any())).thenReturn(Future(None))
-        val result = testSessionService.get("test-session", "test-internal", "test-mtditid")
+        when(mockRepository.get(any())).thenReturn(Future(None))
+        val result = testSessionService.get(testRequest)
         result.futureValue shouldBe Right(None)
       }
     }

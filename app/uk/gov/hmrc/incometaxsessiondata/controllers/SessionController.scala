@@ -19,7 +19,7 @@ package uk.gov.hmrc.incometaxsessiondata.controllers
 import play.api.Logging
 import play.api.libs.json.{JsError, JsSuccess, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
-import uk.gov.hmrc.incometaxsessiondata.models.{FullDuplicate, MtditidDuplicate, NonDuplicate, Session, SessionData}
+import uk.gov.hmrc.incometaxsessiondata.models.{FullDuplicate, PartialDuplicate, NonDuplicate, Session, SessionData}
 import uk.gov.hmrc.incometaxsessiondata.predicates.AuthenticationPredicate
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -81,7 +81,7 @@ class SessionController @Inject()(
             s" A session in the database matched the current session request, list of sessions: $result"
         )
         handleConflictScenario(validRequest)
-      case MtditidDuplicate =>
+      case PartialDuplicate =>
         logger.info(
           s"[SessionController][handleValidRequest]" +
             s" Another document matching mtditid: ${validRequest.mtditid} but different sessionId: ${validRequest.sessionId} and internalId ${validRequest.internalId}"
