@@ -71,9 +71,9 @@ class SessionDataRepository @Inject() (
   private def dataFilterMtditid(mtditid: String): Bson =
     and(equal("mtditid", mtditid))
 
-  def get(request: SessionDataRequest[_]): Future[Option[Session]] =
+  def get(request: SessionDataRequest[_], mtditid: String): Future[Option[Session]] =
     collection
-      .find(dataFilter(request.sessionId, request.internalId, request.mtditid))
+      .find(dataFilter(request.sessionId, request.internalId, mtditid))
       .headOption()
 
   def getByMtditid(mtditid: String): Future[Seq[Session]] =

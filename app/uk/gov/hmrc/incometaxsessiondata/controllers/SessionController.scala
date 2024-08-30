@@ -28,24 +28,24 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton()
-class SessionController @Inject() (
-  cc: ControllerComponents,
-  authentication: AuthenticationPredicate,
-  sessionService: SessionService
-)(implicit ec: ExecutionContext)
-    extends BackendController(cc)
+class SessionController @Inject()(
+                                   cc: ControllerComponents,
+                                   authentication: AuthenticationPredicate,
+                                   sessionService: SessionService
+                                 )(implicit ec: ExecutionContext)
+  extends BackendController(cc)
     with Logging {
 
-  def get(): Action[AnyContent] = authentication.async { request =>
+  def get(mtditid: String): Action[AnyContent] = authentication.async { request =>
     // Here is required internalID => request.internalId and request.sessionId
-    sessionService.get(request) map {
+    sessionService.get(request, mtditid) map {
       case Right(Some(session: SessionData)) =>
         logger.info(s"[SessionController][get]: Successfully retrieved session data: $session")
         Ok(Json.toJson(session))
-      case Right(None)                       =>
+      case Right(None) =>
         logger.info(s"[SessionController][get]: No live session")
         NotFound("No session data found")
-      case Left(ex)                          =>
+      case Left(ex) =>
         logger.error(
           s"[SessionController][get]: Failed to retrieve session with mtditid: ${request.mtditid} - ${ex.getMessage}"
         )
@@ -58,15 +58,13 @@ class SessionController @Inject() (
 
   def set(): Action[AnyContent] = authentication.async { implicit request =>
     // Here is required internalID => request.internalId and request.sessionId
-    println("OOOOOOO")
     request.body.asJson
       .getOrElse(Json.obj())
       .validate(Session.readsWithRequest(request)) match {
-      case err: JsError               =>
+      case err: JsError =>
         logger.error(s"[SessionController][set]: Json validation error while parsing request: $err")
         Future.successful(BadRequest(s"Json validation error while parsing request: $err"))
       case JsSuccess(validRequest, _) =>
-        println("AAAAAAAA")
         handleValidRequest(validRequest)
           .recover { case ex =>
             logger.error(s"[SessionController][set]: Unexpected error while setting session: $ex")
@@ -76,30 +74,27 @@ class SessionController @Inject() (
   }
 
   private def handleValidRequest(validRequest: Session): Future[Result] = {
-    for {
-      sessions <- sessionService.getByMtditid(validRequest.mtditid)
-      result <- sessionService.getDuplicationStatus(sessions, validRequest) match {
-        case FullDuplicate =>
-          logger.info(
-            s"[SessionController][handleValidRequest]" +
-              s" A session in the database matched the current session request, list of sessions: $sessions"
+    sessionService.getDuplicationStatus(validRequest) flatMap {
+      case result@FullDuplicate =>
+        logger.info(
+          s"[SessionController][handleValidRequest]" +
+            s" A session in the database matched the current session request, list of sessions: $result"
+        )
+        handleConflictScenario(validRequest)
+      case MtditidDuplicate =>
+        logger.info(
+          s"[SessionController][handleValidRequest]" +
+            s" Another document matching mtditid: ${validRequest.mtditid} but different sessionId: ${validRequest.sessionId} and internalId ${validRequest.internalId}"
+        )
+        Future.successful(
+          Forbidden(
+            s"Another document matching mtditid: ${validRequest.mtditid} but different sessionId: ${validRequest.sessionId} and internalId ${validRequest.internalId}"
           )
-          handleConflictScenario(validRequest)
-        case MtditidDuplicate =>
-          logger.info(
-            s"[SessionController][handleValidRequest]" +
-              s" Another document matching mtditid: ${validRequest.mtditid} but different sessionId: ${validRequest.sessionId} and internalId ${validRequest.internalId}"
-          )
-          Future.successful(
-            Forbidden(
-              s"Another document matching mtditid: ${validRequest.mtditid} but different sessionId: ${validRequest.sessionId} and internalId ${validRequest.internalId}"
-            )
-          )
-        case NonDuplicate =>
-          logger.info(s"[SessionController][handleValidRequest]: No live sessions matching mtditid: ${validRequest.mtditid}")
-          handleOkScenario(validRequest)
-      }
-    } yield result
+        )
+      case NonDuplicate =>
+        logger.info(s"[SessionController][handleValidRequest]: No live sessions matching mtditid: ${validRequest.mtditid}")
+        handleOkScenario(validRequest)
+    }
   }
 
   private def handleConflictScenario(validRequest: Session): Future[Result] = {
