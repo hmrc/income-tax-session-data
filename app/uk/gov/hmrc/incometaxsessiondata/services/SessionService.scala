@@ -28,11 +28,11 @@ class SessionService @Inject() (
   val repository: SessionDataRepository
 )(implicit ec: ExecutionContext) {
 
-  def get(request: SessionDataRequest[_]): Future[Either[Throwable, Option[SessionData]]] = {
+  def get(request: SessionDataRequest[_]): Future[Option[SessionData]] = {
     repository.get(request) map {
       case Some(data: Session) =>
-        Right(Some(SessionData.fromSession(data)))
-      case None => Right(None)
+        Some(SessionData.fromSession(data))
+      case None => None
     }
   }
 

@@ -39,17 +39,12 @@ class SessionController @Inject()(
   def get(): Action[AnyContent] = authentication.async { request =>
     // Here is required internalID => request.internalId and request.sessionId
     sessionService.get(request) map {
-      case Right(Some(session: SessionData)) =>
+      case Some(session: SessionData) =>
         logger.info(s"[SessionController][get]: Successfully retrieved session data: $session")
         Ok(Json.toJson(session))
-      case Right(None) =>
+      case None =>
         logger.info(s"[SessionController][get]: No live session")
         NotFound("No session data found")
-      case Left(ex) =>
-        logger.error(
-          s"[SessionController][get]: Failed to retrieve session with mtditid: ${request.mtditid} - ${ex.getMessage}"
-        )
-        InternalServerError(s"Failed to retrieve session with mtditid: ${request.mtditid}")
     } recover { case ex =>
       logger.error(s"[SessionController][get]: Unexpected error while getting session: $ex")
       InternalServerError(s"Unexpected error while getting session: $ex")

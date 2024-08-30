@@ -17,15 +17,61 @@
 package testConstants
 
 import play.api.test.FakeRequest
-import uk.gov.hmrc.incometaxsessiondata.models.SessionDataRequest
+import uk.gov.hmrc.incometaxsessiondata.models.{Session, SessionData, SessionDataRequest}
 import utils.TestSupport
+
+import java.time.Instant
 
 object BaseTestConstants extends TestSupport {
 
+  val testMtditid: String = "testMtditid"
+  val testInternalId: String = "testInternalId"
+  val testInternalIdAlternative: String = "testInternalIdAlternative"
+  val testSessionId: String = "test1123"
+  val testNino: String = "testNino123"
+  val testUtr: String = "testUtr123"
+  val testLastUpdated: Instant = Instant.ofEpochMilli(270899)
+
   val testRequest: SessionDataRequest[_] = SessionDataRequest(
-    internalId = "testInternalId",
-    sessionId = "test1123",
-    mtditid = "testMtditid"
+    internalId = testInternalId,
+    sessionId = testSessionId,
+    mtditid = testMtditid
   )(FakeRequest())
+
+  val testSessionData: SessionData = SessionData(
+    sessionId = testSessionId,
+    mtditid = testMtditid,
+    nino = testNino,
+    utr = testUtr
+  )
+
+  val testValidRequest: Session = Session(
+    mtditid = testMtditid,
+    nino = testNino,
+    utr = testUtr,
+    internalId = testInternalId,
+    sessionId = testSessionId,
+    lastUpdated = testLastUpdated
+  )
+
+  val testSession: Session = testValidRequest
+
+  val testSessionAllA: Session = Session(
+    mtditid = "A",
+    nino = "A",
+    utr = "A",
+    internalId = "A",
+    sessionId = "A",
+    lastUpdated = Instant.ofEpochMilli(1)
+  )
+
+  val testSessionDifferentInternalId: Session = Session(
+    mtditid = testMtditid,
+    nino = testNino,
+    utr = testUtr,
+    internalId = testInternalIdAlternative,
+    sessionId = testSessionId,
+    lastUpdated = testLastUpdated
+  )
 
 }

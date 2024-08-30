@@ -46,33 +46,25 @@ class SessionControllerSpec extends MockMicroserviceAuthConnector with MockSessi
     utr = "utr-123"
   )
 
-  "SessionController.getById" should {
-    "Return successfully" when {
-      "Data is returned from the service" in {
-        when(mockSessionService.get(any())).thenReturn(Future(Right(Some(testSessionData))))
+  "SessionController.get" should {
+    "return Ok" when {
+      "data is returned from the service" in {
+        when(mockSessionService.get(any())).thenReturn(Future(Some(testSessionData)))
         mockAuth()
         val result: Future[Result] = testSessionController.get()(fakeRequestWithActiveSession)
         status(result) shouldBe OK
       }
     }
-    "Return not found" when {
-      "There is no session data for the given request" in {
-        when(mockSessionService.get(any())).thenReturn(Future(Right(None)))
+    "return not found" when {
+      "there is no session data for the given request" in {
+        when(mockSessionService.get(any())).thenReturn(Future(None))
         mockAuth()
         val result: Future[Result] = testSessionController.get()(fakeRequestWithActiveSession)
         status(result) shouldBe NOT_FOUND
       }
     }
-    "Return an error" when {
-      "An error is returned from the service" in {
-        when(mockSessionService.get(any())).thenReturn(Future(Left(new Error("Error"))))
-        mockAuth()
-        val result: Future[Result] = testSessionController.get()(fakeRequestWithActiveSession)
-        status(result) shouldBe INTERNAL_SERVER_ERROR
-      }
-    }
-    "Recover" when {
-      "Unexpected error from service" in {
+    "recover" when {
+      "unexpected error from service" in {
         when(mockSessionService.get(any())).thenReturn(Future.failed(new Error("")))
         val result: Future[Result] = testSessionController.get()(fakeRequestWithActiveSession)
         status(result) shouldBe INTERNAL_SERVER_ERROR
@@ -81,7 +73,8 @@ class SessionControllerSpec extends MockMicroserviceAuthConnector with MockSessi
 
     "Recover" when {
       "Unauthorised error when sessionId empty" in {
-        when(mockSessionService.get(any())).thenReturn(Future(Right(Some(testSessionData))))
+        when(mockSessionService.get(any())).thenReturn(Future(Some(testSessionData)))
+
         val result: Future[Result] = testSessionController.get()(fakeRequestWithActiveSessionAndEmptySessionId)
         status(result) shouldBe UNAUTHORIZED
       }
@@ -109,7 +102,6 @@ class SessionControllerSpec extends MockMicroserviceAuthConnector with MockSessi
   }
 
   "SessionController.set" when {
-
     "record is not a duplicate" when {
       "the service adds the record to the database successfully" should {
         "return an Ok response" in {
