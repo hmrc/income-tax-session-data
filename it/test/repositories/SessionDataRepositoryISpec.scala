@@ -16,12 +16,15 @@
 
 package repositories
 
+import com.mongodb.client.result.UpdateResult
+import helpers.ComponentSpecBase
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
+import testConstants.IntegrationTestConstants._
 import uk.gov.hmrc.incometaxsessiondata.models.Session
 import uk.gov.hmrc.incometaxsessiondata.repositories.SessionDataRepository
 
@@ -32,20 +35,20 @@ class SessionDataRepositoryISpec extends AnyWordSpec
   with ScalaFutures
   with IntegrationPatience
   with GuiceOneServerPerSuite
-  with BeforeAndAfterEach {
+  with BeforeAndAfterEach
+  with ComponentSpecBase {
 
   implicit val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
 
   private val repository = app.injector.instanceOf[SessionDataRepository]
 
   override def beforeEach(): Unit = {
-    await(repository.deleteOne(testSession.sessionId, testSession.internalId, testSession.mtditid))
-    await(repository.deleteOne(otherTestSession.sessionId, otherTestSession.internalId, otherTestSession.mtditid))
-    await(repository.deleteOne(testSessionDuplicateMtditid.sessionId, testSessionDuplicateMtditid.internalId, testSessionDuplicateMtditid.mtditid))
+    super.beforeEach()
+    await(clearDb(repository, testSessionId))
+    await(clearDb(repository, testAlternativeSessionId))
   }
 
-  val testSessionId = "session-123"
-  val otherTestSessionId = "session-xxx"
+  val testAlternativeSessionId = "session-xxx"
 
   val testSession: Session = Session(
     sessionId = testSessionId,
@@ -55,8 +58,16 @@ class SessionDataRepositoryISpec extends AnyWordSpec
     internalId = "test-internal-id"
   )
 
-  val testSessionDuplicateMtditid: Session = Session(
-    sessionId = otherTestSessionId,
+  val testSession2: Session = Session(
+    sessionId = itTestSessionId,
+    mtditid = itTestMtditid,
+    nino = itTestNino,
+    utr = itTestUtr,
+    internalId = itTestInternalId
+  )
+
+  val testSessionAlternativeInternalId: Session = Session(
+    sessionId = testSessionId,
     mtditid = "testId",
     nino = "testNinoOther",
     utr = "testUtrOther",
@@ -64,7 +75,7 @@ class SessionDataRepositoryISpec extends AnyWordSpec
   )
 
   val otherTestSession: Session = Session(
-    sessionId = otherTestSessionId,
+    sessionId = testAlternativeSessionId,
     mtditid = "testIdOther",
     nino = "testNinoOther",
     utr = "testUtrOther",
@@ -74,44 +85,40 @@ class SessionDataRepositoryISpec extends AnyWordSpec
   "Session Data Repository get method" should {
     "set some data" in {
       val result = await(repository.set(testSession))
-      result shouldBe "true"
+      result.wasAcknowledged() shouldBe true
     }
-    "get some data using sessionId, internalId and mtditid" in {
-      await(repository.set(testSession))
-      val result = await(repository.get(testSessionId, testSession.internalId, testSession.mtditid)).get
-      result.mtditid shouldBe "testId"
-      result.utr shouldBe "testUtr"
+    "set some data when data with matching session id and internal id exists in the database" in {
+      repository.set(testSession)
+      val result = await(repository.set(testSession.copy(sessionId = testSessionId, internalId = "test-internal-id")))
+      result shouldBe UpdateResult.acknowledged(1, 1, null)
     }
-    "get some data using just mtditid when there is only one entry" in {
+    "get some data using sessionId and internalId" in {
+      await(repository.set(testSession2))
+      val result = await(repository.get(testRequest)).get
+      result.mtditid shouldBe "it-testMtditid"
+      result.utr shouldBe "it-testUtr123"
+    }
+    "get some data using just session id when there is only one entry" in {
       await(repository.set(testSession))
-      val result = await(repository.getBySessionId(testSession.mtditid))
+      val result = await(repository.getBySessionId(testSession.sessionId))
       result.size shouldBe 1
       result.head.mtditid shouldBe "testId"
       result.head.utr shouldBe "testUtr"
     }
-    "get some data using just mtditid when there is multiple entries with the same mtditid" in {
+    "get some data using just session id when there is multiple entries with the same session id" in {
       await(repository.set(testSession))
-      await(repository.set(testSessionDuplicateMtditid))
-      val result = await(repository.getBySessionId(testSession.mtditid))
+      await(repository.set(testSessionAlternativeInternalId))
+      val result = await(repository.getBySessionId(testSession.sessionId))
       result.size shouldBe 2
       result.head.mtditid shouldBe "testId"
       result.head.utr shouldBe "testUtr"
       result(1).mtditid shouldBe "testId"
       result(1).utr shouldBe "testUtrOther"
     }
-    "get an empty list when searching with mtditid but there are no entries matching that mtditid" in {
+    "get an empty list when searching with session id but there are no entries matching that session id" in {
       val result = await(repository.getBySessionId(testSession.mtditid))
 
       result.size shouldBe 0
-    }
-    "delete specified data" in {
-      await(repository.set(testSession))
-      await(repository.set(otherTestSession))
-      await(repository.deleteOne(testSessionId, testSession.internalId, testSession.mtditid))
-      val result = await(repository.get(testSessionId, testSession.internalId, testSession.mtditid))
-      val otherResult = await(repository.get(otherTestSessionId, otherTestSession.internalId, otherTestSession.mtditid)).get
-      result shouldBe None
-      otherResult.sessionId shouldBe "session-xxx"
     }
   }
 

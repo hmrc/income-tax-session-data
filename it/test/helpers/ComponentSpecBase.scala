@@ -73,12 +73,12 @@ trait ComponentSpecBase extends TestSuite with GuiceOneServerPerSuite with Scala
       .post(body).futureValue
   }
 
-  def clearDb[T](repository: PlayMongoRepository[T], mtditid: String): Future[DeleteResult] = {
-    repository.collection.deleteMany(dataFilter(mtditid)).toFuture()
+  def clearDb[T](repository: PlayMongoRepository[T], sessionId: String): Future[DeleteResult] = {
+    repository.collection.deleteMany(dataFilter(sessionId)).toFuture()
   }
 
-  private def dataFilter(mtditid: String): Bson = {
-    and(org.mongodb.scala.model.Filters.equal("mtditid", mtditid))
+  private def dataFilter(sessionId: String): Bson = {
+    and(org.mongodb.scala.model.Filters.equal("sessionId", sessionId))
   }
 
   val appConfig: AppConfig = app.injector.instanceOf[AppConfig]
