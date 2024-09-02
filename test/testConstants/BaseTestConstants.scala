@@ -34,8 +34,7 @@ object BaseTestConstants extends TestSupport {
 
   val testRequest: SessionDataRequest[_] = SessionDataRequest(
     internalId = testInternalId,
-    sessionId = testSessionId,
-    mtditid = testMtditid
+    sessionId = testSessionId
   )(FakeRequest())
 
   val testSessionData: SessionData = SessionData(

@@ -91,13 +91,6 @@ class AuthenticationPredicateSpec extends MockMicroserviceAuthConnector {
       futureResult.futureValue.header.status shouldBe Status.UNAUTHORIZED
     }
 
-    "agent called no ARN assigned" in {
-      val f            = fixture()
-      mockAuth(Future.successful(agentResponseWithEmptyArn))
-      val futureResult = result(f.predicate, fakeRequestWithActiveSession)
-      futureResult.futureValue.header.status shouldBe Status.UNAUTHORIZED
-    }
-
   }
 
 }

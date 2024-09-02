@@ -19,9 +19,9 @@ package uk.gov.hmrc.incometaxsessiondata.predicates
 import play.api.Logging
 import play.api.mvc.Results.Unauthorized
 import play.api.mvc._
-import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{affinityGroup, allEnrolments, confidenceLevel, internalId}
+import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{affinityGroup, internalId}
 import uk.gov.hmrc.auth.core.retrieve.~
-import uk.gov.hmrc.auth.core.{AffinityGroup, AuthorisationException, AuthorisedFunctions, ConfidenceLevel}
+import uk.gov.hmrc.auth.core.{AffinityGroup, AuthorisationException, AuthorisedFunctions}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.incometaxsessiondata.auth.HeaderExtractor
 import uk.gov.hmrc.incometaxsessiondata.config.AppConfig
@@ -46,34 +46,26 @@ class AuthenticationPredicate @Inject() (
   override val parser: BodyParser[AnyContent]     = cc.parsers.defaultBodyParser
   override val executionContext: ExecutionContext = cc.executionContext
 
-  private val agentServiceEnrolmentName = "HMRC-AS-AGENT"
-  private val agentServiceIdentifierKey = "AgentReferenceNumber"
-
   override def invokeBlock[A](request: Request[A], f: SessionDataRequest[A] => Future[Result]): Future[Result] = {
     implicit val req: Request[A]   = request
     implicit val hc: HeaderCarrier = headerExtractor.extractHeader(request, request.session)
 
     authorised()
-      .retrieve(affinityGroup and internalId and allEnrolments) {
-        case Some(AffinityGroup.Agent) ~ Some(id) ~ enrolments =>
+      .retrieve(affinityGroup and internalId) {
+        case Some(AffinityGroup.Agent) ~ Some(id) =>
           if (hc.sessionId.isDefined) {
-            val mtditid: String   = enrolments
-              .getEnrolment(agentServiceEnrolmentName)
-              .flatMap(_.getIdentifier(agentServiceIdentifierKey))
-              .map(_.value)
-              .getOrElse(throw new Error("Unable to extract mtditid"))
             val sessionId: String = hc.sessionId.map(_.value).get
             logger.info(s"[AuthenticationPredicate][authenticated] - authenticated as an agent")
-            f(SessionDataRequest[A](internalId = id, sessionId = sessionId, mtditid = mtditid))
+            f(SessionDataRequest[A](internalId = id, sessionId = sessionId))
           } else {
             logger.info(s"[AuthenticationPredicate][unauthorized] - unable to extract sessionId")
             Future(Unauthorized)
           }
         // TODO: re-enable ConfidenceLevel check when enabling this part of the flow
-        case Some(AffinityGroup.Individual) ~ _ ~ _            =>
+        case Some(AffinityGroup.Individual) ~ _            =>
           logger.info(s"[AuthenticationPredicate][unauthorized] - Individuals not supported")
           Future(Unauthorized)
-        case _ ~ _ ~ _                                         =>
+        case _ ~ _                                         =>
           logger.info(s"[AuthenticationPredicate][unauthorized]")
           Future(Unauthorized)
       }

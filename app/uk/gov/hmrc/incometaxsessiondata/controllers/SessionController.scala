@@ -40,7 +40,7 @@ class SessionController @Inject()(
     // Here is required internalID => request.internalId and request.sessionId
     sessionService.get(request) map {
       case Some(session: SessionData) =>
-        logger.info(s"[SessionController][get]: Successfully retrieved session data: $session")
+        logger.info(s"[SessionController][get]: Successfully retrieved session data. SessionId: ${session.sessionId}")
         Ok(Json.toJson(session))
       case None =>
         logger.info(s"[SessionController][get]: No live session")
