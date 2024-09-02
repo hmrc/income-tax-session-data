@@ -26,7 +26,7 @@ import play.api.mvc.Results.{Conflict, Forbidden, InternalServerError, Ok}
 import play.api.mvc.{ControllerComponents, Result}
 import play.api.test.Helpers._
 import uk.gov.hmrc.incometaxsessiondata.auth.HeaderExtractor
-import uk.gov.hmrc.incometaxsessiondata.models.{FullDuplicate, NonDuplicate, PartialDuplicate, SessionData}
+import uk.gov.hmrc.incometaxsessiondata.models.SessionData
 import uk.gov.hmrc.incometaxsessiondata.predicates.AuthenticationPredicate
 
 import scala.concurrent.Future

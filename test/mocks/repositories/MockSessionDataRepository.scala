@@ -16,21 +16,18 @@
 
 package mocks.repositories
 
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{mock, when}
+import org.mockito.Mockito.{mock, reset}
 import org.scalatest.BeforeAndAfterEach
-import uk.gov.hmrc.incometaxsessiondata.models.Session
 import uk.gov.hmrc.incometaxsessiondata.repositories.SessionDataRepository
 import utils.TestSupport
-
-import scala.concurrent.Future
 
 trait MockSessionDataRepository extends TestSupport with BeforeAndAfterEach {
 
   val mockRepository: SessionDataRepository = mock(classOf[SessionDataRepository])
 
-  def mockGetBySessionId(response: Seq[Session]): Unit = {
-    when(mockRepository.getBySessionId(any())).thenReturn(Future.successful(response))
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockRepository)
   }
 
 }

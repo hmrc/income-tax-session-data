@@ -27,7 +27,7 @@ import play.api.libs.json.Json
 import play.api.libs.ws.WSResponse
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import testConstants.BaseTestConstants.testSessionData
-import testConstants.IntegrationTestConstants.{itTestSessionId, testDefaultRequest, testDefaultSession, testDefaultSessionAlternativeInternalId, testValidRequest}
+import testConstants.IntegrationTestConstants.{itTestSessionId, testDefaultRequest, testDefaultSession, testValidRequest}
 import uk.gov.hmrc.incometaxsessiondata.models.{Session, SessionData}
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 
@@ -148,22 +148,6 @@ class SessionControllerISpec
         val result = post("/")(Json.toJson[String]("not a valid session"))
         result should have(
           httpStatus(UNAUTHORIZED)
-        )
-      }
-    }
-
-    "return FORBIDDEN" when {
-      "there is an entry in the database with the same session id but a different internal id" in {
-        UserDetailsStub.stubGetUserDetails()
-        AuthStub.stubAuthorised(asAgent = true)
-        // Setting DB value with alternative data, so that calling post route uses default auth session/internal ids
-        // which will therefore be different to that in the database, causing 403 to be returned
-        await(sessionService.set(testDefaultSessionAlternativeInternalId))
-
-        val result = post("/")(Json.toJson[Session](testDefaultSession))
-
-        result should have(
-          httpStatus(FORBIDDEN)
         )
       }
     }

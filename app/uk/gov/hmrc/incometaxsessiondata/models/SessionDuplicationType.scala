@@ -24,10 +24,6 @@ case object FullDuplicate extends SessionDuplicationType {
   val statusCode = CONFLICT
 }
 
-case object PartialDuplicate extends SessionDuplicationType {
-  val statusCode = FORBIDDEN
-}
-
 case object NonDuplicate extends SessionDuplicationType {
   val statusCode = OK
 }

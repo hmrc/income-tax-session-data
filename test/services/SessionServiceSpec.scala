@@ -20,14 +20,12 @@ import com.mongodb.client.result.UpdateResult
 import mocks.repositories.MockSessionDataRepository
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito
-import org.mockito.Mockito.{mock, spy, when}
-import play.api.http.Status.{CONFLICT, FORBIDDEN, OK}
+import org.mockito.Mockito.{reset, when}
+import play.api.http.Status.{CONFLICT, OK}
 import play.api.mvc.Result
 import play.api.mvc.Results.InternalServerError
 import play.api.test.Helpers.{defaultAwaitTimeout, status}
-import testConstants.BaseTestConstants.{testRequest, testSession, testSessionAllA, testSessionData, testSessionDifferentInternalId, testValidRequest}
-import uk.gov.hmrc.incometaxsessiondata.models.{FullDuplicate, NonDuplicate, PartialDuplicate, Session}
-import uk.gov.hmrc.incometaxsessiondata.repositories.SessionDataRepository
+import testConstants.BaseTestConstants.{testRequest, testSession, testSessionData, testValidRequest}
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 import utils.TestSupport
 
@@ -47,14 +45,14 @@ class SessionServiceSpec extends TestSupport with MockSessionDataRepository {
   "SessionService.get" should {
     "return session data" when {
       "data returned from the repository" in {
-        when(mockRepository.get(any())).thenReturn(Future(Some(testSession)))
+        when(mockRepository.get(any(), any())).thenReturn(Future(Some(testSession)))
         val result = testSessionService.get(testRequest)
         result.futureValue shouldBe Some(testSessionData)
       }
     }
     "return None" when {
       "no data returned from repository" in {
-        when(mockRepository.get(any())).thenReturn(Future(None))
+        when(mockRepository.get(any(), any())).thenReturn(Future(None))
         val result = testSessionService.get(testRequest)
         result.futureValue shouldBe None
       }
@@ -87,47 +85,12 @@ class SessionServiceSpec extends TestSupport with MockSessionDataRepository {
     }
   }
 
-  "SessionService.getDuplicationStatus" should {
-    "return that a request is not a duplicate of any record in the database" when {
-      "there are no records in the database" in {
-        mockGetBySessionId(Seq.empty[Session])
-
-        val result = testSessionService.getDuplicationStatus(testValidRequest)
-        result.futureValue shouldBe NonDuplicate
-      }
-    }
-
-    "return that a request is a partial duplicate to a record in the database" when {
-      "there is a record in the database with the same session id but a different internal id" in {
-        mockGetBySessionId(Seq(testSessionDifferentInternalId))
-
-        val result = testSessionService.getDuplicationStatus(testValidRequest)
-        result.futureValue shouldBe PartialDuplicate
-      }
-    }
-
-    "return that a request is a full duplicate of a record in the database" when {
-      "there is a record in the database with the same session id and internal id" in {
-        mockGetBySessionId(Seq(testSession))
-
-        val result = testSessionService.getDuplicationStatus(testValidRequest)
-        result.futureValue shouldBe FullDuplicate
-      }
-      "there is a record in the database with the same session id and internal id, and a second partial duplicate" in {
-        mockGetBySessionId(Seq(testSessionDifferentInternalId, testSession))
-
-        val result = testSessionService.getDuplicationStatus(testValidRequest)
-        result.futureValue shouldBe FullDuplicate
-      }
-    }
-  }
-
   "SessionService.handleValidRequest" should {
     "record is not a duplicate" when {
       "the database is empty the service adds the record to the database successfully" should {
         "return an Ok response" in {
           when(mockRepository.set(any())).thenReturn(Future(UpdateResult.acknowledged(1, null, null)))
-          when(mockRepository.getBySessionId(any())).thenReturn(Future(Seq.empty[Session]))
+          when(mockRepository.get(any(), any())).thenReturn(Future(None))
 
           val result: Future[Result] = testSessionService.handleValidRequest(testValidRequest)
           status(result) shouldBe OK
@@ -136,7 +99,7 @@ class SessionServiceSpec extends TestSupport with MockSessionDataRepository {
       "the repository does not acknowledge the database operation" should {
         "return an error" in {
           when(mockRepository.set(any())).thenReturn(Future(UpdateResult.unacknowledged()))
-          when(mockRepository.getBySessionId(any())).thenReturn(Future(Seq.empty[Session]))
+          when(mockRepository.get(any(), any())).thenReturn(Future(None))
 
           val result: Future[Result] = testSessionService.handleValidRequest(testValidRequest)
           result.futureValue shouldBe InternalServerError("Write operation was not acknowledged")
@@ -145,7 +108,7 @@ class SessionServiceSpec extends TestSupport with MockSessionDataRepository {
       "the service returns an exception" should {
         "return an error" in {
           when(mockRepository.set(any())).thenThrow(new RuntimeException("Test error"))
-          when(mockRepository.getBySessionId(any())).thenReturn(Future(Seq.empty[Session]))
+          when(mockRepository.get(any(), any())).thenReturn(Future(None))
 
           val result: Future[Result] = testSessionService.handleValidRequest(testValidRequest)
           result.futureValue shouldBe InternalServerError("Unknown exception")
@@ -153,20 +116,11 @@ class SessionServiceSpec extends TestSupport with MockSessionDataRepository {
       }
     }
 
-    "record is a partial duplicate" should {
-      "return a Forbidden response" in {
-        when(mockRepository.getBySessionId(any())).thenReturn(Future(Seq(testSessionDifferentInternalId)))
-
-        val result: Future[Result] = testSessionService.handleValidRequest(testValidRequest)
-        status(result) shouldBe FORBIDDEN
-      }
-    }
-
     "record is a full duplicate" when {
       "the service adds the record to the database successfully" should {
         "return a Conflict response" in {
+          when(mockRepository.get(any(), any())).thenReturn(Future(Some(testSession)))
           when(mockRepository.set(any())).thenReturn(Future(UpdateResult.acknowledged(1, null, null)))
-          when(mockRepository.getBySessionId(any())).thenReturn(Future(Seq(testSession, testSession)))
 
           val result: Future[Result] = testSessionService.handleValidRequest(testValidRequest)
           status(result) shouldBe CONFLICT
@@ -175,16 +129,16 @@ class SessionServiceSpec extends TestSupport with MockSessionDataRepository {
       "the repository does not acknowledge the database operation" should {
         "return an error" in {
           when(mockRepository.set(any())).thenReturn(Future(UpdateResult.unacknowledged()))
-          when(mockRepository.getBySessionId(any())).thenReturn(Future(Seq(testSession, testSession)))
+          when(mockRepository.get(any(), any())).thenReturn(Future(Some(testSession)))
 
-          val result: Future[Result] = testSessionService.handleValidRequest(testValidRequest)
-          result.futureValue shouldBe InternalServerError("Write operation was not acknowledged")
+          val result: Result = testSessionService.handleValidRequest(testValidRequest).futureValue
+          result shouldBe InternalServerError("Write operation was not acknowledged")
         }
       }
       "the service returns an exception" should {
         "return an error" in {
+          when(mockRepository.get(any(), any())).thenReturn(Future(Some(testSession)))
           when(mockRepository.set(any())).thenThrow(new RuntimeException("Test error"))
-          when(mockRepository.getBySessionId(any())).thenReturn(Future(Seq(testSession, testSession)))
 
           val result: Future[Result] = testSessionService.handleValidRequest(testValidRequest)
           result.futureValue shouldBe InternalServerError("Unknown exception")

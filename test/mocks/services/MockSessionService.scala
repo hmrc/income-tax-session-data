@@ -21,7 +21,6 @@ import org.mockito.Mockito.{mock, reset, when}
 import org.scalatest.BeforeAndAfterEach
 import play.api.mvc.Result
 import play.api.mvc.Results.Ok
-import uk.gov.hmrc.incometaxsessiondata.models.SessionDuplicationType
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 import utils.TestSupport
 
