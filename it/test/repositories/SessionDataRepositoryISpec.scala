@@ -50,7 +50,7 @@ class SessionDataRepositoryISpec extends AnyWordSpec
 
   val testAlternativeSessionId = "session-xxx"
 
-  val testSession: Session = Session(
+  override val testSession: Session = Session(
     sessionId = testSessionId,
     mtditid = "testId",
     nino = "testNino",

@@ -22,12 +22,12 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.matchers.{HavePropertyMatchResult, HavePropertyMatcher}
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
-import play.api.http.Status.{BAD_REQUEST, NOT_FOUND, OK, UNAUTHORIZED}
+import play.api.http.Status._
 import play.api.libs.json.Json
 import play.api.libs.ws.WSResponse
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import testConstants.BaseTestConstants.{testInternalId, testSessionData}
-import testConstants.IntegrationTestConstants.{itTestSessionId, testDefaultRequest, testDefaultSession, testValidRequest}
+import testConstants.BaseTestConstants.testSessionData
+import testConstants.IntegrationTestConstants.{itTestSessionId, testDefaultRequest, testDefaultSession, testDefaultSessionAlternativeInternalId, testValidRequest}
 import uk.gov.hmrc.incometaxsessiondata.models.{Session, SessionData}
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 
@@ -57,14 +57,6 @@ class SessionControllerISpec
     await(clearDb(sessionService.repository, itTestSessionId))
     await(clearDb(sessionService.repository, testSessionId))
   }
-
-  val testSession: Session = Session(
-    sessionId = testSessionId,
-    mtditid = "id-123",
-    nino = "nino-123",
-    utr = "utr-123",
-    internalId = testInternalId
-  )
 
   "Sending a GET request to the session data service" should {
 
@@ -160,7 +152,34 @@ class SessionControllerISpec
       }
     }
 
+    "return FORBIDDEN" when {
+      "there is an entry in the database with the same session id but a different internal id" in {
+        UserDetailsStub.stubGetUserDetails()
+        AuthStub.stubAuthorised(asAgent = true)
+        // Setting DB value with alternative data, so that calling post route uses default auth session/internal ids
+        // which will therefore be different to that in the database, causing 403 to be returned
+        await(sessionService.set(testDefaultSessionAlternativeInternalId))
 
+        val result = post("/")(Json.toJson[Session](testDefaultSession))
+
+        result should have(
+          httpStatus(FORBIDDEN)
+        )
+      }
+    }
+
+    "return CONFLICT" when {
+      "there is an entry in the database with the same session id and internal id" in {
+        UserDetailsStub.stubGetUserDetails()
+        AuthStub.stubAuthorised(asAgent = true)
+        await(sessionService.set(testDefaultSession))
+
+        val result = post("/")(Json.toJson[Session](testDefaultSession))
+        result should have(
+          httpStatus(CONFLICT)
+        )
+      }
+    }
   }
 
 }

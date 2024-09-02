@@ -31,6 +31,7 @@ object IntegrationTestConstants {
   val itTestLastUpdated: Instant = Instant.ofEpochMilli(270899)
   val defaultRequestSessionId = "xsession-12345"
   val defaultRequestInternalId = "123"
+  val defaultRequestInternalIdAlternative = "123-alternative"
 
   val testRequest: SessionDataRequest[_] = SessionDataRequest(
     internalId = itTestInternalId,
@@ -48,6 +49,14 @@ object IntegrationTestConstants {
     nino = "nino-123",
     utr = "utr-123",
     internalId = defaultRequestInternalId
+  )
+
+  val testDefaultSessionAlternativeInternalId: Session = Session(
+    sessionId = defaultRequestSessionId,
+    mtditid = itTestMtditid,
+    nino = "nino-123",
+    utr = "utr-123",
+    internalId = defaultRequestInternalIdAlternative
   )
 
   val testSessionData: SessionData = SessionData(
