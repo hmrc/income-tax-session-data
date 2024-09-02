@@ -18,8 +18,8 @@ package uk.gov.hmrc.incometaxsessiondata.controllers
 
 import play.api.Logging
 import play.api.libs.json.{JsError, JsSuccess, Json}
-import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
-import uk.gov.hmrc.incometaxsessiondata.models.{FullDuplicate, PartialDuplicate, NonDuplicate, Session, SessionData}
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import uk.gov.hmrc.incometaxsessiondata.models.{Session, SessionData}
 import uk.gov.hmrc.incometaxsessiondata.predicates.AuthenticationPredicate
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -60,69 +60,11 @@ class SessionController @Inject()(
         logger.error(s"[SessionController][set]: Json validation error while parsing request: $err")
         Future.successful(BadRequest(s"Json validation error while parsing request: $err"))
       case JsSuccess(validRequest, _) =>
-        handleValidRequest(validRequest)
+        sessionService.handleValidRequest(validRequest)
           .recover { case ex =>
             logger.error(s"[SessionController][set]: Unexpected error while setting session: $ex")
             InternalServerError(s"Unexpected error while setting session: $ex")
           }
-    }
-  }
-
-  private def handleValidRequest(validRequest: Session): Future[Result] = {
-    sessionService.getDuplicationStatus(validRequest) flatMap {
-      case result@FullDuplicate =>
-        logger.info(
-          s"[SessionController][handleValidRequest]" +
-            s" A session in the database matched the current session request, list of sessions: $result"
-        )
-        handleConflictScenario(validRequest)
-      case PartialDuplicate =>
-        logger.info(
-          s"[SessionController][handleValidRequest]" +
-            s" Another document matching mtditid: ${validRequest.mtditid} but different sessionId: ${validRequest.sessionId} and internalId ${validRequest.internalId}"
-        )
-        Future.successful(
-          Forbidden(
-            s"Another document matching mtditid: ${validRequest.mtditid} but different sessionId: ${validRequest.sessionId} and internalId ${validRequest.internalId}"
-          )
-        )
-      case NonDuplicate =>
-        logger.info(s"[SessionController][handleValidRequest]: No live sessions matching mtditid: ${validRequest.mtditid}")
-        handleOkScenario(validRequest)
-    }
-  }
-
-  private def handleConflictScenario(validRequest: Session): Future[Result] = {
-    sessionService.set(validRequest) map {
-      case Right(true) =>
-        logger.info(
-          s"[SessionController][handleConflictScenario]: Successfully set session despite matching documenting existing in the database"
-        )
-        Conflict("Successfully set session despite matching documenting existing in the database")
-      case Right(false) =>
-        logger.info(s"[SessionController][handleConflictScenario]: Write operation was not acknowledged")
-        InternalServerError("Write operation was not acknowledged")
-      case Left(ex: Throwable) =>
-        logger.error(
-          s"[SessionController][handleConflictScenario]: Unknown exception < Message: ${ex.getMessage}, Cause: ${ex.getCause} >"
-        )
-        InternalServerError("Unknown exception")
-    }
-  }
-
-  private def handleOkScenario(validRequest: Session): Future[Result] = {
-    sessionService.set(validRequest) map {
-      case Right(true) =>
-        logger.info(s"[SessionController][handleOkScenario]: Successfully set session")
-        Ok("Successfully set session")
-      case Right(false) =>
-        logger.info(s"[SessionController][handleOkScenario]: Write operation was not acknowledged")
-        InternalServerError("Write operation was not acknowledged")
-      case Left(ex: Throwable) =>
-        logger.error(
-          s"[SessionController][handleOkScenario]: Unknown exception < Message: ${ex.getMessage}, Cause: ${ex.getCause} >"
-        )
-        InternalServerError("Unknown exception")
     }
   }
 
