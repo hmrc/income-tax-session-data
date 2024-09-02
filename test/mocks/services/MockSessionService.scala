@@ -19,7 +19,9 @@ package mocks.services
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{mock, reset, when}
 import org.scalatest.BeforeAndAfterEach
-import uk.gov.hmrc.incometaxsessiondata.models.{NonDuplicate, SessionDuplicationType}
+import play.api.mvc.Result
+import play.api.mvc.Results.Ok
+import uk.gov.hmrc.incometaxsessiondata.models.SessionDuplicationType
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 import utils.TestSupport
 
@@ -34,11 +36,15 @@ trait MockSessionService extends TestSupport with BeforeAndAfterEach {
     reset(mockSessionService)
   }
 
-  def setupMockGenericGetDuplicationStatus(): Unit = {
-    when(mockSessionService.getDuplicationStatus(any())).thenReturn(Future(NonDuplicate))
+  def setupMockGenericHandleValidRequest(): Unit = {
+    when(mockSessionService.handleValidRequest(any())).thenReturn(Future.successful(Ok("Generic OK message")))
   }
 
-  def setupMockGetDuplicationStatus(status: SessionDuplicationType): Unit = {
-    when(mockSessionService.getDuplicationStatus(any())).thenReturn(Future(status))
+  def setupMockHandleValidRequest(result: Result): Unit = {
+    when(mockSessionService.handleValidRequest(any())).thenReturn(Future.successful(result))
+  }
+
+  def setupMockHandleValidRequestFutureFailed(): Unit = {
+    when(mockSessionService.handleValidRequest(any())).thenReturn(Future.failed(new Exception("Test future failed")))
   }
 }

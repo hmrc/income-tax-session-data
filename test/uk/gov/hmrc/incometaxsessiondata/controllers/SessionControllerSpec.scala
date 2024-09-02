@@ -22,7 +22,7 @@ import mocks.services.MockSessionService
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import play.api.libs.json.Json
-import play.api.mvc.Results.InternalServerError
+import play.api.mvc.Results.{Conflict, Forbidden, InternalServerError, Ok}
 import play.api.mvc.{ControllerComponents, Result}
 import play.api.test.Helpers._
 import uk.gov.hmrc.incometaxsessiondata.auth.HeaderExtractor
@@ -90,8 +90,7 @@ class SessionControllerSpec extends MockMicroserviceAuthConnector with MockSessi
     }
     "there is an unexpected error from service" should {
       "recover with an internal server error" in {
-        when(mockSessionService.set(any())).thenReturn(Future.failed(new Error("")))
-        setupMockGenericGetDuplicationStatus()
+        setupMockHandleValidRequestFutureFailed()
 
         val result: Future[Result] = testSessionController.set()(
           fakeRequestWithActiveSession.withJsonBody(Json.toJson[SessionData](testSessionData))
@@ -101,90 +100,39 @@ class SessionControllerSpec extends MockMicroserviceAuthConnector with MockSessi
     }
   }
 
-  "SessionController.set" when {
-    "record is not a duplicate" when {
-      "the service adds the record to the database successfully" should {
-        "return an Ok response" in {
-          when(mockSessionService.set(any())).thenReturn(Future(Right(true)))
-          setupMockGetDuplicationStatus(NonDuplicate)
+  "SessionController.set" should {
+    "pass through the result from the service" when {
+      "the service returns an Ok result" in {
+        setupMockHandleValidRequest(Ok("test 123"))
 
-          val result: Future[Result] = testSessionController.set()(
-            fakeRequestWithActiveSession.withJsonBody(Json.toJson[SessionData](testSessionData))
-          )
-          status(result) shouldBe OK
-        }
+        val result: Future[Result] = testSessionController.set()(
+          fakeRequestWithActiveSession.withJsonBody(Json.toJson[SessionData](testSessionData))
+        )
+        status(result) shouldBe OK
       }
-      "the repository does not acknowledge the database operation" should {
-        "return an error" in {
-          when(mockSessionService.set(any())).thenReturn(Future(Right(false)))
-          setupMockGetDuplicationStatus(NonDuplicate)
+      "the service returns an Forbidden result" in {
+        setupMockHandleValidRequest(Forbidden("test 123"))
 
-          val result: Future[Result] = testSessionController.set()(
-            fakeRequestWithActiveSession.withJsonBody(Json.toJson[SessionData](testSessionData))
-          )
-          result.futureValue shouldBe InternalServerError("Write operation was not acknowledged")
-        }
+        val result: Future[Result] = testSessionController.set()(
+          fakeRequestWithActiveSession.withJsonBody(Json.toJson[SessionData](testSessionData))
+        )
+        status(result) shouldBe FORBIDDEN
       }
-      "the service returns an exception" should {
-        "return an error" in {
-          when(mockSessionService.set(any())).thenReturn(Future(Left(new Exception("Test error!"))))
-          setupMockGetDuplicationStatus(NonDuplicate)
+      "the service returns an Conflict result" in {
+        setupMockHandleValidRequest(Conflict("test 123"))
 
-          val result: Future[Result] = testSessionController.set()(
-            fakeRequestWithActiveSession.withJsonBody(Json.toJson[SessionData](testSessionData))
-          )
-          result.futureValue shouldBe InternalServerError("Unknown exception")
-        }
+        val result: Future[Result] = testSessionController.set()(
+          fakeRequestWithActiveSession.withJsonBody(Json.toJson[SessionData](testSessionData))
+        )
+        status(result) shouldBe CONFLICT
       }
-    }
+      "the service returns an InternalServerError result" in {
+        setupMockHandleValidRequest(InternalServerError("test 123"))
 
-    "record is a partial duplicate" when {
-      "the service adds the record to the database successfully" should {
-        "return a Forbidden response" in {
-          when(mockSessionService.set(any())).thenReturn(Future(Right(true)))
-          setupMockGetDuplicationStatus(PartialDuplicate)
-
-          val result: Future[Result] = testSessionController.set()(
-            fakeRequestWithActiveSession.withJsonBody(Json.toJson[SessionData](testSessionData))
-          )
-          status(result) shouldBe FORBIDDEN
-        }
-      }
-    }
-
-    "record is a full duplicate" when {
-      "the service adds the record to the database successfully" should {
-        "return a Conflict response" in {
-          when(mockSessionService.set(any())).thenReturn(Future(Right(true)))
-          setupMockGetDuplicationStatus(FullDuplicate)
-
-          val result: Future[Result] = testSessionController.set()(
-            fakeRequestWithActiveSession.withJsonBody(Json.toJson[SessionData](testSessionData))
-          )
-          status(result) shouldBe CONFLICT
-        }
-      }
-      "the repository does not acknowledge the database operation" should {
-        "return an error" in {
-          when(mockSessionService.set(any())).thenReturn(Future(Right(false)))
-          setupMockGetDuplicationStatus(FullDuplicate)
-
-          val result: Future[Result] = testSessionController.set()(
-            fakeRequestWithActiveSession.withJsonBody(Json.toJson[SessionData](testSessionData))
-          )
-          result.futureValue shouldBe InternalServerError("Write operation was not acknowledged")
-        }
-      }
-      "the service returns an exception" should {
-        "return an error" in {
-          when(mockSessionService.set(any())).thenReturn(Future(Left(new Exception("Test error!"))))
-          setupMockGetDuplicationStatus(FullDuplicate)
-
-          val result: Future[Result] = testSessionController.set()(
-            fakeRequestWithActiveSession.withJsonBody(Json.toJson[SessionData](testSessionData))
-          )
-          result.futureValue shouldBe InternalServerError("Unknown exception")
-        }
+        val result: Future[Result] = testSessionController.set()(
+          fakeRequestWithActiveSession.withJsonBody(Json.toJson[SessionData](testSessionData))
+        )
+        status(result) shouldBe INTERNAL_SERVER_ERROR
       }
     }
   }
