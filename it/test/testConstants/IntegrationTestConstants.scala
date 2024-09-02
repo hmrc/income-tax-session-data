@@ -34,14 +34,12 @@ object IntegrationTestConstants {
 
   val testRequest: SessionDataRequest[_] = SessionDataRequest(
     internalId = itTestInternalId,
-    sessionId = itTestSessionId,
-    mtditid = itTestMtditid
+    sessionId = itTestSessionId
   )(FakeRequest())
 
   val testDefaultRequest: SessionDataRequest[_] = SessionDataRequest(
     internalId = defaultRequestInternalId,
-    sessionId = defaultRequestSessionId,
-    mtditid = itTestMtditid
+    sessionId = defaultRequestSessionId
   )(FakeRequest())
 
   val testDefaultSession: Session = Session(
