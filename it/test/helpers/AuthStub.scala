@@ -52,7 +52,8 @@ object AuthStub extends ComponentSpecBase {
    Json.obj(
       "internalId" -> "123",
       "affinityGroup" -> { if (asAgent) "Agent" else "Individual" },
-      "allEnrolments" -> json
+      "allEnrolments" -> json,
+      "confidenceLevel" -> { if (asAgent) 50 else 200 }
     )
   }
 
