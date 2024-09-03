@@ -25,9 +25,9 @@ import java.time.Instant
 object BaseTestConstants extends TestSupport {
 
   val testMtditid: String = "testMtditid"
-  val testInternalId: String = "testInternalId"
+  val testInternalId: String = "123"
   val testInternalIdAlternative: String = "testInternalIdAlternative"
-  val testSessionId: String = "test1123"
+  val testSessionId: String = "xsession-12345"
   val testNino: String = "testNino123"
   val testUtr: String = "testUtr123"
   val testLastUpdated: Instant = Instant.ofEpochMilli(270899)

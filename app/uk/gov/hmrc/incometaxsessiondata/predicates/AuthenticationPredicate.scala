@@ -59,7 +59,7 @@ class AuthenticationPredicate @Inject() (
         // TODO: add confidence level checks
         case Some(AffinityGroup.Individual) ~ Some(id)  =>
           val sessionId: String = hc.sessionId.map(_.value).get
-          logger.info(s"[AuthenticationPredicate][authenticated] - authenticated as an individual")
+          logger.info(s"[AuthenticationPredicate][authenticated] - authenticated as an individual ${sessionId} - ${id}")
           f(SessionDataRequest[A](internalId = id, sessionId = sessionId))
         case _ ~ _                                         =>
           logger.info(s"[AuthenticationPredicate][unauthorized]")
