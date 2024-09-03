@@ -59,9 +59,9 @@ class AuthenticationPredicate @Inject() (
 
     authorised()
       .retrieve(affinityGroup and internalId and confidenceLevel) {
-        case Some(AffinityGroup.Agent) ~ Some(id) ~ cl if (hc.sessionId.isDefined) =>
+        case Some(AffinityGroup.Agent) ~ Some(id) ~ _ if (hc.sessionId.isDefined) =>
           val sessionId: String = hc.sessionId.map(_.value).get
-          logger.info(s"[AuthenticationPredicate][authenticated] - authenticated as an agent - ${cl}")
+          logger.info(s"[AuthenticationPredicate][authenticated] - authenticated as an agent")
           f(SessionDataRequest[A](internalId = id, sessionId = sessionId))
 
         case Some(AffinityGroup.Individual) ~ Some(id) ~ userConfidenceLevel if hc.sessionId.isDefined && requiredConfidenceLevel(userConfidenceLevel)  =>
