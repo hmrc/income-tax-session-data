@@ -23,12 +23,12 @@ object UserDetailsStub extends ComponentSpecBase {
 
   val getUserDetailsUrl = userDetailsUrl
 
-  def stubGetUserDetails(): Unit = {
+  def stubGetUserDetails(isAgent: Boolean = true): Unit = {
     WiremockHelper.stubGet(getUserDetailsUrl, Status.OK,
       s"""{
          |    "name":"$testUserName",
          |    "email":"test@test.com",
-         |    "affinityGroup" : "Agent",
+         |    "affinityGroup" : "${if (isAgent) { Symbol("Agent") } else { Symbol("Individual") } }",
          |    "credentialRole": "n/a",
          |    "description" : "description",
          |    "lastName":"test",

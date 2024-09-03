@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.incometaxsessiondata.models
 
-import play.api.http.Status.{CONFLICT, OK, FORBIDDEN}
+import play.api.http.Status.{CONFLICT, OK}
 
 sealed trait SessionDuplicationType
 
