@@ -142,7 +142,7 @@ class SessionControllerISpec
       }
     }
 
-    "return UNAUTHORIZED when auth as individual" when {
+    "return BadRequest when session data not valid" when {
       "data provided in invalid" in {
         UserDetailsStub.stubGetUserDetails(isAgent = false)
         AuthStub.stubAuthorised(asAgent = false)
