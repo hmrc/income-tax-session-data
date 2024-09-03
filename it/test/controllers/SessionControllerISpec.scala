@@ -73,17 +73,17 @@ class SessionControllerISpec
     }
 
     // TODO: find out why this test is failing
-//    "return Ok when auth as Individual" when {
-//      "there is data in mongo under that id" in {
-//        UserDetailsStub.stubGetUserDetails(isAgent = false)
-//        AuthStub.stubAuthorised(asAgent = false)
-//        await(sessionService.set(testValidRequest))
-//        val result = get("/")
-//        result should have(
-//          httpStatus(OK)
-//        )
-//      }
-//    }
+    "return Ok when auth as Individual" when {
+      "there is data in mongo under that id" in {
+        UserDetailsStub.stubGetUserDetails(isAgent = false)
+        AuthStub.stubAuthorised(asAgent = false)
+        await(sessionService.set(testValidRequest))
+        val result = get("/")
+        result should have(
+          httpStatus(OK)
+        )
+      }
+    }
 
     "return Not Found" when {
       "there is no data in mongo with that id" in {

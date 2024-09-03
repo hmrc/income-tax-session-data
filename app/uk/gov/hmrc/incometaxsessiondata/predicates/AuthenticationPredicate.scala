@@ -57,7 +57,7 @@ class AuthenticationPredicate @Inject() (
           logger.info(s"[AuthenticationPredicate][authenticated] - authenticated as an agent")
           f(SessionDataRequest[A](internalId = id, sessionId = sessionId))
         // TODO: add confidence level checks
-        case Some(AffinityGroup.Individual) ~ Some(id) if hc.sessionId.isDefined =>
+        case Some(AffinityGroup.Individual) ~ Some(id)  =>
           val sessionId: String = hc.sessionId.map(_.value).get
           logger.info(s"[AuthenticationPredicate][authenticated] - authenticated as an individual")
           f(SessionDataRequest[A](internalId = id, sessionId = sessionId))
