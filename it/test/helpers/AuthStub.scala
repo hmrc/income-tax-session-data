@@ -49,11 +49,13 @@ object AuthStub extends ComponentSpecBase {
       else
         Json.toJson[Seq[Enrolment]](individualEnrolments)
     }
-    Json.obj(
+    val x = Json.obj(
       "internalId" -> "123",
       "affinityGroup" -> { if (asAgent) "Agent" else "Individual" },
       "allEnrolments" -> json
     )
+    println(s"BALANCING: ${x.value.mkString("\n ")}")
+    x
   }
 
   def stubAuthorised(asAgent: Boolean): Unit = {

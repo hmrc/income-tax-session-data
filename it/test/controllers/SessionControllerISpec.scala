@@ -26,8 +26,8 @@ import play.api.http.Status._
 import play.api.libs.json.Json
 import play.api.libs.ws.WSResponse
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import testConstants.BaseTestConstants.testSessionData
-import testConstants.IntegrationTestConstants.{itTestSessionId, testDefaultRequest, testDefaultSession, testValidRequest}
+import testConstants.BaseTestConstants.{testSessionData, testValidRequest}
+import testConstants.IntegrationTestConstants.{itTestSessionId, testDefaultRequest, testDefaultSession}
 import uk.gov.hmrc.incometaxsessiondata.models.{Session, SessionData}
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 
@@ -94,6 +94,7 @@ class SessionControllerISpec
         )
       }
     }
+
   }
 
   "Sending a POST request to the session data service" should {
@@ -148,7 +149,7 @@ class SessionControllerISpec
 
         val result = post("/")(Json.toJson[String]("not a valid session"))
         result should have(
-          httpStatus(UNAUTHORIZED)
+          httpStatus(BAD_REQUEST)
         )
       }
     }
