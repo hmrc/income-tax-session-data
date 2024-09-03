@@ -1,0 +1,76 @@
+/*
+ * Copyright 2024 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package testConstants
+
+import play.api.test.FakeRequest
+import uk.gov.hmrc.incometaxsessiondata.models.{Session, SessionData, SessionDataRequest}
+import utils.TestSupport
+
+import java.time.Instant
+
+object BaseTestConstants extends TestSupport {
+
+  val testMtditid: String = "testMtditid"
+  val testInternalId: String = "testInternalId"
+  val testInternalIdAlternative: String = "testInternalIdAlternative"
+  val testSessionId: String = "test1123"
+  val testNino: String = "testNino123"
+  val testUtr: String = "testUtr123"
+  val testLastUpdated: Instant = Instant.ofEpochMilli(270899)
+
+  val testRequest: SessionDataRequest[_] = SessionDataRequest(
+    internalId = testInternalId,
+    sessionId = testSessionId
+  )(FakeRequest())
+
+  val testSessionData: SessionData = SessionData(
+    sessionId = testSessionId,
+    mtditid = testMtditid,
+    nino = testNino,
+    utr = testUtr
+  )
+
+  val testValidRequest: Session = Session(
+    mtditid = testMtditid,
+    nino = testNino,
+    utr = testUtr,
+    internalId = testInternalId,
+    sessionId = testSessionId,
+    lastUpdated = testLastUpdated
+  )
+
+  val testSession: Session = testValidRequest
+
+  val testSessionAllA: Session = Session(
+    mtditid = "A",
+    nino = "A",
+    utr = "A",
+    internalId = "A",
+    sessionId = "A",
+    lastUpdated = Instant.ofEpochMilli(1)
+  )
+
+  val testSessionDifferentInternalId: Session = Session(
+    mtditid = testMtditid,
+    nino = testNino,
+    utr = testUtr,
+    internalId = testInternalIdAlternative,
+    sessionId = testSessionId,
+    lastUpdated = testLastUpdated
+  )
+
+}

@@ -17,40 +17,42 @@
 package uk.gov.hmrc.incometaxsessiondata.models
 
 import play.api.libs.functional.syntax.{toFunctionalBuilderOps, unlift}
-import play.api.libs.json.{OFormat, __}
+import play.api.libs.json.{OFormat, Reads, __}
 import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 
 import java.time.Instant
 
 case class Session(
-  sessionID: String,
   mtditid: String,
   nino: String,
-  saUtr: String,
-  clientFirstName: Option[String],
-  clientLastName: Option[String],
-  userType: String,
+  utr: String,
+  internalId: String,
+  sessionId: String,
   lastUpdated: Instant = Instant.now
 )
+
 object Session {
-  implicit val fromSessionData: SessionData => Session = sessionData =>
-    Session(
-      sessionID = sessionData.sessionID,
-      mtditid = sessionData.mtditid,
-      nino = sessionData.nino,
-      saUtr = sessionData.saUtr,
-      clientFirstName = sessionData.clientFirstName,
-      clientLastName = sessionData.clientLastName,
-      userType = sessionData.userType
-    )
+
+  def readsWithRequest(request: SessionDataRequest[_]): Reads[Session] =
+    Reads[Session] { json =>
+      for {
+        mtditid <- (json \ "mtditid").validate[String]
+        nino    <- (json \ "nino").validate[String]
+        utr     <- (json \ "utr").validate[String]
+      } yield Session(
+        mtditid = mtditid,
+        nino = nino,
+        utr = utr,
+        internalId = request.internalId,
+        sessionId = request.sessionId
+      )
+    }
 
   implicit val format: OFormat[Session] =
-    ((__ \ "sessionID").format[String]
-      ~ (__ \ "mtditid").format[String]
+    ((__ \ "mtditid").format[String]
       ~ (__ \ "nino").format[String]
-      ~ (__ \ "saUtr").format[String]
-      ~ (__ \ "clientFirstName").formatNullable[String]
-      ~ (__ \ "clientLastName").formatNullable[String]
-      ~ (__ \ "userType").format[String]
+      ~ (__ \ "utr").format[String]
+      ~ (__ \ "internalId").format[String]
+      ~ (__ \ "sessionId").format[String]
       ~ (__ \ "lastUpdated").format(MongoJavatimeFormats.instantFormat))(Session.apply, unlift(Session.unapply))
 }

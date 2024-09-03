@@ -14,25 +14,20 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.incometaxsessiondata.models
+package mocks.repositories
 
-import play.api.libs.json.{Format, Json}
+import org.mockito.Mockito.{mock, reset}
+import org.scalatest.BeforeAndAfterEach
+import uk.gov.hmrc.incometaxsessiondata.repositories.SessionDataRepository
+import utils.TestSupport
 
-case class SessionData(
-  mtditid: String,
-  nino: String,
-  utr: String,
-  sessionId: String
-)
+trait MockSessionDataRepository extends TestSupport with BeforeAndAfterEach {
 
-object SessionData {
-  implicit val fromSession: Session => SessionData = session =>
-    SessionData(
-      mtditid = session.mtditid,
-      nino = session.nino,
-      utr = session.utr,
-      sessionId = session.sessionId
-    )
-  implicit val format: Format[SessionData]         = Json.format[SessionData]
+  val mockRepository: SessionDataRepository = mock(classOf[SessionDataRepository])
+
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockRepository)
+  }
 
 }

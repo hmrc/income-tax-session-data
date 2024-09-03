@@ -16,23 +16,14 @@
 
 package uk.gov.hmrc.incometaxsessiondata.models
 
-import play.api.libs.json.{Format, Json}
+import play.api.http.Status.{CONFLICT, OK, FORBIDDEN}
 
-case class SessionData(
-  mtditid: String,
-  nino: String,
-  utr: String,
-  sessionId: String
-)
+sealed trait SessionDuplicationType
 
-object SessionData {
-  implicit val fromSession: Session => SessionData = session =>
-    SessionData(
-      mtditid = session.mtditid,
-      nino = session.nino,
-      utr = session.utr,
-      sessionId = session.sessionId
-    )
-  implicit val format: Format[SessionData]         = Json.format[SessionData]
+case object FullDuplicate extends SessionDuplicationType {
+  val statusCode = CONFLICT
+}
 
+case object NonDuplicate extends SessionDuplicationType {
+  val statusCode = OK
 }

@@ -19,7 +19,7 @@ package uk.gov.hmrc.incometaxsessiondata.controllers
 import play.api.Logging
 import play.api.libs.json.{JsError, JsSuccess, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.incometaxsessiondata.models.SessionData
+import uk.gov.hmrc.incometaxsessiondata.models.{Session, SessionData}
 import uk.gov.hmrc.incometaxsessiondata.predicates.AuthenticationPredicate
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -28,28 +28,25 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton()
-class SessionController @Inject() (
-  cc: ControllerComponents,
-  authentication: AuthenticationPredicate,
-  sessionService: SessionService
-)(implicit ec: ExecutionContext)
-    extends BackendController(cc)
+class SessionController @Inject()(
+                                   cc: ControllerComponents,
+                                   authentication: AuthenticationPredicate,
+                                   sessionService: SessionService
+                                 )(implicit ec: ExecutionContext)
+  extends BackendController(cc)
     with Logging {
 
-  def getById(sessionID: String): Action[AnyContent] = authentication.async { request =>
+  def get(): Action[AnyContent] = authentication.async { request =>
     // Here is required internalID => request.internalId and request.sessionId
-    sessionService.get(sessionID) map {
-      case Right(Some(session: SessionData)) =>
-        logger.info(s"[SessionController][getById]: Successfully retrieved session data: $session")
+    sessionService.get(request) map {
+      case Some(session: SessionData) =>
+        logger.info(s"[SessionController][get]: Successfully retrieved session data. SessionId: ${session.sessionId}")
         Ok(Json.toJson(session))
-      case Right(None)                       =>
-        logger.info(s"[SessionController][getById]: No live session")
+      case None =>
+        logger.info(s"[SessionController][get]: No live session")
         NotFound("No session data found")
-      case Left(ex)                          =>
-        logger.error(s"[SessionController][getById]: Failed to retrieve session with id: $sessionID - ${ex.getMessage}")
-        InternalServerError(s"Failed to retrieve session with id: $sessionID")
     } recover { case ex =>
-      logger.error(s"[SessionController][getById]: Unexpected error while getting session: $ex")
+      logger.error(s"[SessionController][get]: Unexpected error while getting session: $ex")
       InternalServerError(s"Unexpected error while getting session: $ex")
     }
   }
@@ -58,12 +55,12 @@ class SessionController @Inject() (
     // Here is required internalID => request.internalId and request.sessionId
     request.body.asJson
       .getOrElse(Json.obj())
-      .validate[SessionData] match {
-      case err: JsError               =>
+      .validate(Session.readsWithRequest(request)) match {
+      case err: JsError =>
         logger.error(s"[SessionController][set]: Json validation error while parsing request: $err")
         Future.successful(BadRequest(s"Json validation error while parsing request: $err"))
       case JsSuccess(validRequest, _) =>
-        save(validRequest)
+        sessionService.handleValidRequest(validRequest)
           .recover { case ex =>
             logger.error(s"[SessionController][set]: Unexpected error while setting session: $ex")
             InternalServerError(s"Unexpected error while setting session: $ex")
@@ -71,13 +68,4 @@ class SessionController @Inject() (
     }
   }
 
-  private def save(validRequest: SessionData) =
-    sessionService.set(validRequest) map {
-      case true  =>
-        logger.info(s"[SessionController][save]: Successfully set session")
-        Ok("Successfully set session")
-      case false =>
-        logger.error(s"[SessionController][save]: Failed to set session")
-        InternalServerError("Failed to set session")
-    }
 }

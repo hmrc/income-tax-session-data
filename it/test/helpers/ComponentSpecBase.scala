@@ -17,6 +17,9 @@
 package helpers
 
 import auth.TestHeaderExtractor
+import org.mongodb.scala.bson.conversions.Bson
+import org.mongodb.scala.model.Filters.and
+import org.mongodb.scala.result.DeleteResult
 import org.scalatest.concurrent.{Eventually, IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, TestSuite}
@@ -29,6 +32,10 @@ import play.api.{Application, Environment, Mode}
 import uk.gov.hmrc.auth.core.AffinityGroup.{Agent, Individual}
 import uk.gov.hmrc.incometaxsessiondata.auth.HeaderExtractor
 import uk.gov.hmrc.incometaxsessiondata.config.AppConfig
+import uk.gov.hmrc.incometaxsessiondata.models.Session
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+
+import scala.concurrent.Future
 
 trait ComponentSpecBase extends TestSuite with GuiceOneServerPerSuite with ScalaFutures
   with IntegrationPatience with Matchers
@@ -67,6 +74,14 @@ trait ComponentSpecBase extends TestSuite with GuiceOneServerPerSuite with Scala
       .post(body).futureValue
   }
 
+  def clearDb[T](repository: PlayMongoRepository[T], sessionId: String): Future[DeleteResult] = {
+    repository.collection.deleteMany(dataFilter(sessionId)).toFuture()
+  }
+
+  private def dataFilter(sessionId: String): Bson = {
+    and(org.mongodb.scala.model.Filters.equal("sessionId", sessionId))
+  }
+
   val appConfig: AppConfig = app.injector.instanceOf[AppConfig]
 
   val testUserTypeIndividual = Individual
@@ -83,6 +98,8 @@ trait ComponentSpecBase extends TestSuite with GuiceOneServerPerSuite with Scala
   val credId = "12345-credId"
   val testSessionId = "xsession-12345"
   val testArn = "XAIT0000123456"
+  val testInternalId = "test-internal-id-integration"
+  val testInternalIdAlternative = "test-internal-id-integration-alternative"
 
   val testNinoEnrolmentKey = "HMRC-NI"
   val testNinoEnrolmentIdentifier = "NINO"
@@ -95,6 +112,22 @@ trait ComponentSpecBase extends TestSuite with GuiceOneServerPerSuite with Scala
   val mockUrl: String = s"http://$mockHost:$mockPort"
   val userDetailsUrl = "/user-details/id/5397272a3d00003d002f3ca9"
   val testUserDetailsWiremockUrl: String = mockUrl + userDetailsUrl
+
+  val testSession: Session = Session(
+    sessionId = testSessionId,
+    mtditid = "id-123",
+    nino = "nino-123",
+    utr = "utr-123",
+    internalId = testInternalId
+  )
+
+  val testSessionDifferentInternalId: Session = Session(
+    sessionId = testSessionId,
+    mtditid = "id-123",
+    nino = "nino-123",
+    utr = "utr-123",
+    internalId = testInternalIdAlternative
+  )
 
   case class KVPair(key: String, value: String)
   case class Enrolment(key: String, identifiers: Seq[KVPair], state: String)
