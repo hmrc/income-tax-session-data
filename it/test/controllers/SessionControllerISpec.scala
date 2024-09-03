@@ -72,7 +72,6 @@ class SessionControllerISpec
       }
     }
 
-    // TODO: find out why this test is failing
     "return Ok when auth as Individual" when {
       "there is data in mongo under that id" in {
         UserDetailsStub.stubGetUserDetails(isAgent = false)
