@@ -47,12 +47,6 @@ class SessionDataRepository @Inject()(
           .unique(true)
       ),
       IndexModel(
-        Indexes.ascending("sessionId"),
-        IndexOptions()
-          .name("sessionIDIndex")
-          .unique(false)
-      ),
-      IndexModel(
         Indexes.ascending("lastUpdated"),
         IndexOptions()
           .name("lastUpdatedIndex")
