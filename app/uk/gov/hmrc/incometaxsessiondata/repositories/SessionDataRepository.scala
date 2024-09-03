@@ -62,14 +62,12 @@ class SessionDataRepository @Inject()(
       )
     ),
     replaceIndexes = true
-  )  with Logging {
+  ) {
 
   private def dataFilter(sessionId: String, internalId: String): Bson =
     and(equal("sessionId", sessionId), equal("internalId", internalId))
 
   def get(sessionId: String, internalId: String): Future[Option[Session]] = {
-    logger.info(s"[SessionDataRepository][get] - ${sessionId} - ${internalId}")
-
     collection
       .find(dataFilter(sessionId, internalId))
       .headOption()
