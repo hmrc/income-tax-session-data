@@ -52,19 +52,15 @@ class AuthenticationPredicate @Inject() (
 
     authorised()
       .retrieve(affinityGroup and internalId) {
-        case Some(AffinityGroup.Agent) ~ Some(id) =>
-          if (hc.sessionId.isDefined) {
-            val sessionId: String = hc.sessionId.map(_.value).get
-            logger.info(s"[AuthenticationPredicate][authenticated] - authenticated as an agent")
-            f(SessionDataRequest[A](internalId = id, sessionId = sessionId))
-          } else {
-            logger.info(s"[AuthenticationPredicate][unauthorized] - unable to extract sessionId")
-            Future(Unauthorized)
-          }
-        // TODO: re-enable ConfidenceLevel check when enabling this part of the flow
-        case Some(AffinityGroup.Individual) ~ _            =>
-          logger.info(s"[AuthenticationPredicate][unauthorized] - Individuals not supported")
-          Future(Unauthorized)
+        case Some(AffinityGroup.Agent) ~ Some(id) if (hc.sessionId.isDefined) =>
+          val sessionId: String = hc.sessionId.map(_.value).get
+          logger.info(s"[AuthenticationPredicate][authenticated] - authenticated as an agent")
+          f(SessionDataRequest[A](internalId = id, sessionId = sessionId))
+        // TODO: add confidence level checks
+        case Some(AffinityGroup.Individual) ~ Some(id) if hc.sessionId.isDefined =>
+          val sessionId: String = hc.sessionId.map(_.value).get
+          logger.info(s"[AuthenticationPredicate][authenticated] - authenticated as an individual")
+          f(SessionDataRequest[A](internalId = id, sessionId = sessionId))
         case _ ~ _                                         =>
           logger.info(s"[AuthenticationPredicate][unauthorized]")
           Future(Unauthorized)
