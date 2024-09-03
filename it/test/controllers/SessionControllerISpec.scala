@@ -26,8 +26,8 @@ import play.api.http.Status._
 import play.api.libs.json.Json
 import play.api.libs.ws.WSResponse
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import testConstants.BaseTestConstants.testSessionData
-import testConstants.IntegrationTestConstants.{itTestSessionId, testDefaultRequest, testDefaultSession, testValidRequest}
+import testConstants.BaseTestConstants.{testSessionData, testValidRequest}
+import testConstants.IntegrationTestConstants.{itTestSessionId, testDefaultRequest, testDefaultSession}
 import uk.gov.hmrc.incometaxsessiondata.models.{Session, SessionData}
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 
@@ -72,14 +72,14 @@ class SessionControllerISpec
       }
     }
 
-    "return error when auth as Individual" when {
+    "return Ok when auth as Individual" when {
       "there is data in mongo under that id" in {
-        UserDetailsStub.stubGetUserDetails()
+        UserDetailsStub.stubGetUserDetails(isAgent = false)
         AuthStub.stubAuthorised(asAgent = false)
         await(sessionService.set(testValidRequest))
         val result = get("/")
         result should have(
-          httpStatus(UNAUTHORIZED)
+          httpStatus(OK)
         )
       }
     }
@@ -93,6 +93,7 @@ class SessionControllerISpec
         )
       }
     }
+
   }
 
   "Sending a POST request to the session data service" should {
@@ -119,12 +120,12 @@ class SessionControllerISpec
 
     "add data to mongo when auth as individual" when {
       "not data found" in {
-        UserDetailsStub.stubGetUserDetails()
+        UserDetailsStub.stubGetUserDetails( isAgent = false)
         AuthStub.stubAuthorised(asAgent = false)
         val result = post("/")(Json.toJson[SessionData](testSessionData))
-        result should have(httpStatus(UNAUTHORIZED))
+        result should have(httpStatus(OK))
 
-        sessionService.get(testDefaultRequest).futureValue shouldBe None
+        sessionService.get(testDefaultRequest).futureValue shouldBe Some(SessionData("testMtditid", "testNino123", "testUtr123", "xsession-12345"))
       }
     }
 
@@ -140,14 +141,14 @@ class SessionControllerISpec
       }
     }
 
-    "return UNAUTHORIZED when auth as individual" when {
+    "return BadRequest when session data not valid" when {
       "data provided in invalid" in {
-        UserDetailsStub.stubGetUserDetails()
+        UserDetailsStub.stubGetUserDetails(isAgent = false)
         AuthStub.stubAuthorised(asAgent = false)
 
         val result = post("/")(Json.toJson[String]("not a valid session"))
         result should have(
-          httpStatus(UNAUTHORIZED)
+          httpStatus(BAD_REQUEST)
         )
       }
     }

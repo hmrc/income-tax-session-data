@@ -21,6 +21,7 @@ import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.model._
 import org.mongodb.scala.result
+import play.api.Logging
 import uk.gov.hmrc.incometaxsessiondata.config.AppConfig
 import uk.gov.hmrc.incometaxsessiondata.models.Session
 import uk.gov.hmrc.mongo.MongoComponent
@@ -35,7 +36,7 @@ class SessionDataRepository @Inject()(
                                        mongoComponent: MongoComponent,
                                        config: AppConfig
                                      )(implicit ec: ExecutionContext)
-  extends PlayMongoRepository[Session](
+  extends PlayMongoRepository[Session]  (
     collectionName = "session-data",
     mongoComponent = mongoComponent,
     domainFormat = Session.format,
@@ -66,10 +67,11 @@ class SessionDataRepository @Inject()(
   private def dataFilter(sessionId: String, internalId: String): Bson =
     and(equal("sessionId", sessionId), equal("internalId", internalId))
 
-  def get(sessionId: String, internalId: String): Future[Option[Session]] =
+  def get(sessionId: String, internalId: String): Future[Option[Session]] = {
     collection
       .find(dataFilter(sessionId, internalId))
       .headOption()
+  }
 
   def set(data: Session): Future[result.UpdateResult] = {
     collection

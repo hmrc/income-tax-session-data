@@ -84,11 +84,18 @@ class AuthenticationPredicateSpec extends MockMicroserviceAuthConnector {
       futureResult.futureValue.header.status shouldBe Status.OK
     }
 
-    "called authenticated individual" in {
+    "called authenticated individual with ConfidenceLevel50" in {
       val f            = fixture()
       mockAuth(Future.successful(individualAuthResponseWithCL50))
       val futureResult = result(f.predicate, fakeRequestWithActiveSession)
       futureResult.futureValue.header.status shouldBe Status.UNAUTHORIZED
+    }
+
+    "called authenticated individual with ConfidenceLevel250" in {
+      val f            = fixture()
+      mockAuth(Future.successful(individualAuthResponseWithCL250))
+      val futureResult = result(f.predicate, fakeRequestWithActiveSession)
+      futureResult.futureValue.header.status shouldBe Status.OK
     }
 
   }

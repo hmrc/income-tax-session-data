@@ -20,7 +20,7 @@ import com.mongodb.client.result.UpdateResult
 import mocks.repositories.MockSessionDataRepository
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito
-import org.mockito.Mockito.{reset, when}
+import org.mockito.Mockito.when
 import play.api.http.Status.{CONFLICT, OK}
 import play.api.mvc.Result
 import play.api.mvc.Results.InternalServerError
