@@ -21,7 +21,8 @@ import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.model._
 import org.mongodb.scala.result
-import play.api.Logging
+import play.api.Configuration
+import uk.gov.hmrc.crypto.SymmetricCryptoFactory
 import uk.gov.hmrc.incometaxsessiondata.config.AppConfig
 import uk.gov.hmrc.incometaxsessiondata.models.Session
 import uk.gov.hmrc.mongo.MongoComponent
@@ -34,24 +35,21 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class SessionDataRepository @Inject()(
                                        mongoComponent: MongoComponent,
-                                       config: AppConfig
+                                       config: AppConfig,
+                                       configuration: Configuration
                                      )(implicit ec: ExecutionContext)
   extends PlayMongoRepository[Session]  (
     collectionName = "session-data",
     mongoComponent = mongoComponent,
-    domainFormat = Session.format,
+    domainFormat = Session.format(
+      SymmetricCryptoFactory.aesCryptoFromConfig("encryption", configuration.underlying)
+    ),
     indexes = Seq(
       IndexModel(
         Indexes.ascending("sessionId", "internalId"),
         IndexOptions()
           .name("compoundIndex")
           .unique(true)
-      ),
-      IndexModel(
-        Indexes.ascending("sessionId"),
-        IndexOptions()
-          .name("sessionIDIndex")
-          .unique(false)
       ),
       IndexModel(
         Indexes.ascending("lastUpdated"),

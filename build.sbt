@@ -12,6 +12,7 @@ lazy val microservice = Project("income-tax-session-data", file("."))
     scalacOptions += "-Wconf:src=routes/.*:s"
   )
   .settings(resolvers += Resolver.jcenterRepo)
+  .settings(resolvers += MavenRepository("HMRC-open-artefacts-maven2", "https://open.artefacts.tax.service.gov.uk/maven2"))
   .settings(CodeCoverageSettings.settings: _*)
 
 lazy val it = project

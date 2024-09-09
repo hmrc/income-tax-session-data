@@ -17,6 +17,7 @@
 package uk.gov.hmrc.incometaxsessiondata.models
 
 import play.api.libs.json.{Format, Json}
+import uk.gov.hmrc.crypto.SymmetricCryptoFactory
 
 case class SessionData(
   mtditid: String,
@@ -26,11 +27,14 @@ case class SessionData(
 )
 
 object SessionData {
+
+  private val crypter = SymmetricCryptoFactory.aesGcmCrypto("QmFyMTIzNDVCYXIxMjM0NQ==") //TODO: app.conf key
+
   implicit val fromSession: Session => SessionData = session =>
     SessionData(
       mtditid = session.mtditid,
-      nino = session.nino,
-      utr = session.utr,
+      nino = crypter.decrypt(session.nino).value,
+      utr = crypter.decrypt(session.utr).value,
       sessionId = session.sessionId
     )
   implicit val format: Format[SessionData]         = Json.format[SessionData]
