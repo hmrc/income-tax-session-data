@@ -44,7 +44,7 @@ object Session {
       )
     }
 
-  implicit def format: OFormat[Session] =
+  implicit val format: OFormat[Session] =
     ((__ \ "mtditid").format[String]
       ~ (__ \ "nino").format[String]
       ~ (__ \ "utr").format[String]

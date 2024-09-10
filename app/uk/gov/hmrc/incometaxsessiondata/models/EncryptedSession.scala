@@ -68,7 +68,7 @@ object EncryptedSession {
     Format(decrypter, encrypter)
   }
 
-  implicit def format: OFormat[EncryptedSession] =
+  implicit val format: OFormat[EncryptedSession] =
     ((__ \ "mtditid").format[String]
       ~ (__ \ "nino").format[Crypted]
       ~ (__ \ "utr").format[Crypted]
