@@ -21,11 +21,12 @@ import mocks.repositories.MockSessionDataRepository
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito
 import org.mockito.Mockito.when
+import play.api.Configuration
 import play.api.http.Status.{CONFLICT, OK}
 import play.api.mvc.Result
 import play.api.mvc.Results.InternalServerError
 import play.api.test.Helpers.{defaultAwaitTimeout, status}
-import testConstants.BaseTestConstants.{testRequest, testSession, testSessionData, testValidRequest}
+import testConstants.BaseTestConstants.{testEncryptedSession, testRequest, testSession, testSessionData, testValidRequest}
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 import utils.TestSupport
 
@@ -35,7 +36,8 @@ class SessionServiceSpec extends TestSupport with MockSessionDataRepository {
 
   object testSessionService
     extends SessionService(
-      mockRepository
+      mockRepository,
+      app.injector.instanceOf[Configuration]
     )(ec)
 
   override def beforeEach(): Unit = {
@@ -45,9 +47,9 @@ class SessionServiceSpec extends TestSupport with MockSessionDataRepository {
   "SessionService.get" should {
     "return session data" when {
       "data returned from the repository" in {
-        when(mockRepository.get(any(), any())).thenReturn(Future(Some(testSession)))
+        when(mockRepository.get(any(), any())).thenReturn(Future(Some(testEncryptedSession)))
         val result = testSessionService.get(testRequest)
-        result.futureValue shouldBe Some(testSessionData)
+        result.futureValue shouldBe Some(testSession)
       }
     }
     "return None" when {
@@ -119,7 +121,7 @@ class SessionServiceSpec extends TestSupport with MockSessionDataRepository {
     "record is a full duplicate" when {
       "the service adds the record to the database successfully" should {
         "return a Conflict response" in {
-          when(mockRepository.get(any(), any())).thenReturn(Future(Some(testSession)))
+          when(mockRepository.get(any(), any())).thenReturn(Future(Some(testEncryptedSession)))
           when(mockRepository.set(any())).thenReturn(Future(UpdateResult.acknowledged(1, null, null)))
 
           val result: Future[Result] = testSessionService.handleValidRequest(testValidRequest)
@@ -129,7 +131,7 @@ class SessionServiceSpec extends TestSupport with MockSessionDataRepository {
       "the repository does not acknowledge the database operation" should {
         "return an error" in {
           when(mockRepository.set(any())).thenReturn(Future(UpdateResult.unacknowledged()))
-          when(mockRepository.get(any(), any())).thenReturn(Future(Some(testSession)))
+          when(mockRepository.get(any(), any())).thenReturn(Future(Some(testEncryptedSession)))
 
           val result: Result = testSessionService.handleValidRequest(testValidRequest).futureValue
           result shouldBe InternalServerError("Write operation was not acknowledged")
@@ -137,7 +139,7 @@ class SessionServiceSpec extends TestSupport with MockSessionDataRepository {
       }
       "the service returns an exception" should {
         "return an error" in {
-          when(mockRepository.get(any(), any())).thenReturn(Future(Some(testSession)))
+          when(mockRepository.get(any(), any())).thenReturn(Future(Some(testEncryptedSession)))
           when(mockRepository.set(any())).thenThrow(new RuntimeException("Test error"))
 
           val result: Future[Result] = testSessionService.handleValidRequest(testValidRequest)

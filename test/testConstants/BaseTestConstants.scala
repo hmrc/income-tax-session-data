@@ -17,7 +17,8 @@
 package testConstants
 
 import play.api.test.FakeRequest
-import uk.gov.hmrc.incometaxsessiondata.models.{Session, SessionData, SessionDataRequest}
+import uk.gov.hmrc.crypto.{Crypted, PlainText, SymmetricCryptoFactory}
+import uk.gov.hmrc.incometaxsessiondata.models.{EncryptedSession, Session, SessionData, SessionDataRequest}
 import utils.TestSupport
 
 import java.time.Instant
@@ -49,28 +50,32 @@ object BaseTestConstants extends TestSupport {
     nino = testNino,
     utr = testUtr,
     internalId = testInternalId,
-    sessionId = testSessionId,
-    lastUpdated = testLastUpdated
-  )
+    sessionId = testSessionId)
 
   val testSession: Session = testValidRequest
+
+  val crypter = SymmetricCryptoFactory.aesGcmCrypto("QmFyMTIzNDVCYXIxMjM0NQ==")
+
+  val testEncryptedSession: EncryptedSession = EncryptedSession(
+    mtditid = testMtditid,
+    nino = crypter.encrypt(PlainText("testNino123")),
+    utr = crypter.encrypt(PlainText("testUtr123")),
+    internalId = testInternalId,
+    sessionId = testSessionId
+  )
 
   val testSessionAllA: Session = Session(
     mtditid = "A",
     nino = "A",
     utr = "A",
     internalId = "A",
-    sessionId = "A",
-    lastUpdated = Instant.ofEpochMilli(1)
-  )
+    sessionId = "A")
 
   val testSessionDifferentInternalId: Session = Session(
     mtditid = testMtditid,
     nino = testNino,
     utr = testUtr,
     internalId = testInternalIdAlternative,
-    sessionId = testSessionId,
-    lastUpdated = testLastUpdated
-  )
+    sessionId = testSessionId)
 
 }

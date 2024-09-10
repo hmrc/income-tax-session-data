@@ -71,17 +71,13 @@ object IntegrationTestConstants {
     nino = itTestNino,
     utr = itTestUtr,
     internalId = itTestInternalId,
-    sessionId = itTestSessionId,
-    lastUpdated = itTestLastUpdated
-  )
+    sessionId = itTestSessionId)
 
   val testSessionAllB: Session = Session(
     mtditid = "B",
     nino = "B",
     utr = "B",
     internalId = "B",
-    sessionId = "B",
-    lastUpdated = Instant.ofEpochMilli(1)
-  )
+    sessionId = "B")
 
 }

@@ -24,8 +24,8 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import testConstants.IntegrationTestConstants._
-import uk.gov.hmrc.incometaxsessiondata.models.Session
+import uk.gov.hmrc.crypto.{PlainText, SymmetricCryptoFactory}
+import uk.gov.hmrc.incometaxsessiondata.models.EncryptedSession
 import uk.gov.hmrc.incometaxsessiondata.repositories.SessionDataRepository
 
 import scala.concurrent.ExecutionContext
@@ -50,87 +50,65 @@ class SessionDataRepositoryISpec extends AnyWordSpec
 
   val testAlternativeSessionId = "session-xxx"
 
-  override val testSession: Session = Session(
+  val crypter = SymmetricCryptoFactory.aesGcmCrypto("QmFyMTIzNDVCYXIxMjM0NQ==")
+
+  val testEncryptedSession: EncryptedSession = EncryptedSession(
     sessionId = testSessionId,
     mtditid = "testId",
-    nino = "testNino",
-    utr = "testUtr",
+    nino = crypter.encrypt(PlainText("testNino")),
+    utr = crypter.encrypt(PlainText("testUtr")),
     internalId = "test-internal-id"
-  )
-
-  val testSession2: Session = Session(
-    sessionId = itTestSessionId,
-    mtditid = itTestMtditid,
-    nino = itTestNino,
-    utr = itTestUtr,
-    internalId = itTestInternalId
-  )
-
-  val testSessionAlternativeInternalId: Session = Session(
-    sessionId = testSessionId,
-    mtditid = "testId",
-    nino = "testNinoOther",
-    utr = "testUtrOther",
-    internalId = "test-internal-id-other"
-  )
-
-  val otherTestSession: Session = Session(
-    sessionId = testAlternativeSessionId,
-    mtditid = "testIdOther",
-    nino = "testNinoOther",
-    utr = "testUtrOther",
-    internalId = "test-internal-id-other"
   )
 
   "Session Data Repository get method" should {
     "set some data" in {
-      val result = repository.set(testSession)
+      val result = repository.set(testEncryptedSession)
       result.futureValue.wasAcknowledged() shouldBe true
     }
     "get some data using sessionId and internalId" in {
-      await(repository.set(testSession))
-      await(repository.set(testSession.copy(sessionId = "different-session-id", nino = "999-test-999")))
+      await(repository.set(testEncryptedSession))
+      await(repository.set(testEncryptedSession.copy(sessionId = "different-session-id", nino = crypter.encrypt(PlainText("999-test-999")))))
 
-      val result = repository.get("different-session-id", testSession.internalId).futureValue.get
-      result.nino shouldBe "999-test-999"
+      val result = repository.get("different-session-id", testEncryptedSession.internalId).futureValue.get
+      crypter.decrypt(result.nino).value shouldBe "999-test-999"
     }
     "set some data when data with matching session id and different internal id to on which exists in the database" in {
-      await(repository.set(testSession))
-      await(repository.set(testSession.copy(internalId = "different-internal-id", utr = "12345-test-54321")))
+      await(repository.set(testEncryptedSession))
+      await(repository.set(testEncryptedSession.copy(internalId = "different-internal-id", utr = crypter.encrypt(PlainText("12345-test-54321")))))
 
-      val result = repository.get(testSession.sessionId, "different-internal-id").futureValue.get
-      result.utr shouldBe "12345-test-54321"
+      val result = repository.get(testEncryptedSession.sessionId, "different-internal-id").futureValue.get
+      crypter.decrypt(result.utr).value shouldBe "12345-test-54321"
     }
     "set some data when data with matching internal id and different session id to on which exists in the database" in {
-      await(repository.set(testSession))
+      await(repository.set(testEncryptedSession))
 
-      val result = repository.set(testSession.copy(sessionId = "different-session-id"))
+      val result = repository.set(testEncryptedSession.copy(sessionId = "different-session-id"))
       result.futureValue shouldBe UpdateResult.acknowledged(1, 1, null)
     }
     "overwrite some data, when a session with a matching session id and internal id is set" in {
-      await(repository.set(testSession))
-      val resultOne = repository.get(testSession.sessionId, testSession.internalId).futureValue.get
+      await(repository.set(testEncryptedSession))
+      val resultOne = repository.get(testEncryptedSession.sessionId, testEncryptedSession.internalId).futureValue.get
 
-      resultOne.utr shouldBe "testUtr"
-      resultOne.nino shouldBe "testNino"
+      crypter.decrypt(resultOne.utr).value shouldBe "testUtr"
+      crypter.decrypt(resultOne.nino).value shouldBe "testNino"
       resultOne.mtditid shouldBe "testId"
 
-      await(repository.set(testSession.copy(utr = "diffUtr", nino = "diffNino", mtditid = "diffMtditid")))
-      val resultTwo = repository.get(testSession.sessionId, testSession.internalId).futureValue.get
+      await(repository.set(testEncryptedSession.copy(utr = crypter.encrypt(PlainText("diffUtr")), nino = crypter.encrypt(PlainText("diffNino")), mtditid = "diffMtditid")))
+      val resultTwo = repository.get(testEncryptedSession.sessionId, testEncryptedSession.internalId).futureValue.get
 
-      resultTwo.utr shouldBe "diffUtr"
-      resultTwo.nino shouldBe "diffNino"
+      crypter.decrypt(resultTwo.utr).value shouldBe "diffUtr"
+      crypter.decrypt(resultTwo.nino).value shouldBe "diffNino"
       resultTwo.mtditid shouldBe "diffMtditid"
     }
     "get an empty list when searching with session id but there are no entries matching that session id but there are items in the database" in {
-      await(repository.set(testSession))
+      await(repository.set(testEncryptedSession))
 
       val result = repository.get("xTest1", "xTest2")
 
       result.futureValue shouldBe None
     }
     "get an empty list when searching with session id but there are no entries matching that session id" in {
-      val result = repository.get(testSession.sessionId, testSession.internalId)
+      val result = repository.get(testEncryptedSession.sessionId, testEncryptedSession.internalId)
 
       result.futureValue shouldBe None
     }

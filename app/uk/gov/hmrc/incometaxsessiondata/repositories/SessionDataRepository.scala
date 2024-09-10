@@ -34,8 +34,7 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class SessionDataRepository @Inject()(
                                        mongoComponent: MongoComponent,
-                                       config: AppConfig,
-                                       configuration: Configuration
+                                       config: AppConfig
                                      )(implicit ec: ExecutionContext)
   extends PlayMongoRepository[EncryptedSession]  (
     collectionName = "session-data",
