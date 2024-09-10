@@ -16,9 +16,10 @@
 
 package uk.gov.hmrc.incometaxsessiondata.services
 
-import play.api.Logging
+import play.api.{Configuration, Logging}
 import play.api.mvc.Result
 import play.api.mvc.Results.{Conflict, InternalServerError, Ok}
+import uk.gov.hmrc.incometaxsessiondata.config.AppConfig
 import uk.gov.hmrc.incometaxsessiondata.models._
 import uk.gov.hmrc.incometaxsessiondata.repositories.SessionDataRepository
 
@@ -28,20 +29,21 @@ import scala.util.{Failure, Success, Try}
 
 @Singleton
 class SessionService @Inject() (
-  val repository: SessionDataRepository
+  val repository: SessionDataRepository,
+  val config: Configuration
 )(implicit ec: ExecutionContext) extends Logging {
 
-  def get(request: SessionDataRequest[_]): Future[Option[SessionData]] = {
+  def get(request: SessionDataRequest[_]): Future[Option[Session]] = {
     repository.get(request.sessionId, request.internalId) map {
-      case Some(data: Session) =>
-        Some(SessionData.fromSession(data))
+      case Some(data: EncryptedSession) =>
+        Some(EncryptedSession.unapply(data, config))
       case None => None
     }
   }
 
   def set(session: Session): Future[Either[Throwable, Boolean]] = {
     Try {
-      repository.set(session)
+      repository.set(EncryptedSession(session, config))
     } match {
       case Failure(exception) => Future.successful(Left(exception))
       case Success(value) => value.flatMap(res => Future.successful(Right(res.wasAcknowledged)))

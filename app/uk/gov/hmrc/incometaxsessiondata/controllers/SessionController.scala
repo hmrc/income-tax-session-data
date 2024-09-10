@@ -39,9 +39,9 @@ class SessionController @Inject()(
   def get(): Action[AnyContent] = authentication.async { request =>
     // Here is required internalID => request.internalId and request.sessionId
     sessionService.get(request) map {
-      case Some(session: SessionData) =>
+      case Some(session: Session) =>
         logger.info(s"[SessionController][get]: Successfully retrieved session data. SessionId: ${session.sessionId}")
-        Ok(Json.toJson(session))
+        Ok(Json.toJson(SessionData.fromSession(session)))
       case None =>
         logger.info(s"[SessionController][get]: No live session")
         NotFound("No session data found")

@@ -24,7 +24,7 @@ import org.mongodb.scala.result
 import play.api.Configuration
 import uk.gov.hmrc.crypto.SymmetricCryptoFactory
 import uk.gov.hmrc.incometaxsessiondata.config.AppConfig
-import uk.gov.hmrc.incometaxsessiondata.models.Session
+import uk.gov.hmrc.incometaxsessiondata.models.{EncryptedSession, Session}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
@@ -38,12 +38,10 @@ class SessionDataRepository @Inject()(
                                        config: AppConfig,
                                        configuration: Configuration
                                      )(implicit ec: ExecutionContext)
-  extends PlayMongoRepository[Session]  (
+  extends PlayMongoRepository[EncryptedSession]  (
     collectionName = "session-data",
     mongoComponent = mongoComponent,
-    domainFormat = Session.format(
-      SymmetricCryptoFactory.aesCryptoFromConfig("encryption", configuration.underlying)
-    ),
+    domainFormat = EncryptedSession.format,
     indexes = Seq(
       IndexModel(
         Indexes.ascending("sessionId", "internalId"),
@@ -65,13 +63,13 @@ class SessionDataRepository @Inject()(
   private def dataFilter(sessionId: String, internalId: String): Bson =
     and(equal("sessionId", sessionId), equal("internalId", internalId))
 
-  def get(sessionId: String, internalId: String): Future[Option[Session]] = {
+  def get(sessionId: String, internalId: String): Future[Option[EncryptedSession]] = {
     collection
       .find(dataFilter(sessionId, internalId))
       .headOption()
   }
 
-  def set(data: Session): Future[result.UpdateResult] = {
+  def set(data: EncryptedSession): Future[result.UpdateResult] = {
     collection
       .replaceOne(
         filter = dataFilter(data.sessionId, data.internalId),
