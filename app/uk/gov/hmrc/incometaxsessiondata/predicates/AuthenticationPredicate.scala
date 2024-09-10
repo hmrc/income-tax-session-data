@@ -48,10 +48,12 @@ class AuthenticationPredicate @Inject() (
 
   private val minimumConfidenceLevelOpt: Option[Int] = ConfidenceLevel
     .fromInt(appConfig.confidenceLevel)
-    .map(_.level).toOption
+    .map(_.level)
+    .toOption
 
-  private val requiredConfidenceLevel = (userConfidenceLevel: ConfidenceLevel) => minimumConfidenceLevelOpt
-    .exists(minimumConfidenceLevel => userConfidenceLevel.level >= minimumConfidenceLevel)
+  private val requiredConfidenceLevel = (userConfidenceLevel: ConfidenceLevel) =>
+    minimumConfidenceLevelOpt
+      .exists(minimumConfidenceLevel => userConfidenceLevel.level >= minimumConfidenceLevel)
 
   override def invokeBlock[A](request: Request[A], f: SessionDataRequest[A] => Future[Result]): Future[Result] = {
     implicit val req: Request[A]   = request
@@ -59,16 +61,17 @@ class AuthenticationPredicate @Inject() (
 
     authorised()
       .retrieve(affinityGroup and internalId and confidenceLevel) {
-        case Some(AffinityGroup.Agent) ~ Some(id) ~ _ if (hc.sessionId.isDefined) =>
+        case Some(AffinityGroup.Agent) ~ Some(id) ~ _ if hc.sessionId.isDefined =>
           val sessionId: String = hc.sessionId.map(_.value).get
           logger.info(s"[AuthenticationPredicate][authenticated] - authenticated as an agent")
           f(SessionDataRequest[A](internalId = id, sessionId = sessionId))
 
-        case Some(AffinityGroup.Individual) ~ Some(id) ~ userConfidenceLevel if hc.sessionId.isDefined && requiredConfidenceLevel(userConfidenceLevel)  =>
+        case Some(AffinityGroup.Individual) ~ Some(id) ~ userConfidenceLevel
+            if hc.sessionId.isDefined && requiredConfidenceLevel(userConfidenceLevel) =>
           val sessionId: String = hc.sessionId.map(_.value).get
           logger.info(s"[AuthenticationPredicate][authenticated] - authenticated as an individual")
           f(SessionDataRequest[A](internalId = id, sessionId = sessionId))
-        case _ ~ _                                         =>
+        case _ ~ _ =>
           logger.info(s"[AuthenticationPredicate][unauthorized]")
           Future(Unauthorized)
       }

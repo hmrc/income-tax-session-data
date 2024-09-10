@@ -26,16 +26,16 @@ import play.api.mvc.Results.{Conflict, Forbidden, InternalServerError, Ok}
 import play.api.mvc.{ControllerComponents, Result}
 import play.api.test.Helpers._
 import uk.gov.hmrc.incometaxsessiondata.auth.HeaderExtractor
-import uk.gov.hmrc.incometaxsessiondata.models.SessionData
+import uk.gov.hmrc.incometaxsessiondata.models.{Session, SessionData}
 import uk.gov.hmrc.incometaxsessiondata.predicates.AuthenticationPredicate
 
 import scala.concurrent.Future
 
 class SessionControllerSpec extends MockMicroserviceAuthConnector with MockSessionService {
 
-  val cc: ControllerComponents = app.injector.instanceOf[ControllerComponents]
+  val cc: ControllerComponents         = app.injector.instanceOf[ControllerComponents]
   val headerExtractor: HeaderExtractor = new TestHeaderExtractor()
-  val authPredicate = new AuthenticationPredicate(mockMicroserviceAuthConnector, cc, appConfig, headerExtractor)
+  val authPredicate                    = new AuthenticationPredicate(mockMicroserviceAuthConnector, cc, appConfig, headerExtractor)
 
   object testSessionController extends SessionController(cc, authPredicate, mockSessionService)
 
@@ -46,10 +46,18 @@ class SessionControllerSpec extends MockMicroserviceAuthConnector with MockSessi
     utr = "utr-123"
   )
 
+  val testSession: Session = Session(
+    sessionId = "session-123",
+    mtditid = "id-123",
+    nino = "nino-123",
+    utr = "utr-123",
+    internalId = "internal-123"
+  )
+
   "SessionController.get" should {
     "return Ok" when {
       "data is returned from the service" in {
-        when(mockSessionService.get(any())).thenReturn(Future(Some(testSessionData)))
+        when(mockSessionService.get(any())).thenReturn(Future(Some(testSession)))
         mockAuth()
         val result: Future[Result] = testSessionController.get()(fakeRequestWithActiveSession)
         status(result) shouldBe OK
@@ -73,7 +81,7 @@ class SessionControllerSpec extends MockMicroserviceAuthConnector with MockSessi
 
     "Recover" when {
       "Unauthorised error when sessionId empty" in {
-        when(mockSessionService.get(any())).thenReturn(Future(Some(testSessionData)))
+        when(mockSessionService.get(any())).thenReturn(Future(Some(testSession)))
 
         val result: Future[Result] = testSessionController.get()(fakeRequestWithActiveSessionAndEmptySessionId)
         status(result) shouldBe UNAUTHORIZED
@@ -82,7 +90,7 @@ class SessionControllerSpec extends MockMicroserviceAuthConnector with MockSessi
   }
 
   "SessionController.set" when {
-    "the request body is invalid" should {
+    "the request body is invalid"               should {
       "return a bad request" in {
         val result: Future[Result] = testSessionController.set()(fakeRequestWithActiveSession)
         status(result) shouldBe BAD_REQUEST

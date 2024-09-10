@@ -26,6 +26,7 @@ case class SessionData(
 )
 
 object SessionData {
+
   implicit val fromSession: Session => SessionData = session =>
     SessionData(
       mtditid = session.mtditid,

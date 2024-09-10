@@ -62,6 +62,15 @@ Format all project files as follows:
 sbt scalafmtAll
 ```
 
+## Encryption in other environments
+
+There are keys in app-config-xx for staging and qa, but not yet in production.
+Generate the key using this command
+
+```
+openssl rand -base64 32
+```
+
 ### License
 
 This code is open source software licensed under the [Apache 2.0 License]("http://www.apache.org/licenses/LICENSE-2.0.html").

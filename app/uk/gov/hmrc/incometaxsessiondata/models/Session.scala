@@ -17,18 +17,14 @@
 package uk.gov.hmrc.incometaxsessiondata.models
 
 import play.api.libs.functional.syntax.{toFunctionalBuilderOps, unlift}
-import play.api.libs.json.{OFormat, Reads, __}
-import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
-
-import java.time.Instant
+import play.api.libs.json._
 
 case class Session(
   mtditid: String,
   nino: String,
   utr: String,
   internalId: String,
-  sessionId: String,
-  lastUpdated: Instant = Instant.now
+  sessionId: String
 )
 
 object Session {
@@ -53,6 +49,5 @@ object Session {
       ~ (__ \ "nino").format[String]
       ~ (__ \ "utr").format[String]
       ~ (__ \ "internalId").format[String]
-      ~ (__ \ "sessionId").format[String]
-      ~ (__ \ "lastUpdated").format(MongoJavatimeFormats.instantFormat))(Session.apply, unlift(Session.unapply))
+      ~ (__ \ "sessionId").format[String])(Session.apply, unlift(Session.unapply))
 }

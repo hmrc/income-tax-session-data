@@ -21,9 +21,8 @@ import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.model._
 import org.mongodb.scala.result
-import play.api.Logging
 import uk.gov.hmrc.incometaxsessiondata.config.AppConfig
-import uk.gov.hmrc.incometaxsessiondata.models.Session
+import uk.gov.hmrc.incometaxsessiondata.models.EncryptedSession
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
@@ -32,48 +31,41 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class SessionDataRepository @Inject()(
-                                       mongoComponent: MongoComponent,
-                                       config: AppConfig
-                                     )(implicit ec: ExecutionContext)
-  extends PlayMongoRepository[Session]  (
-    collectionName = "session-data",
-    mongoComponent = mongoComponent,
-    domainFormat = Session.format,
-    indexes = Seq(
-      IndexModel(
-        Indexes.ascending("sessionId", "internalId"),
-        IndexOptions()
-          .name("compoundIndex")
-          .unique(true)
+class SessionDataRepository @Inject() (
+  mongoComponent: MongoComponent,
+  config: AppConfig
+)(implicit ec: ExecutionContext)
+    extends PlayMongoRepository[EncryptedSession](
+      collectionName = "session-data",
+      mongoComponent = mongoComponent,
+      domainFormat = EncryptedSession.format,
+      indexes = Seq(
+        IndexModel(
+          Indexes.ascending("sessionId", "internalId"),
+          IndexOptions()
+            .name("compoundIndex")
+            .unique(true)
+        ),
+        IndexModel(
+          Indexes.ascending("lastUpdated"),
+          IndexOptions()
+            .name("lastUpdatedIndex")
+            .expireAfter(config.cacheTtl, TimeUnit.SECONDS)
+            .unique(false)
+        )
       ),
-      IndexModel(
-        Indexes.ascending("sessionId"),
-        IndexOptions()
-          .name("sessionIDIndex")
-          .unique(false)
-      ),
-      IndexModel(
-        Indexes.ascending("lastUpdated"),
-        IndexOptions()
-          .name("lastUpdatedIndex")
-          .expireAfter(config.cacheTtl, TimeUnit.SECONDS)
-          .unique(false)
-      )
-    ),
-    replaceIndexes = true
-  ) {
+      replaceIndexes = true
+    ) {
 
   private def dataFilter(sessionId: String, internalId: String): Bson =
     and(equal("sessionId", sessionId), equal("internalId", internalId))
 
-  def get(sessionId: String, internalId: String): Future[Option[Session]] = {
+  def get(sessionId: String, internalId: String): Future[Option[EncryptedSession]] =
     collection
       .find(dataFilter(sessionId, internalId))
       .headOption()
-  }
 
-  def set(data: Session): Future[result.UpdateResult] = {
+  def set(data: EncryptedSession): Future[result.UpdateResult] =
     collection
       .replaceOne(
         filter = dataFilter(data.sessionId, data.internalId),
@@ -81,6 +73,5 @@ class SessionDataRepository @Inject()(
         options = ReplaceOptions().upsert(true)
       )
       .toFuture()
-  }
 
 }

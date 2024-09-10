@@ -28,21 +28,21 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton()
-class SessionController @Inject()(
-                                   cc: ControllerComponents,
-                                   authentication: AuthenticationPredicate,
-                                   sessionService: SessionService
-                                 )(implicit ec: ExecutionContext)
-  extends BackendController(cc)
+class SessionController @Inject() (
+  cc: ControllerComponents,
+  authentication: AuthenticationPredicate,
+  sessionService: SessionService
+)(implicit ec: ExecutionContext)
+    extends BackendController(cc)
     with Logging {
 
   def get(): Action[AnyContent] = authentication.async { request =>
     // Here is required internalID => request.internalId and request.sessionId
     sessionService.get(request) map {
-      case Some(session: SessionData) =>
+      case Some(session: Session) =>
         logger.info(s"[SessionController][get]: Successfully retrieved session data. SessionId: ${session.sessionId}")
-        Ok(Json.toJson(session))
-      case None =>
+        Ok(Json.toJson(SessionData.fromSession(session)))
+      case None                   =>
         logger.info(s"[SessionController][get]: No live session")
         NotFound("No session data found")
     } recover { case ex =>
@@ -56,11 +56,12 @@ class SessionController @Inject()(
     request.body.asJson
       .getOrElse(Json.obj())
       .validate(Session.readsWithRequest(request)) match {
-      case err: JsError =>
+      case err: JsError               =>
         logger.error(s"[SessionController][set]: Json validation error while parsing request: $err")
         Future.successful(BadRequest(s"Json validation error while parsing request: $err"))
       case JsSuccess(validRequest, _) =>
-        sessionService.handleValidRequest(validRequest)
+        sessionService
+          .handleValidRequest(validRequest)
           .recover { case ex =>
             logger.error(s"[SessionController][set]: Unexpected error while setting session: $ex")
             InternalServerError(s"Unexpected error while setting session: $ex")

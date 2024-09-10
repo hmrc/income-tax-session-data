@@ -24,7 +24,7 @@ class AppConfig @Inject() (config: Configuration) {
 
   val appName: String = config.get[String]("appName")
 
-  val confidenceLevel:Int = config.get[Int]("auth.confidenceLevel")
+  val confidenceLevel: Int = config.get[Int]("auth.confidenceLevel")
 
   val cacheTtl: Int = config.get[Int]("mongodb.timeToLiveInSeconds")
 }
