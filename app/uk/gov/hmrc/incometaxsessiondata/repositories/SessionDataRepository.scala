@@ -21,7 +21,6 @@ import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.model._
 import org.mongodb.scala.result
-import play.api.Configuration
 import uk.gov.hmrc.incometaxsessiondata.config.AppConfig
 import uk.gov.hmrc.incometaxsessiondata.models.EncryptedSession
 import uk.gov.hmrc.mongo.MongoComponent

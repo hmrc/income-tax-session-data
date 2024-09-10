@@ -26,7 +26,7 @@ import play.api.http.Status.{CONFLICT, OK}
 import play.api.mvc.Result
 import play.api.mvc.Results.InternalServerError
 import play.api.test.Helpers.{defaultAwaitTimeout, status}
-import testConstants.BaseTestConstants.{testEncryptedSession, testRequest, testSession, testSessionData, testValidRequest}
+import testConstants.BaseTestConstants.{testEncryptedSession, testRequest, testSession, testValidRequest}
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 import utils.TestSupport
 
