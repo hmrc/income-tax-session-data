@@ -18,9 +18,8 @@ package uk.gov.hmrc.incometaxsessiondata.models
 
 import play.api.Configuration
 import play.api.libs.functional.syntax.{toFunctionalBuilderOps, unlift}
-import play.api.libs.json.{Format, OFormat, Reads, Writes, __}
-import uk.gov.hmrc.crypto.{Crypted, Decrypter, Encrypter, PlainText, SymmetricCryptoFactory}
-import uk.gov.hmrc.http.HeaderCarrier.Config
+import play.api.libs.json._
+import uk.gov.hmrc.crypto.{Crypted, PlainText, SymmetricCryptoFactory}
 import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 
 import java.time.Instant

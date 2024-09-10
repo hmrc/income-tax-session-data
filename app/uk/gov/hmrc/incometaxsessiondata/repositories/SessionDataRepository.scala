@@ -22,9 +22,8 @@ import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.model._
 import org.mongodb.scala.result
 import play.api.Configuration
-import uk.gov.hmrc.crypto.SymmetricCryptoFactory
 import uk.gov.hmrc.incometaxsessiondata.config.AppConfig
-import uk.gov.hmrc.incometaxsessiondata.models.{EncryptedSession, Session}
+import uk.gov.hmrc.incometaxsessiondata.models.EncryptedSession
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 

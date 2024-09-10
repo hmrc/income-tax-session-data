@@ -18,9 +18,6 @@ package uk.gov.hmrc.incometaxsessiondata.models
 
 import play.api.libs.functional.syntax.{toFunctionalBuilderOps, unlift}
 import play.api.libs.json._
-import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
-
-import java.time.Instant
 
 case class Session(
                     mtditid: String,

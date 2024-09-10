@@ -16,10 +16,9 @@
 
 package uk.gov.hmrc.incometaxsessiondata.services
 
-import play.api.{Configuration, Logging}
 import play.api.mvc.Result
 import play.api.mvc.Results.{Conflict, InternalServerError, Ok}
-import uk.gov.hmrc.incometaxsessiondata.config.AppConfig
+import play.api.{Configuration, Logging}
 import uk.gov.hmrc.incometaxsessiondata.models._
 import uk.gov.hmrc.incometaxsessiondata.repositories.SessionDataRepository
 
