@@ -24,7 +24,8 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.crypto.{PlainText, SymmetricCryptoFactory}
+import testConstants.IntegrationTestConstants.crypter
+import uk.gov.hmrc.crypto.PlainText
 import uk.gov.hmrc.incometaxsessiondata.models.EncryptedSession
 import uk.gov.hmrc.incometaxsessiondata.repositories.SessionDataRepository
 
@@ -49,8 +50,6 @@ class SessionDataRepositoryISpec extends AnyWordSpec
   }
 
   val testAlternativeSessionId = "session-xxx"
-
-  val crypter = SymmetricCryptoFactory.aesGcmCrypto("QmFyMTIzNDVCYXIxMjM0NQ==")
 
   val testEncryptedSession: EncryptedSession = EncryptedSession(
     sessionId = testSessionId,

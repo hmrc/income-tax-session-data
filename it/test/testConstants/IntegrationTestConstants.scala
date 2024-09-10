@@ -17,6 +17,7 @@
 package testConstants
 
 import play.api.test.FakeRequest
+import uk.gov.hmrc.crypto.{Decrypter, Encrypter, SymmetricCryptoFactory}
 import uk.gov.hmrc.incometaxsessiondata.models.{Session, SessionData, SessionDataRequest}
 
 import java.time.Instant
@@ -32,6 +33,9 @@ object IntegrationTestConstants {
   val defaultRequestSessionId = "xsession-12345"
   val defaultRequestInternalId = "123"
   val defaultRequestInternalIdAlternative = "123-alternative"
+
+  private val encryptionKey = "QmFyMTIzNDVCYXIxMjM0NQ=="
+  val crypter: Encrypter with Decrypter = SymmetricCryptoFactory.aesGcmCrypto(encryptionKey)
 
   val testRequest: SessionDataRequest[_] = SessionDataRequest(
     internalId = itTestInternalId,

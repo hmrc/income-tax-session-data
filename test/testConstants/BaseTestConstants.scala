@@ -17,7 +17,7 @@
 package testConstants
 
 import play.api.test.FakeRequest
-import uk.gov.hmrc.crypto.{Crypted, Decrypter, Encrypter, PlainText, SymmetricCryptoFactory}
+import uk.gov.hmrc.crypto.{Decrypter, Encrypter, PlainText, SymmetricCryptoFactory}
 import uk.gov.hmrc.incometaxsessiondata.models.{EncryptedSession, Session, SessionData, SessionDataRequest}
 import utils.TestSupport
 
@@ -55,7 +55,8 @@ object BaseTestConstants extends TestSupport {
 
   val testSession: Session = testValidRequest
 
-  val crypter: Encrypter with Decrypter = SymmetricCryptoFactory.aesGcmCrypto("QmFyMTIzNDVCYXIxMjM0NQ==")
+  private val encryptionKey = "QmFyMTIzNDVCYXIxMjM0NQ=="
+  val crypter: Encrypter with Decrypter = SymmetricCryptoFactory.aesGcmCrypto(encryptionKey)
 
   val testEncryptedSession: EncryptedSession = EncryptedSession(
     mtditid = testMtditid,
