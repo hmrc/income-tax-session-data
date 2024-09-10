@@ -25,24 +25,24 @@ import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 import java.time.Instant
 
 case class EncryptedSession(
-                             mtditid: String,
-                             nino: Crypted,
-                             utr: Crypted,
-                             internalId: String,
-                             sessionId: String,
-                             lastUpdated: Instant = Instant.now
-                           )
+  mtditid: String,
+  nino: Crypted,
+  utr: Crypted,
+  internalId: String,
+  sessionId: String,
+  lastUpdated: Instant = Instant.now
+)
 
 object EncryptedSession {
 
-  def apply(session: Session, config: Configuration): EncryptedSession = {
+  def apply(session: Session, config: Configuration): EncryptedSession            = {
     val crypter = SymmetricCryptoFactory.aesGcmCryptoFromConfig("encryption", config.underlying)
     EncryptedSession(
       mtditid = session.mtditid,
-        nino = crypter.encrypt(PlainText(session.nino)),
-        utr = crypter.encrypt(PlainText(session.utr)),
-        internalId = session.internalId,
-        sessionId = session.sessionId
+      nino = crypter.encrypt(PlainText(session.nino)),
+      utr = crypter.encrypt(PlainText(session.utr)),
+      internalId = session.internalId,
+      sessionId = session.sessionId
     )
   }
   def unapply(encryptedSession: EncryptedSession, config: Configuration): Session = {
@@ -56,17 +56,14 @@ object EncryptedSession {
     )
   }
 
-  private def decrypter(implicit reader: Reads[String]): Reads[Crypted] = {
+  private def decrypter(implicit reader: Reads[String]): Reads[Crypted] =
     reader.map(s => Crypted.apply(s))
-  }
 
-  private def encrypter(implicit writer: Writes[String]): Writes[Crypted] = {
+  private def encrypter(implicit writer: Writes[String]): Writes[Crypted] =
     writer.contramap(s => s.value)
-  }
 
-  implicit def encryptedStringFormat: Format[Crypted] = {
+  implicit def encryptedStringFormat: Format[Crypted] =
     Format(decrypter, encrypter)
-  }
 
   implicit val format: OFormat[EncryptedSession] =
     ((__ \ "mtditid").format[String]
@@ -74,5 +71,6 @@ object EncryptedSession {
       ~ (__ \ "utr").format[Crypted]
       ~ (__ \ "internalId").format[String]
       ~ (__ \ "sessionId").format[String]
-      ~ (__ \ "lastUpdated").format(MongoJavatimeFormats.instantFormat))(EncryptedSession.apply, unlift(EncryptedSession.unapply))
+      ~ (__ \ "lastUpdated")
+        .format(MongoJavatimeFormats.instantFormat))(EncryptedSession.apply, unlift(EncryptedSession.unapply))
 }

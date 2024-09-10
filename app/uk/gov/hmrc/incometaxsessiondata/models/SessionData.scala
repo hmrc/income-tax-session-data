@@ -34,6 +34,6 @@ object SessionData {
       utr = session.utr,
       sessionId = session.sessionId
     )
-  implicit val format: Format[SessionData] = Json.format[SessionData]
+  implicit val format: Format[SessionData]         = Json.format[SessionData]
 
 }

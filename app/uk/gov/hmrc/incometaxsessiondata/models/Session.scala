@@ -20,11 +20,11 @@ import play.api.libs.functional.syntax.{toFunctionalBuilderOps, unlift}
 import play.api.libs.json._
 
 case class Session(
-                    mtditid: String,
-                    nino: String,
-                    utr: String,
-                    internalId: String,
-                    sessionId: String,
+  mtditid: String,
+  nino: String,
+  utr: String,
+  internalId: String,
+  sessionId: String
 )
 
 object Session {

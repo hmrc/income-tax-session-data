@@ -35,14 +35,13 @@ import scala.concurrent.Future
 class SessionServiceSpec extends TestSupport with MockSessionDataRepository {
 
   object testSessionService
-    extends SessionService(
-      mockRepository,
-      app.injector.instanceOf[Configuration]
-    )(ec)
+      extends SessionService(
+        mockRepository,
+        app.injector.instanceOf[Configuration]
+      )(ec)
 
-  override def beforeEach(): Unit = {
+  override def beforeEach(): Unit =
     Mockito.reset(mockRepository)
-  }
 
   "SessionService.get" should {
     "return session data" when {
@@ -98,7 +97,7 @@ class SessionServiceSpec extends TestSupport with MockSessionDataRepository {
           status(result) shouldBe OK
         }
       }
-      "the repository does not acknowledge the database operation" should {
+      "the repository does not acknowledge the database operation"                     should {
         "return an error" in {
           when(mockRepository.set(any())).thenReturn(Future(UpdateResult.unacknowledged()))
           when(mockRepository.get(any(), any())).thenReturn(Future(None))
@@ -107,7 +106,7 @@ class SessionServiceSpec extends TestSupport with MockSessionDataRepository {
           result.futureValue shouldBe InternalServerError("Write operation was not acknowledged")
         }
       }
-      "the service returns an exception" should {
+      "the service returns an exception"                                               should {
         "return an error" in {
           when(mockRepository.set(any())).thenThrow(new RuntimeException("Test error"))
           when(mockRepository.get(any(), any())).thenReturn(Future(None))
@@ -119,7 +118,7 @@ class SessionServiceSpec extends TestSupport with MockSessionDataRepository {
     }
 
     "record is a full duplicate" when {
-      "the service adds the record to the database successfully" should {
+      "the service adds the record to the database successfully"   should {
         "return a Conflict response" in {
           when(mockRepository.get(any(), any())).thenReturn(Future(Some(testEncryptedSession)))
           when(mockRepository.set(any())).thenReturn(Future(UpdateResult.acknowledged(1, null, null)))
@@ -137,7 +136,7 @@ class SessionServiceSpec extends TestSupport with MockSessionDataRepository {
           result shouldBe InternalServerError("Write operation was not acknowledged")
         }
       }
-      "the service returns an exception" should {
+      "the service returns an exception"                           should {
         "return an error" in {
           when(mockRepository.get(any(), any())).thenReturn(Future(Some(testEncryptedSession)))
           when(mockRepository.set(any())).thenThrow(new RuntimeException("Test error"))

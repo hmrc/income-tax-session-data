@@ -31,42 +31,41 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class SessionDataRepository @Inject()(
-                                       mongoComponent: MongoComponent,
-                                       config: AppConfig
-                                     )(implicit ec: ExecutionContext)
-  extends PlayMongoRepository[EncryptedSession]  (
-    collectionName = "session-data",
-    mongoComponent = mongoComponent,
-    domainFormat = EncryptedSession.format,
-    indexes = Seq(
-      IndexModel(
-        Indexes.ascending("sessionId", "internalId"),
-        IndexOptions()
-          .name("compoundIndex")
-          .unique(true)
+class SessionDataRepository @Inject() (
+  mongoComponent: MongoComponent,
+  config: AppConfig
+)(implicit ec: ExecutionContext)
+    extends PlayMongoRepository[EncryptedSession](
+      collectionName = "session-data",
+      mongoComponent = mongoComponent,
+      domainFormat = EncryptedSession.format,
+      indexes = Seq(
+        IndexModel(
+          Indexes.ascending("sessionId", "internalId"),
+          IndexOptions()
+            .name("compoundIndex")
+            .unique(true)
+        ),
+        IndexModel(
+          Indexes.ascending("lastUpdated"),
+          IndexOptions()
+            .name("lastUpdatedIndex")
+            .expireAfter(config.cacheTtl, TimeUnit.SECONDS)
+            .unique(false)
+        )
       ),
-      IndexModel(
-        Indexes.ascending("lastUpdated"),
-        IndexOptions()
-          .name("lastUpdatedIndex")
-          .expireAfter(config.cacheTtl, TimeUnit.SECONDS)
-          .unique(false)
-      )
-    ),
-    replaceIndexes = true
-  ) {
+      replaceIndexes = true
+    ) {
 
   private def dataFilter(sessionId: String, internalId: String): Bson =
     and(equal("sessionId", sessionId), equal("internalId", internalId))
 
-  def get(sessionId: String, internalId: String): Future[Option[EncryptedSession]] = {
+  def get(sessionId: String, internalId: String): Future[Option[EncryptedSession]] =
     collection
       .find(dataFilter(sessionId, internalId))
       .headOption()
-  }
 
-  def set(data: EncryptedSession): Future[result.UpdateResult] = {
+  def set(data: EncryptedSession): Future[result.UpdateResult] =
     collection
       .replaceOne(
         filter = dataFilter(data.sessionId, data.internalId),
@@ -74,6 +73,5 @@ class SessionDataRepository @Inject()(
         options = ReplaceOptions().upsert(true)
       )
       .toFuture()
-  }
 
 }

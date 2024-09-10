@@ -35,15 +35,12 @@ trait MockSessionService extends TestSupport with BeforeAndAfterEach {
     reset(mockSessionService)
   }
 
-  def setupMockGenericHandleValidRequest(): Unit = {
+  def setupMockGenericHandleValidRequest(): Unit =
     when(mockSessionService.handleValidRequest(any())).thenReturn(Future.successful(Ok("Generic OK message")))
-  }
 
-  def setupMockHandleValidRequest(result: Result): Unit = {
+  def setupMockHandleValidRequest(result: Result): Unit =
     when(mockSessionService.handleValidRequest(any())).thenReturn(Future.successful(result))
-  }
 
-  def setupMockHandleValidRequestFutureFailed(): Unit = {
+  def setupMockHandleValidRequestFutureFailed(): Unit =
     when(mockSessionService.handleValidRequest(any())).thenReturn(Future.failed(new Exception("Test future failed")))
-  }
 }

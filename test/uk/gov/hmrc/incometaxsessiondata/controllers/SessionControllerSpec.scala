@@ -33,9 +33,9 @@ import scala.concurrent.Future
 
 class SessionControllerSpec extends MockMicroserviceAuthConnector with MockSessionService {
 
-  val cc: ControllerComponents = app.injector.instanceOf[ControllerComponents]
+  val cc: ControllerComponents         = app.injector.instanceOf[ControllerComponents]
   val headerExtractor: HeaderExtractor = new TestHeaderExtractor()
-  val authPredicate = new AuthenticationPredicate(mockMicroserviceAuthConnector, cc, appConfig, headerExtractor)
+  val authPredicate                    = new AuthenticationPredicate(mockMicroserviceAuthConnector, cc, appConfig, headerExtractor)
 
   object testSessionController extends SessionController(cc, authPredicate, mockSessionService)
 
@@ -90,7 +90,7 @@ class SessionControllerSpec extends MockMicroserviceAuthConnector with MockSessi
   }
 
   "SessionController.set" when {
-    "the request body is invalid" should {
+    "the request body is invalid"               should {
       "return a bad request" in {
         val result: Future[Result] = testSessionController.set()(fakeRequestWithActiveSession)
         status(result) shouldBe BAD_REQUEST
