@@ -28,7 +28,7 @@ trait HeaderExtractor {
   def extractHeader(request: play.api.mvc.Request[_], session: play.api.mvc.Session): HeaderCarrier = {
     val authHeader = request.headers.get(HeaderNames.authorisation)
     HeaderCarrierConverter
-      .fromRequestAndSession(request, request.session)
+      .fromRequest(request)
       .copy(authorization = authHeader.map(Authorization))
   }
 
