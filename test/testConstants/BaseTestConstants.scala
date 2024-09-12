@@ -55,7 +55,7 @@ object BaseTestConstants extends TestSupport {
 
   val testSession: Session = testValidRequest
 
-  private val encryptionKey = "QmFyMTIzNDVCYXIxMjM0NQ=="
+  private val encryptionKey             = "QmFyMTIzNDVCYXIxMjM0NQ=="
   val crypter: Encrypter with Decrypter = SymmetricCryptoFactory.aesGcmCrypto(encryptionKey)
 
   val testEncryptedSession: EncryptedSession = EncryptedSession(
