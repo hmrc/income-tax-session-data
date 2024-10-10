@@ -133,7 +133,8 @@ class SessionDataRepositoryISpec extends AnyWordSpec
       )
       await(repository.set( EncryptedSession(plainSession, config) ) )
       val encSession = repository.get(testEncryptedSession.sessionId, testEncryptedSession.internalId).futureValue.get
-      EncryptedSession.unapply(encSession, config) shouldBe plainSession2
+      EncryptedSession.unapply(encSession, config) shouldBe plainSession
+      EncryptedSession.unapply(encSession, config) !== plainSession2
 
 //      crypter.decrypt(resultOne.utr).value shouldBe "testUtr"
 //      crypter.decrypt(resultOne.nino).value shouldBe "testNino"
