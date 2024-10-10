@@ -114,7 +114,7 @@ class SessionDataRepositoryISpec extends AnyWordSpec
       result.futureValue shouldBe None
     }
 
-    // => MISUV-8389
+    // AC2: example => MISUV-8389
     "overwrite some data =>" in {
       val plainSession = Session(
         sessionId = testEncryptedSession.sessionId,
@@ -131,21 +131,12 @@ class SessionDataRepositoryISpec extends AnyWordSpec
         utr = "testUtr",
         internalId = "test-internal-id"
       )
+      // Drop calling encryption / decryption directly
       await(repository.set( EncryptedSession(plainSession, config) ) )
       val encSession = repository.get(testEncryptedSession.sessionId, testEncryptedSession.internalId).futureValue.get
       EncryptedSession.unapply(encSession, config) shouldBe plainSession
       EncryptedSession.unapply(encSession, config) !== plainSession2
 
-//      crypter.decrypt(resultOne.utr).value shouldBe "testUtr"
-//      crypter.decrypt(resultOne.nino).value shouldBe "testNino"
-//      resultOne.mtditid shouldBe "testId"
-//
-//      await(repository.set(testEncryptedSession.copy(utr = crypter.encrypt(PlainText("diffUtr")), nino = crypter.encrypt(PlainText("diffNino")), mtditid = "diffMtditid")))
-//      val resultTwo = repository.get(testEncryptedSession.sessionId, testEncryptedSession.internalId).futureValue.get
-//
-//      crypter.decrypt(resultTwo.utr).value shouldBe "diffUtr"
-//      crypter.decrypt(resultTwo.nino).value shouldBe "diffNino"
-//      resultTwo.mtditid shouldBe "diffMtditid"
     }
   }
 
