@@ -23,10 +23,11 @@ import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
+import play.api.Configuration
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import testConstants.IntegrationTestConstants.crypter
 import uk.gov.hmrc.crypto.PlainText
-import uk.gov.hmrc.incometaxsessiondata.models.EncryptedSession
+import uk.gov.hmrc.incometaxsessiondata.models.{EncryptedSession, Session}
 import uk.gov.hmrc.incometaxsessiondata.repositories.SessionDataRepository
 
 import scala.concurrent.ExecutionContext
@@ -42,6 +43,7 @@ class SessionDataRepositoryISpec extends AnyWordSpec
   implicit val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
 
   private val repository = app.injector.instanceOf[SessionDataRepository]
+  private val config = app.injector.instanceOf[Configuration]
 
   override def beforeEach(): Unit = {
     super.beforeEach()
@@ -110,6 +112,31 @@ class SessionDataRepositoryISpec extends AnyWordSpec
       val result = repository.get(testEncryptedSession.sessionId, testEncryptedSession.internalId)
 
       result.futureValue shouldBe None
+    }
+
+    // AC2: example => MISUV-8389
+    "overwrite some data =>" in {
+      val plainSession = Session(
+        sessionId = testEncryptedSession.sessionId,
+        mtditid = "testId",
+        nino = "testNino",
+        utr = "testUtr",
+        internalId = "test-internal-id"
+      )
+
+      val plainSession2 = Session(
+        sessionId = testEncryptedSession.sessionId,
+        mtditid = "testId2",
+        nino = "testNino",
+        utr = "testUtr",
+        internalId = "test-internal-id"
+      )
+      // Drop calling encryption / decryption directly
+      await(repository.set( EncryptedSession(plainSession, config) ) )
+      val encSession = repository.get(testEncryptedSession.sessionId, testEncryptedSession.internalId).futureValue.get
+      EncryptedSession.unapply(encSession, config) shouldBe plainSession
+      EncryptedSession.unapply(encSession, config) !== plainSession2
+
     }
   }
 
