@@ -26,6 +26,7 @@ import uk.gov.hmrc.incometaxsessiondata.models.EncryptedSession
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
+import java.time.Instant
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -70,6 +71,15 @@ class SessionDataRepository @Inject() (
       .replaceOne(
         filter = dataFilter(data.sessionId, data.internalId),
         replacement = data,
+        options = ReplaceOptions().upsert(true)
+      )
+      .toFuture()
+
+  def extendSession(session: EncryptedSession): Future[result.UpdateResult] =
+    collection
+      .replaceOne(
+        filter = dataFilter(session.sessionId, session.internalId),
+        replacement = session.copy(lastUpdated = Instant.now),
         options = ReplaceOptions().upsert(true)
       )
       .toFuture()

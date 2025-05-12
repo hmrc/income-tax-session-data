@@ -47,6 +47,7 @@ class SessionServiceSpec extends TestSupport with MockSessionDataRepository {
     "return session data" when {
       "data returned from the repository" in {
         when(mockRepository.get(any(), any())).thenReturn(Future(Some(testEncryptedSession)))
+        when(mockRepository.extendSession(any())).thenReturn(Future(UpdateResult.unacknowledged()))
         val result = testSessionService.get(testRequest)
         result.futureValue shouldBe Some(testSession)
       }
