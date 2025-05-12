@@ -29,6 +29,7 @@ import uk.gov.hmrc.crypto.PlainText
 import uk.gov.hmrc.incometaxsessiondata.models.EncryptedSession
 import uk.gov.hmrc.incometaxsessiondata.repositories.SessionDataRepository
 
+import java.time.Instant
 import scala.concurrent.ExecutionContext
 
 class SessionDataRepositoryISpec extends AnyWordSpec
@@ -60,9 +61,11 @@ class SessionDataRepositoryISpec extends AnyWordSpec
   )
 
   "Session Data Repository methods" should {
-    "extend session" in {
-      val result = repository.extendSession(testEncryptedSession)
-      result.futureValue.wasAcknowledged() shouldBe true
+    "extend session update" in {
+      await(repository.set(testEncryptedSession.copy(lastUpdated = Instant.ofEpochSecond(1000L))))
+      await(repository.extendSession(testEncryptedSession))
+      val resultOne = repository.get(testEncryptedSession.sessionId, testEncryptedSession.internalId)
+      resultOne.futureValue.get.lastUpdated shouldNot be(testEncryptedSession.lastUpdated)
     }
 
     "set some data" in {
