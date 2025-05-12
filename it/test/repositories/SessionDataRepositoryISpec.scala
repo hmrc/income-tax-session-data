@@ -65,7 +65,15 @@ class SessionDataRepositoryISpec extends AnyWordSpec
       await(repository.set(testEncryptedSession.copy(lastUpdated = Instant.ofEpochSecond(1000L))))
       await(repository.extendSession(testEncryptedSession))
       val resultOne = repository.get(testEncryptedSession.sessionId, testEncryptedSession.internalId)
-      resultOne.futureValue.get.lastUpdated shouldNot be(testEncryptedSession.lastUpdated)
+      resultOne.futureValue.get.lastUpdated shouldNot be(Instant.ofEpochSecond(1000L))
+    }
+
+    "extend session update: other internalId" in {
+      await(repository.set(testEncryptedSession.copy(lastUpdated = Instant.ofEpochSecond(1000L))))
+      // let's update other session
+      await(repository.extendSession(testEncryptedSession.copy(internalId = "test-internal-id-other")))
+      val resultOne = repository.get(testEncryptedSession.sessionId, testEncryptedSession.internalId)
+      resultOne.futureValue.get.lastUpdated should be(Instant.ofEpochSecond(1000L))
     }
 
     "set some data" in {
