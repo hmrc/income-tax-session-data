@@ -29,6 +29,7 @@ import uk.gov.hmrc.crypto.PlainText
 import uk.gov.hmrc.incometaxsessiondata.models.EncryptedSession
 import uk.gov.hmrc.incometaxsessiondata.repositories.SessionDataRepository
 
+import java.time.Instant
 import scala.concurrent.ExecutionContext
 
 class SessionDataRepositoryISpec extends AnyWordSpec
@@ -59,7 +60,22 @@ class SessionDataRepositoryISpec extends AnyWordSpec
     internalId = "test-internal-id"
   )
 
-  "Session Data Repository get method" should {
+  "Session Data Repository methods" should {
+    "extend session" in {
+      await(repository.set(testEncryptedSession.copy(lastUpdated = Instant.ofEpochSecond(1000L))))
+      await(repository.extendSession(testEncryptedSession))
+      val resultOne = repository.get(testEncryptedSession.sessionId, testEncryptedSession.internalId)
+      resultOne.futureValue.get.lastUpdated shouldNot be(Instant.ofEpochSecond(1000L))
+    }
+
+    "extend session: verify against other session" in {
+      await(repository.set(testEncryptedSession.copy(lastUpdated = Instant.ofEpochSecond(1000L))))
+      // let's update other session
+      await(repository.extendSession(testEncryptedSession.copy(internalId = "test-internal-id-other")))
+      val resultOne = repository.get(testEncryptedSession.sessionId, testEncryptedSession.internalId)
+      resultOne.futureValue.get.lastUpdated should be(Instant.ofEpochSecond(1000L))
+    }
+
     "set some data" in {
       val result = repository.set(testEncryptedSession)
       result.futureValue.wasAcknowledged() shouldBe true

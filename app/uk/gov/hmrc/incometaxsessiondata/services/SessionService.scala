@@ -34,10 +34,20 @@ class SessionService @Inject() (
     extends Logging {
 
   def get(request: SessionDataRequest[_]): Future[Option[Session]] =
-    repository.get(request.sessionId, request.internalId) map {
-      case Some(data: EncryptedSession) =>
-        Some(EncryptedSession.unapply(data, config))
-      case None                         => None
+    for {
+      sessionMaybe <- repository.get(request.sessionId, request.internalId)
+      _            <- Future {
+        sessionMaybe.map { session =>
+          // Extend existing session
+          repository.extendSession {
+            session
+          }
+        }
+      }
+    } yield sessionMaybe match {
+      case Some(session: EncryptedSession) =>
+        Some(EncryptedSession.unapply(session, config))
+      case None                            => None
     }
 
   def set(session: Session): Future[Either[Throwable, Boolean]] =
