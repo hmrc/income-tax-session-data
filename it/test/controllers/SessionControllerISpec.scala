@@ -108,11 +108,12 @@ class SessionControllerISpec
         )
 
         sessionService.get(testDefaultRequest).futureValue match {
-          case Some(value) =>
-            value.sessionId shouldBe testDefaultRequest.sessionId
-            value.mtditid shouldBe testValidRequest.mtditid
-            value.utr shouldBe testValidRequest.utr
-            value.nino shouldBe testValidRequest.nino
+          case Some(session) =>
+            session.sessionId shouldBe testDefaultRequest.sessionId
+            session.mtditid shouldBe testValidRequest.mtditid
+            session.utr shouldBe testValidRequest.utr
+            session.nino shouldBe testValidRequest.nino
+            // TODO: timestamp check to be added after refactoring as we need extra field => MISUV-8389
           case None => fail("failed because result was None")
         }
       }
