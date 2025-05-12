@@ -59,7 +59,12 @@ class SessionDataRepositoryISpec extends AnyWordSpec
     internalId = "test-internal-id"
   )
 
-  "Session Data Repository get method" should {
+  "Session Data Repository methods" should {
+    "extend session" in {
+      val result = repository.extendSession(testEncryptedSession)
+      result.futureValue.wasAcknowledged() shouldBe true
+    }
+
     "set some data" in {
       val result = repository.set(testEncryptedSession)
       result.futureValue.wasAcknowledged() shouldBe true
