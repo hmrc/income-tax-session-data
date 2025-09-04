@@ -26,7 +26,7 @@ import play.api.mvc.Results.{Conflict, Forbidden, InternalServerError, Ok}
 import play.api.mvc.{ControllerComponents, Result}
 import play.api.test.Helpers._
 import uk.gov.hmrc.incometaxsessiondata.auth.HeaderExtractor
-import uk.gov.hmrc.incometaxsessiondata.models.{Session, SessionData}
+import uk.gov.hmrc.incometaxsessiondata.models.Session
 import uk.gov.hmrc.incometaxsessiondata.predicates.AuthenticationPredicate
 
 import scala.concurrent.Future
@@ -38,13 +38,6 @@ class SessionControllerSpec extends MockMicroserviceAuthConnector with MockSessi
   val authPredicate                    = new AuthenticationPredicate(mockMicroserviceAuthConnector, cc, appConfig, headerExtractor)
 
   object testSessionController extends SessionController(cc, authPredicate, mockSessionService)
-
-  val testSessionData: SessionData = SessionData(
-    sessionId = "session-123",
-    mtditid = "id-123",
-    nino = "nino-123",
-    utr = "utr-123"
-  )
 
   val testSession: Session = Session(
     sessionId = "session-123",
@@ -101,7 +94,7 @@ class SessionControllerSpec extends MockMicroserviceAuthConnector with MockSessi
         setupMockHandleValidRequestFutureFailed()
 
         val result: Future[Result] = testSessionController.set()(
-          fakeRequestWithActiveSession.withJsonBody(Json.toJson[SessionData](testSessionData))
+          fakeRequestWithActiveSession.withJsonBody(Json.toJson[Session](testSession))
         )
         status(result) shouldBe INTERNAL_SERVER_ERROR
       }
@@ -114,7 +107,7 @@ class SessionControllerSpec extends MockMicroserviceAuthConnector with MockSessi
         setupMockHandleValidRequest(Ok("test 123"))
 
         val result: Future[Result] = testSessionController.set()(
-          fakeRequestWithActiveSession.withJsonBody(Json.toJson[SessionData](testSessionData))
+          fakeRequestWithActiveSession.withJsonBody(Json.toJson[Session](testSession))
         )
         status(result) shouldBe OK
       }
@@ -122,7 +115,7 @@ class SessionControllerSpec extends MockMicroserviceAuthConnector with MockSessi
         setupMockHandleValidRequest(Forbidden("test 123"))
 
         val result: Future[Result] = testSessionController.set()(
-          fakeRequestWithActiveSession.withJsonBody(Json.toJson[SessionData](testSessionData))
+          fakeRequestWithActiveSession.withJsonBody(Json.toJson[Session](testSession))
         )
         status(result) shouldBe FORBIDDEN
       }
@@ -130,7 +123,7 @@ class SessionControllerSpec extends MockMicroserviceAuthConnector with MockSessi
         setupMockHandleValidRequest(Conflict("test 123"))
 
         val result: Future[Result] = testSessionController.set()(
-          fakeRequestWithActiveSession.withJsonBody(Json.toJson[SessionData](testSessionData))
+          fakeRequestWithActiveSession.withJsonBody(Json.toJson[Session](testSession))
         )
         status(result) shouldBe CONFLICT
       }
@@ -138,7 +131,7 @@ class SessionControllerSpec extends MockMicroserviceAuthConnector with MockSessi
         setupMockHandleValidRequest(InternalServerError("test 123"))
 
         val result: Future[Result] = testSessionController.set()(
-          fakeRequestWithActiveSession.withJsonBody(Json.toJson[SessionData](testSessionData))
+          fakeRequestWithActiveSession.withJsonBody(Json.toJson[Session](testSession))
         )
         status(result) shouldBe INTERNAL_SERVER_ERROR
       }
