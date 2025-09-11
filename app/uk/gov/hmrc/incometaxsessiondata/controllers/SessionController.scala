@@ -19,7 +19,7 @@ package uk.gov.hmrc.incometaxsessiondata.controllers
 import play.api.Logging
 import play.api.libs.json.{JsError, JsSuccess, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.incometaxsessiondata.models.{Session, SessionData}
+import uk.gov.hmrc.incometaxsessiondata.models.Session
 import uk.gov.hmrc.incometaxsessiondata.predicates.AuthenticationPredicate
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -41,7 +41,7 @@ class SessionController @Inject() (
     sessionService.get(request) map {
       case Some(session: Session) =>
         logger.info(s"[SessionController][get]: Successfully retrieved session data. SessionId: ${session.sessionId}")
-        Ok(Json.toJson(SessionData.fromSession(session)))
+        Ok(Json.toJson(session))
       case None                   =>
         logger.info(s"[SessionController][get]: No live session")
         NotFound("No session data found")

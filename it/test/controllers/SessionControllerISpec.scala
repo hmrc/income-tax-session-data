@@ -28,7 +28,7 @@ import play.api.libs.ws.WSResponse
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import testConstants.BaseTestConstants.testValidRequest
 import testConstants.IntegrationTestConstants.{itTestSessionId, testDefaultRequest, testDefaultSession}
-import uk.gov.hmrc.incometaxsessiondata.models.{Session, SessionData}
+import uk.gov.hmrc.incometaxsessiondata.models.Session
 import uk.gov.hmrc.incometaxsessiondata.services.SessionService
 
 class SessionControllerISpec
@@ -123,7 +123,7 @@ class SessionControllerISpec
       "not data found" in {
         UserDetailsStub.stubGetUserDetails( isAgent = false)
         AuthStub.stubAuthorised(asAgent = false)
-        val result = post("/")(Json.toJson[SessionData](testSession))
+        val result = post("/")(Json.toJson[Session](testSession))
         result should have(httpStatus(OK))
 
         sessionService.get(testDefaultRequest).futureValue shouldBe Some(Session("id-123", "nino-123", "utr-123", "123", "xsession-12345"))

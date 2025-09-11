@@ -18,7 +18,7 @@ package testConstants
 
 import play.api.test.FakeRequest
 import uk.gov.hmrc.crypto.{Decrypter, Encrypter, SymmetricCryptoFactory}
-import uk.gov.hmrc.incometaxsessiondata.models.{Session, SessionData, SessionDataRequest}
+import uk.gov.hmrc.incometaxsessiondata.models.{Session, SessionDataRequest}
 
 import java.time.Instant
 
@@ -61,13 +61,6 @@ object IntegrationTestConstants {
     nino = "nino-123",
     utr = "utr-123",
     internalId = defaultRequestInternalIdAlternative
-  )
-
-  val testSessionData: SessionData = SessionData(
-    sessionId = itTestSessionId,
-    mtditid = itTestMtditid,
-    nino = itTestNino,
-    utr = itTestUtr
   )
 
   val testValidRequest: Session = Session(
