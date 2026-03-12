@@ -1,11 +1,8 @@
-import play.core.PlayVersion
-import play.sbt.PlayImport._
-import sbt.Keys.libraryDependencies
-import sbt._
+import sbt.*
 
 object AppDependencies {
 
-  private val bootstrapVersion = "8.6.0"
+  private val bootstrapVersion = "10.7.0"
   private val hmrcMongoVersion = "2.6.0"
   private val catsVersion      = "2.8.0"
 

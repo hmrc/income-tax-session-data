@@ -16,6 +16,7 @@
 
 package controllers
 
+import helpers.AuthStub.stubAuthorised
 import helpers.{AuthStub, ComponentSpecBase, UserDetailsStub}
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.should.Matchers
@@ -86,6 +87,7 @@ class SessionControllerISpec
 
     "return Not Found" when {
       "there is no data in mongo with that id" in {
+        stubAuthorised(false)
         await(sessionService.set(testSession))
         val result = get("/")
         result should have(
