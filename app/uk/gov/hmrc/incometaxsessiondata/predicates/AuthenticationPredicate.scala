@@ -57,7 +57,7 @@ class AuthenticationPredicate @Inject() (
 
   override def invokeBlock[A](request: Request[A], f: SessionDataRequest[A] => Future[Result]): Future[Result] = {
     implicit val req: Request[A]   = request
-    implicit val hc: HeaderCarrier = headerExtractor.extractHeader(request, request.session)
+    implicit val hc: HeaderCarrier = headerExtractor.extractHeader(request)
 
     authorised()
       .retrieve(affinityGroup and internalId and confidenceLevel) {

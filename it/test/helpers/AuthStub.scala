@@ -48,12 +48,12 @@ object AuthStub extends ComponentSpecBase {
       else
         Json.toJson[Seq[Enrolment]](individualEnrolments)
     }
-   Json.obj(
-      "internalId" -> "123",
-      "affinityGroup" -> { if (asAgent) "Agent" else "Individual" },
-      "allEnrolments" -> json,
-      "confidenceLevel" -> { if (asAgent) 50 else 200 }
-    )
+     Json.obj(
+        "internalId" -> "123",
+        "affinityGroup" -> { if (asAgent) "Agent" else "Individual" },
+        "allEnrolments" -> json,
+        "confidenceLevel" -> { if (asAgent) 50 else 200 }
+      )
   }
 
   def stubAuthorised(asAgent: Boolean): Unit = {
