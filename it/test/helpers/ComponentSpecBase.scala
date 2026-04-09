@@ -17,6 +17,7 @@
 package helpers
 
 import auth.TestHeaderExtractor
+import org.mongodb.scala.SingleObservableFuture
 import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Filters.and
 import org.mongodb.scala.result.DeleteResult
@@ -27,7 +28,7 @@ import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.JsValue
-import play.api.libs.ws.WSResponse
+import play.api.libs.ws.{WSResponse, writeableOf_JsValue}
 import play.api.{Application, Environment, Mode}
 import uk.gov.hmrc.auth.core.AffinityGroup.{Agent, Individual}
 import uk.gov.hmrc.incometaxsessiondata.auth.HeaderExtractor

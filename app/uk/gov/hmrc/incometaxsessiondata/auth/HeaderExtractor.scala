@@ -29,7 +29,7 @@ trait HeaderExtractor {
     val authHeader = request.headers.get(HeaderNames.authorisation)
     HeaderCarrierConverter
       .fromRequest(request)
-      .copy(authorization = authHeader.map(Authorization))
+      .copy(authorization = authHeader.map(Authorization.apply))
   }
 
 }

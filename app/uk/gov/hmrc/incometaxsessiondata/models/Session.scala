@@ -16,8 +16,8 @@
 
 package uk.gov.hmrc.incometaxsessiondata.models
 
-import play.api.libs.functional.syntax.{toFunctionalBuilderOps, unlift}
-import play.api.libs.json._
+import play.api.libs.functional.syntax.toFunctionalBuilderOps
+import play.api.libs.json.*
 
 case class Session(
   mtditid: String,
@@ -49,5 +49,5 @@ object Session {
       ~ (__ \ "nino").format[String]
       ~ (__ \ "utr").format[String]
       ~ (__ \ "internalId").format[String]
-      ~ (__ \ "sessionId").format[String])(Session.apply, unlift(Session.unapply))
+      ~ (__ \ "sessionId").format[String])(Session.apply, session => Tuple.fromProductTyped(session))
 }

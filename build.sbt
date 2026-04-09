@@ -1,7 +1,7 @@
 import uk.gov.hmrc.DefaultBuildSettings
 
 ThisBuild / majorVersion := 0
-ThisBuild / scalaVersion := "2.13.12"
+ThisBuild / scalaVersion := "3.3.7"
 
 lazy val microservice = Project("income-tax-session-data", file("."))
   .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)
@@ -14,6 +14,7 @@ lazy val microservice = Project("income-tax-session-data", file("."))
   .settings(resolvers += Resolver.jcenterRepo)
   .settings(resolvers += MavenRepository("HMRC-open-artefacts-maven2", "https://open.artefacts.tax.service.gov.uk/maven2"))
   .settings(CodeCoverageSettings.settings: _*)
+  .settings(ThisBuild / scalacOptions += "-Wconf:msg=Flag.*repeatedly:s")
 
 lazy val it = project
   .enablePlugins(PlayScala)
