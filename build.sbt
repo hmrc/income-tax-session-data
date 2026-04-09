@@ -11,7 +11,6 @@ lazy val microservice = Project("income-tax-session-data", file("."))
     // suppress warnings in generated routes files
     scalacOptions += "-Wconf:src=routes/.*:s"
   )
-  .settings(resolvers += Resolver.jcenterRepo)
   .settings(resolvers += MavenRepository("HMRC-open-artefacts-maven2", "https://open.artefacts.tax.service.gov.uk/maven2"))
   .settings(CodeCoverageSettings.settings: _*)
   .settings(ThisBuild / scalacOptions += "-Wconf:msg=Flag.*repeatedly:s")
