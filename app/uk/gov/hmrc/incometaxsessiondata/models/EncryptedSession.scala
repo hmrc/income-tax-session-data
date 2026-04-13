@@ -17,8 +17,8 @@
 package uk.gov.hmrc.incometaxsessiondata.models
 
 import play.api.Configuration
-import play.api.libs.functional.syntax.{toFunctionalBuilderOps, unlift}
-import play.api.libs.json._
+import play.api.libs.functional.syntax.toFunctionalBuilderOps
+import play.api.libs.json.*
 import uk.gov.hmrc.crypto.{Crypted, PlainText, SymmetricCryptoFactory}
 import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 
@@ -71,6 +71,8 @@ object EncryptedSession {
       ~ (__ \ "utr").format[Crypted]
       ~ (__ \ "internalId").format[String]
       ~ (__ \ "sessionId").format[String]
-      ~ (__ \ "lastUpdated")
-        .format(MongoJavatimeFormats.instantFormat))(EncryptedSession.apply, unlift(EncryptedSession.unapply))
+      ~ (__ \ "lastUpdated").format(MongoJavatimeFormats.instantFormat))(
+      EncryptedSession.apply,
+      encryptedSession => Tuple.fromProductTyped(encryptedSession)
+    )
 }

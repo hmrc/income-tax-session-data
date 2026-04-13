@@ -17,9 +17,8 @@
 package helpers
 
 import play.api.http.Status
-import play.api.libs.json.{JsObject, Json}
-import play.api.libs.functional.syntax._
-import play.api.libs.json._
+import play.api.libs.functional.syntax.*
+import play.api.libs.json.*
 
 object AuthStub extends ComponentSpecBase {
 
@@ -28,13 +27,13 @@ object AuthStub extends ComponentSpecBase {
   implicit val kvPairWrites: Writes[KVPair] = (
     (JsPath \ "key").write[String] and
       (JsPath \ "value").write[String]
-    )(unlift(KVPair.unapply))
+    )(kvPair => Tuple.fromProductTyped(kvPair))
 
   implicit val enrolmentWrites: Writes[Enrolment] = (
     (JsPath \ "key").write[String] and
       (JsPath \ "identifiers").write[Seq[KVPair]] and
       (JsPath \ "state").write[String]
-    )(unlift(Enrolment.unapply))
+    )(enrolment => Tuple.fromProductTyped(enrolment))
 
   private def successfulAuthResponse(asAgent: Boolean): JsObject = {
     val agentEnrolments = Seq(Enrolment(key = "HMRC-AS-AGENT",
@@ -49,12 +48,12 @@ object AuthStub extends ComponentSpecBase {
       else
         Json.toJson[Seq[Enrolment]](individualEnrolments)
     }
-   Json.obj(
-      "internalId" -> "123",
-      "affinityGroup" -> { if (asAgent) "Agent" else "Individual" },
-      "allEnrolments" -> json,
-      "confidenceLevel" -> { if (asAgent) 50 else 200 }
-    )
+     Json.obj(
+        "internalId" -> "123",
+        "affinityGroup" -> { if (asAgent) "Agent" else "Individual" },
+        "allEnrolments" -> json,
+        "confidenceLevel" -> { if (asAgent) 50 else 200 }
+      )
   }
 
   def stubAuthorised(asAgent: Boolean): Unit = {

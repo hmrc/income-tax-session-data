@@ -27,6 +27,7 @@ import uk.gov.hmrc.auth.core.MissingBearerToken
 import uk.gov.hmrc.incometaxsessiondata.predicates.AuthenticationPredicate
 
 import scala.concurrent.Future
+import scala.reflect.Selectable.reflectiveSelectable
 
 class AuthenticationPredicateSpec extends MockMicroserviceAuthConnector {
 

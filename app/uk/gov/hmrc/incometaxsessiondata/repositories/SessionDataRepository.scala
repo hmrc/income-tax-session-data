@@ -18,8 +18,8 @@ package uk.gov.hmrc.incometaxsessiondata.repositories
 
 import com.google.inject.Singleton
 import org.mongodb.scala.bson.conversions.Bson
-import org.mongodb.scala.model.Filters._
-import org.mongodb.scala.model._
+import org.mongodb.scala.model.*
+import org.mongodb.scala.model.Filters.*
 import org.mongodb.scala.result
 import uk.gov.hmrc.incometaxsessiondata.config.AppConfig
 import uk.gov.hmrc.incometaxsessiondata.models.EncryptedSession
@@ -51,7 +51,7 @@ class SessionDataRepository @Inject() (
           Indexes.ascending("lastUpdated"),
           IndexOptions()
             .name("lastUpdatedIndex")
-            .expireAfter(config.cacheTtl, TimeUnit.SECONDS)
+            .expireAfter(config.cacheTtl.toLong, TimeUnit.SECONDS)
             .unique(false)
         )
       ),
